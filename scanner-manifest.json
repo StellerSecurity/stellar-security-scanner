@@ -1,0 +1,55 @@
+{
+  "caller_contract": "stellar-shared-main-v1",
+  "caller_workflow_sha256": {
+    "stellar-commit-guard.yml": "484b99b4b9bc4b08180690b0469c8f0d2e2af05b2e1a4ea3d7029698ccc8b27c",
+    "stellar-push-pushover.yml": "a10cfdb39b84a5020844d9a36383f09bae1d9d0ac1d1844973b6b6599f372577",
+    "stellar-scan-pushover.yml": "82a0f6dafe67723f4c703ef9b07962be0eaa15e14559321e77e69f0ceda78900",
+    "stellar-source-guard.yml": "936eb2023cdd90ead8c396fde8ac031c7afa76b6010004c16bf6220fbc7a285a"
+  },
+  "collector_is_separate_private_or_local_code": true,
+  "dependency_worker_version": "1.2.0",
+  "exported_module_sha256": {
+    "scanner/content_guard.py": "9ecdc6cb7cebfb3562773299fe8333ab637a9babf7441346c517329cd7dcb5bb",
+    "scanner/dependency_worker.py": "abd64be0249f74a834a92f83f7deb5d97ea79750451d87c7d165c6429bda64df",
+    "scanner/legacy_worker.py": "5ceaa6f017f8a3570f88094f2ef46ced7d914e7e3e5b927f6cbccbf8dbb7be9e",
+    "scanner/malware_advisories.py": "c6bdf98479a5aea3a66bf01b6f473f1d6961dd04230da29890e7cf24061c70a9",
+    "scanner/manifest_bridge.py": "c3867de72a672f3a6a55d73fad09d390e67361dc429b49de67461b4fb9dc4da7",
+    "scanner/package_acquisition.py": "7aae677fec4791674c547329a35ea4d30e7e1d7bc3bf72983893e309e610031f",
+    "scanner/package_guard.py": "298ea8dcdeeffc4447861b8093dd3d883481f8837b26d44ecbaf10a02f485fce",
+    "scanner/pushover_notify.py": "3ca5e64270e80c5f14135a2bccfec2f0db3cbaa6b981f909abe7e6b330f8e80c",
+    "scanner/source_guard.py": "d44f5fcf1f70c2239cb60352b43d29691dab865fb25ea9eaf6f7f9afa80375b4",
+    "scanner/source_guard_v2.py": "bf8f1ae7afe74df2ba7db41c2304b6ff499a02026a55c98333d0594338986908"
+  },
+  "module_sha256": {
+    "content_guard.py": "9ecdc6cb7cebfb3562773299fe8333ab637a9babf7441346c517329cd7dcb5bb",
+    "dependency_worker.py": "abd64be0249f74a834a92f83f7deb5d97ea79750451d87c7d165c6429bda64df",
+    "legacy_worker.py": "5ceaa6f017f8a3570f88094f2ef46ced7d914e7e3e5b927f6cbccbf8dbb7be9e",
+    "malware_advisories.py": "c6bdf98479a5aea3a66bf01b6f473f1d6961dd04230da29890e7cf24061c70a9",
+    "manifest_bridge.py": "c3867de72a672f3a6a55d73fad09d390e67361dc429b49de67461b4fb9dc4da7",
+    "package_acquisition.py": "7aae677fec4791674c547329a35ea4d30e7e1d7bc3bf72983893e309e610031f",
+    "package_guard.py": "298ea8dcdeeffc4447861b8093dd3d883481f8837b26d44ecbaf10a02f485fce",
+    "pushover_notify.py": "3ca5e64270e80c5f14135a2bccfec2f0db3cbaa6b981f909abe7e6b330f8e80c",
+    "source_guard_v2.py": "bf8f1ae7afe74df2ba7db41c2304b6ff499a02026a55c98333d0594338986908"
+  },
+  "notifier_sha256": "3ca5e64270e80c5f14135a2bccfec2f0db3cbaa6b981f909abe7e6b330f8e80c",
+  "proof_schema": 1,
+  "public_code_can_write_repository_contents": false,
+  "scanner_version": "source-guard-2.1.0_commit-guard-1.1.0_package-content-1.2.0_release-20260916",
+  "schema": 1,
+  "shared_owner_id": 142119599,
+  "shared_ref": "main",
+  "shared_repository": "StellerSecurity/stellar-security-scanner",
+  "shared_repository_id": 1373179902,
+  "source_engine_sha256": "d44f5fcf1f70c2239cb60352b43d29691dab865fb25ea9eaf6f7f9afa80375b4",
+  "source_guard_version": "2.1.0",
+  "source_worker_version": "1.1.0",
+  "source_workflow_sha256": "ca377351a0043654b8eb3cff792ac2e339f421e932ccb9b70a19de151de3efc0",
+  "workflow_path": ".github/workflows/commit-check.yml",
+  "workflow_sha256": "457d72be7aeec4f2ac456f52b1e7d5a97d32328411324a414adef5a4d02a9d4c",
+  "workflow_sha256_by_path": {
+    ".github/workflows/commit-check.yml": "457d72be7aeec4f2ac456f52b1e7d5a97d32328411324a414adef5a4d02a9d4c",
+    ".github/workflows/push-notify.yml": "eee3a04608aed77fc6376db5f0e7dba2a2954040edfda9cac16d9b0f07e9d39c",
+    ".github/workflows/scan-notify.yml": "1e2a4c5ac15fc124dfc0626bc7017eefcebe699a7700249e934cf0dc931d869e",
+    ".github/workflows/source-check.yml": "ca377351a0043654b8eb3cff792ac2e339f421e932ccb9b70a19de151de3efc0"
+  }
+}
