@@ -48,7 +48,7 @@
   "workflow_sha256": "457d72be7aeec4f2ac456f52b1e7d5a97d32328411324a414adef5a4d02a9d4c",
   "workflow_sha256_by_path": {
     ".github/workflows/commit-check.yml": "457d72be7aeec4f2ac456f52b1e7d5a97d32328411324a414adef5a4d02a9d4c",
-    ".github/workflows/push-notify.yml": "eee3a04608aed77fc6376db5f0e7dba2a2954040edfda9cac16d9b0f07e9d39c",
+    ".github/workflows/push-notify.yml": "977a13212f2ee9645935238422cc3fd0ac83a8b29abc7b3ecc0786fa0b940597",
     ".github/workflows/scan-notify.yml": "1e2a4c5ac15fc124dfc0626bc7017eefcebe699a7700249e934cf0dc931d869e",
     ".github/workflows/source-check.yml": "ca377351a0043654b8eb3cff792ac2e339f421e932ccb9b70a19de151de3efc0"
   }
