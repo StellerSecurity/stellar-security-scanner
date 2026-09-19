@@ -1,0 +1,62 @@
+name: Markdown policy
+
+on:
+  push:
+  pull_request:
+  merge_group:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  no-markdown:
+    name: No Markdown files
+    if: github.event.deleted != true
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Inspect tracked filenames without checking out code
+        shell: bash
+        env:
+          TOKEN: ${{ github.token }}
+          TARGET_SHA: ${{ github.sha }}
+          GIT_CONFIG_NOSYSTEM: "1"
+          GIT_CONFIG_GLOBAL: /dev/null
+          GIT_TERMINAL_PROMPT: "0"
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_REPOSITORY" =~ ^StellerSecurity/[A-Za-z0-9_.-]+$ ]]
+          [[ "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]]
+
+          scratch="$(mktemp -d "$RUNNER_TEMP/no-markdown.XXXXXX")"
+          trap 'rm -rf -- "$scratch"' EXIT
+          git init --bare --template= "$scratch/repo.git" >/dev/null
+
+          auth="$(printf 'x-access-token:%s' "$TOKEN" | base64 -w0)"
+          printf '::add-mask::%s\n' "$auth"
+          GIT_CONFIG_COUNT=1 \
+          GIT_CONFIG_KEY_0=http.https://github.com/.extraheader \
+          GIT_CONFIG_VALUE_0="AUTHORIZATION: basic $auth" \
+            git --git-dir="$scratch/repo.git" fetch \
+              --quiet --no-tags --depth=1 --filter=blob:none \
+              "https://github.com/$GITHUB_REPOSITORY.git" "$TARGET_SHA"
+          unset auth TOKEN
+
+          git --git-dir="$scratch/repo.git" ls-tree \
+            -r -z --name-only "$TARGET_SHA" > "$scratch/paths"
+
+          failed=0
+          while IFS= read -r -d '' path; do
+            case "$path" in
+              *.[mM][dD])
+                printf 'Disallowed tracked file: %q\n' "$path"
+                failed=1
+                ;;
+            esac
+          done < "$scratch/paths"
+
+          if (( failed )); then
+            echo "::error::Markdown files must remain local and untracked."
+            exit 1
+          fi
