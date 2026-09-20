@@ -60,6 +60,9 @@ jobs:
           import urllib.parse
           
           SCANNER_NAME = 'Repository source guard'
+          # GitHub prefixes native job names with the reusable-workflow caller job name.
+          # Report check names remain bare; arbitrary prefixes are never trusted.
+          NATIVE_SCANNER_NAMES = frozenset((SCANNER_NAME, 'Source scan / Repository source guard'))
           SCANNER_PATH = '.github/workflows/stellar-source-guard.yml'
           HOST = 'api.pushover.net'
           ENDPOINT = '/1/messages.json'
@@ -181,7 +184,7 @@ jobs:
                           break
                       if page == 3:
                           raise NotificationError('The check history exceeds the safe matching limit.')
-              checks = [c for c in all_checks.values() if c.get('name') == SCANNER_NAME
+              checks = [c for c in all_checks.values() if c.get('name') in NATIVE_SCANNER_NAMES
                         and c.get('app', {}).get('id') == 15368]
           
               def times(check):
@@ -205,6 +208,8 @@ jobs:
                       raise NotificationError('Overlapping scan jobs prevent an unambiguous report match.')
               reports = []
               for check in checks:
+                  if check.get('name') != SCANNER_NAME:
+                      continue
                   summary = check.get('output', {}).get('summary') or ''
                   if not summary.startswith('# Repository source guard\n') or check.get('status') != 'completed':
                       continue
