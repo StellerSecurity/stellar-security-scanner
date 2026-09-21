@@ -321,9 +321,13 @@ def public_fetch(url, max_bytes):
                urllib.request.HTTPSHandler(context=ssl.create_default_context()))
     start, current = time.monotonic(), url
     for attempt in range(2):
+        # GitHub's zipball REST endpoint returns a redirect but still expects
+        # its API media type. octet-stream is only for the archive host itself.
+        accept = ('application/vnd.github+json' if urllib.parse.urlsplit(current).hostname == 'api.github.com'
+                  else 'application/json' if kind.endswith('metadata') else 'application/octet-stream')
         request = urllib.request.Request(current, method='GET', headers={
             'User-Agent': 'StellarPackageDataReview/1.0', 'Accept-Encoding': 'identity',
-            'Accept': 'application/json' if kind.endswith('metadata') else 'application/octet-stream'})
+            'Accept': accept})
         try:
             response = opener.open(request, timeout=LIMITS['socket_seconds'])
         except urllib.error.HTTPError as exc:
