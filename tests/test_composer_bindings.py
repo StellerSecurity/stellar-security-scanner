@@ -43,6 +43,33 @@ class ComposerBindings(unittest.TestCase):
             acquisition.acquire(plan,fetch=fetch)
         self.assertEqual(len(calls),2)
 
+    def test_github_archive_redirect_media_types(self):
+        ref='a'*40
+        url='https://api.github.com/repos/test/provider/zipball/'+ref
+        target='https://codeload.github.com/test/provider/legacy.zip/'+ref
+        requests=[]
+        class Response:
+            status=200
+            headers={}
+            def geturl(self): return target
+            def __enter__(self): return self
+            def __exit__(self,*args): pass
+            def read(self,*args):
+                if len(requests)==2:
+                    requests.append(None)
+                    return b'archive'
+                return b''
+        def open_request(request,timeout):
+            requests.append(request)
+            if len(requests)==1:
+                raise urllib.error.HTTPError(url,302,'redirect',{'Location':target},io.BytesIO())
+            return Response()
+        with patch.object(acquisition.urllib.request,'build_opener') as opener:
+            opener.return_value.open.side_effect=open_request
+            self.assertEqual(acquisition.public_fetch(url,1024),b'archive')
+        self.assertEqual(requests[0].get_header('Accept'),'application/vnd.github+json')
+        self.assertEqual(requests[1].get_header('Accept'),'application/octet-stream')
+
     def test_http_status_without_sensitive_data(self):
         for status in (403,404,429,500):
             error=urllib.error.HTTPError('https://example.invalid/secret',status,'secret',{},io.BytesIO(b'private response'))
