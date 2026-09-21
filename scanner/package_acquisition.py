@@ -179,7 +179,12 @@ def _composer_row(row):
     checksum = dist.get('shasum') or ''
     if not isinstance(checksum, str) or checksum and not re.fullmatch(SHA, checksum):
         _fail('invalid-composer-checksum')
+    bindings = {field: row.get(field, {}) for field in ('provide', 'replace')}
+    if any(not isinstance(value, dict) or any(not isinstance(k, str) or not isinstance(v, str)
+           for k, v in value.items()) for value in bindings.values()):
+        _fail('invalid-composer-virtual-bindings')
     return {'ecosystem': 'composer', 'name': name, 'version': version, 'url': dist['url'],
+            'virtual_bindings': bindings,
             'integrity': 'sha1-' + checksum if checksum else None, 'reference': ref,
             'repository': source_repo, 'source_url': source['url']}
 
@@ -326,7 +331,9 @@ def public_fetch(url, max_bytes):
             code = exc.code
             exc.close()
             if attempt or code not in (301, 302, 303, 307, 308) or kind != 'composer-archive' or not location:
-                _fail('package-request-rejected')
+                # Fixed numeric status only: never expose URL, headers or body.
+                _fail('package-request-rejected-http-' + str(code) if type(code) is int
+                      and 100 <= code <= 599 else 'package-request-rejected')
             original = urllib.parse.urlsplit(current)
             destination = _url(location)
             if (original.hostname not in ('api.github.com', 'github.com')
@@ -561,6 +568,8 @@ def acquire(package, *, fetch=None):
             _fail('composer-registry-provenance-mismatch')
         row = published['versions'].get(validated['version'])
         published_row = _composer_row(row)
+        if package.get('virtual_bindings') != published_row['virtual_bindings']:
+            _fail('composer-virtual-binding-provenance-mismatch')
         if any(published_row.get(key) != validated.get(key) for key in ('name', 'version', 'reference')):
             _fail('composer-registry-provenance-mismatch')
         if published_row['repository'].lower() != validated['repository'].lower() or _github_archive(published_row['url']) != _github_archive(validated['url']):

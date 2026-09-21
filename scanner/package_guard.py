@@ -232,11 +232,48 @@ def check_npm_graph(path, manifest, lock, gap):
                     gap(path, "npm-transitive-dependency-edge-not-locked")
 
 
+def composer_exact_version(value):
+    if not isinstance(value, str) or not re.fullmatch(r"v?[0-9]+\.[0-9]+\.[0-9]+", value):
+        return None
+    return tuple(map(int, value.lstrip('v').split('.')))
+
+
+def composer_binding_matches(version, requirement):
+    """Conservative subset: stable exact versions and positive-major caret ORs.
+
+    Unsupported ranges remain incomplete, never silently accepted.
+    """
+    actual = composer_exact_version(version)
+    if actual is None or not isinstance(requirement, str):
+        return False
+    for clause in re.split(r'\|\|?', requirement):
+        clause = clause.strip()
+        exact = composer_exact_version(clause)
+        if exact is not None and actual == exact:
+            return True
+        match = re.fullmatch(r'\^([1-9][0-9]*)\.([0-9]+)(?:\.([0-9]+))?', clause)
+        if match:
+            lower = tuple(int(x or 0) for x in match.groups())
+            if lower <= actual < (lower[0] + 1, 0, 0):
+                return True
+    return False
+
+
 def check_composer_graph(path, manifest, lock, gap):
     rows = lock.get("packages", []) + lock.get("packages-dev", [])
     if not all(isinstance(row, dict) for row in rows):
         raise Incomplete("invalid-composer-package-list")
     names = {row.get("name") for row in rows if isinstance(row.get("name"), str)}
+    bindings = {}
+    for row in rows:
+        for field in ('provide', 'replace'):
+            aliases = row.get(field, {})
+            if not isinstance(aliases, dict):
+                raise Incomplete('invalid-composer-virtual-bindings')
+            for name, constraint in aliases.items():
+                version = row.get('version') if constraint == 'self.version' else constraint
+                if composer_exact_version(version) is not None:
+                    bindings.setdefault(name, []).append(version)
     declarations = [(manifest, ("require", "require-dev"))] + [(row, ("require",)) for row in rows]
     for declaration, fields in declarations:
         for field in fields:
@@ -245,9 +282,11 @@ def check_composer_graph(path, manifest, lock, gap):
                 raise Incomplete("invalid-composer-dependency-edges")
             for name in requirements:
                 if "/" in name and name not in names:
-                    # Composer provide/replace can satisfy virtual packages, but
-                    # trusting arbitrary aliases needs a separate reviewed resolver.
-                    gap(path, "composer-required-package-or-virtual-binding-not-locked")
+                    # Every provider remains in acquisition/content inspection.
+                    # Acquisition independently binds aliases to registry metadata.
+                    if not any(composer_binding_matches(v, requirements[name])
+                               for v in bindings.get(name, [])):
+                        gap(path, "composer-required-package-or-virtual-binding-not-locked")
 
 
 def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, manifests_input=None, advisories=None, advisory_request=None):

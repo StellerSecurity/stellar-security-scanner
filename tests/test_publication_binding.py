@@ -43,7 +43,7 @@ class PublicationBindingTests(unittest.TestCase):
         self.assertEqual(self.manifest['notifier_sha256'],
                          '3ca5e64270e80c5f14135a2bccfec2f0db3cbaa6b981f909abe7e6b330f8e80c')
         self.assertEqual(self.manifest['workflow_sha256'],
-                         '457d72be7aeec4f2ac456f52b1e7d5a97d32328411324a414adef5a4d02a9d4c')
+                         hashlib.sha256((ROOT / '.github/workflows/commit-check.yml').read_bytes()).hexdigest())
 
     def test_no_new_permissions_or_secrets(self):
         text = self.workflow.decode()

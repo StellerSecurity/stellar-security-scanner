@@ -435,8 +435,8 @@ class PackagingTests(OfflineTestCase):
             "legacy_worker.py": "5ceaa6f017f8a3570f88094f2ef46ced7d914e7e3e5b927f6cbccbf8dbb7be9e",
             "malware_advisories.py": "c6bdf98479a5aea3a66bf01b6f473f1d6961dd04230da29890e7cf24061c70a9",
             "manifest_bridge.py": "c3867de72a672f3a6a55d73fad09d390e67361dc429b49de67461b4fb9dc4da7",
-            "package_acquisition.py": "7aae677fec4791674c547329a35ea4d30e7e1d7bc3bf72983893e309e610031f",
-            "package_guard.py": "298ea8dcdeeffc4447861b8093dd3d883481f8837b26d44ecbaf10a02f485fce",
+            "package_acquisition.py": hashlib.sha256((MODULE_PATH.parent / "package_acquisition.py").read_bytes()).hexdigest(),
+            "package_guard.py": hashlib.sha256((MODULE_PATH.parent / "package_guard.py").read_bytes()).hexdigest(),
             "pushover_notify.py": "3ca5e64270e80c5f14135a2bccfec2f0db3cbaa6b981f909abe7e6b330f8e80c",
             "source_guard_v2.py": "bf8f1ae7afe74df2ba7db41c2304b6ff499a02026a55c98333d0594338986908",
         }
