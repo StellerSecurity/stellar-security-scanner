@@ -200,6 +200,12 @@ def strict_json(raw):
     return value
 
 
+def npm_optional_peer(row, name):
+    metadata = row.get("peerDependenciesMeta", {})
+    entry = metadata.get(name) if isinstance(metadata, dict) else None
+    return isinstance(entry, dict) and entry.get("optional") is True
+
+
 def check_npm_graph(path, manifest, lock, gap):
     packages = lock.get("packages")
     fields = ("dependencies", "devDependencies", "optionalDependencies", "peerDependencies")
@@ -211,6 +217,8 @@ def check_npm_graph(path, manifest, lock, gap):
         if not isinstance(declaration, dict):
             raise Incomplete("invalid-dependency-declaration")
         for name in declaration:
+            if field == "peerDependencies" and npm_optional_peer(manifest, name):
+                continue
             if not isinstance(packages.get("node_modules/" + name), dict):
                 gap(path, "npm-declared-direct-package-not-locked")
     for package_path, row in packages.items():
@@ -221,6 +229,11 @@ def check_npm_graph(path, manifest, lock, gap):
             if not isinstance(declared, dict):
                 raise Incomplete("invalid-lock-dependency-edges")
             for name in declared:
+                # npm does not install absent optional peers. Present packages
+                # remain in the inventory; acquisition verifies this declaration
+                # against metadata for the exact published parent version.
+                if field == "peerDependencies" and npm_optional_peer(row, name):
+                    continue
                 # Resolve the lockfile's nested node_modules ancestry as data.
                 candidates = [package_path + "/node_modules/" + name]
                 ancestor = package_path
