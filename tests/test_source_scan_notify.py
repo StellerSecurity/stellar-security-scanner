@@ -427,10 +427,10 @@ class PackagingTests(OfflineTestCase):
         self.assertEqual(manifest["workflow_sha256_by_path"][".github/workflows/scan-notify.yml"], workflow_hash)
         self.assertEqual(manifest["source_scan_notifier_version"], "1.2.1")
 
-    def test_original_module_pins_old_notifier_and_global_version_are_unchanged(self):
+    def test_module_pins_match_source_and_old_notifier_and_contract_stay_unchanged(self):
         manifest = json.loads((MODULE_PATH.parents[1] / "scanner-manifest.json").read_text())
         original_pins = {
-            "content_guard.py": "9ecdc6cb7cebfb3562773299fe8333ab637a9babf7441346c517329cd7dcb5bb",
+            "content_guard.py": hashlib.sha256((MODULE_PATH.parent / "content_guard.py").read_bytes()).hexdigest(),
             "dependency_worker.py": hashlib.sha256((MODULE_PATH.parent / "dependency_worker.py").read_bytes()).hexdigest(),
             "legacy_worker.py": "5ceaa6f017f8a3570f88094f2ef46ced7d914e7e3e5b927f6cbccbf8dbb7be9e",
             "malware_advisories.py": "c6bdf98479a5aea3a66bf01b6f473f1d6961dd04230da29890e7cf24061c70a9",

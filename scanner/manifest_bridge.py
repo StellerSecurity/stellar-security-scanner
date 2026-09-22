@@ -407,6 +407,24 @@ def validate_report(report, bundle, pins, manifest_sha):
                 or not isinstance(finding.get('rule'), str) or type(finding.get('malware')) is not bool
                 or finding.get('severity') not in ('warning', 'error', 'review', 'info')):
             raise BridgeError('package-finding-invalid')
+    counts = report.get('finding_counts')
+    if any(key in report for key in ('finding_counts', 'omitted_warning_findings', 'omitted_blocking_findings')):
+        if (not isinstance(counts, dict) or set(counts) - {'warning', 'info', 'error', 'review'}
+                or any(type(n) is not int or n < 0 for n in counts.values())):
+            raise BridgeError('package-finding-summary-invalid')
+        omitted = [report.get('omitted_warning_findings'), report.get('omitted_blocking_findings')]
+        retained_warnings = sum(f['severity'] in ('warning', 'info') for f in report['findings'])
+        retained_blockers = len(report['findings']) - retained_warnings
+        if (any(type(n) is not int or n < 0 for n in omitted)
+                or sum(counts.values()) != len(report['findings']) + sum(omitted)
+                or counts.get('warning', 0) + counts.get('info', 0) != retained_warnings + omitted[0]
+                or counts.get('error', 0) + counts.get('review', 0) != retained_blockers + omitted[1]
+                or any(sum(f['severity'] == level for f in report['findings']) > count
+                       for level, count in counts.items())
+                or any(f['severity'] not in counts for f in report['findings'])):
+            raise BridgeError('package-finding-summary-mismatch')
+        if omitted[1] and not any(isinstance(g, dict) and g.get('reason') == 'blocking-finding-report-limit' for g in report['gaps']):
+            raise BridgeError('omitted-blocking-finding-without-gap')
     identities = set()
     for package in report['packages']:
         if not isinstance(package, dict) or package.get('status') not in ('passed', 'blocked', 'incomplete'):
@@ -450,7 +468,8 @@ def validate_report(report, bundle, pins, manifest_sha):
         raise BridgeError('passed-advisory-evidence-incomplete')
     incomplete = bool(bundle['gaps'] or report['gaps'] or not report['dependency_inventory_complete']
                       or any(p['status'] == 'incomplete' for p in report['packages']))
-    blocking = any(f['severity'] in ('error', 'review') or f['malware'] for f in report['findings'])
+    blocking = (any(f['severity'] in ('error', 'review') or f['malware'] for f in report['findings'])
+                or bool(counts and (counts.get('error', 0) or counts.get('review', 0))))
     if report['status'] == 'passed' and (incomplete or blocking or any(p['status'] != 'passed' for p in report['packages'])):
         raise BridgeError('package-passed-contradicts-evidence')
     if bundle['gaps'] and not report['gaps']:

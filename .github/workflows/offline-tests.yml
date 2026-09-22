@@ -1,0 +1,38 @@
+name: Offline scanner tests
+
+on:
+  push:
+  pull_request:
+  merge_group:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  tests:
+    name: First-party scanner regressions
+    if: github.event.deleted != true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Read public scanner revision and run standard-library tests
+        shell: bash
+        env:
+          TARGET_SHA: ${{ github.sha }}
+          GIT_CONFIG_NOSYSTEM: "1"
+          GIT_CONFIG_GLOBAL: /dev/null
+          GIT_TERMINAL_PROMPT: "0"
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_REPOSITORY" == "StellerSecurity/stellar-security-scanner" ]]
+          [[ "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]]
+          scratch="$(mktemp -d "$RUNNER_TEMP/scanner-tests.XXXXXX")"
+          trap 'rm -rf -- "$scratch"' EXIT
+          git init --template= "$scratch/repo" >/dev/null
+          cd "$scratch/repo"
+          git -c credential.helper= -c core.hooksPath=/dev/null fetch \
+            --quiet --no-tags --depth=1 \
+            "https://github.com/$GITHUB_REPOSITORY.git" "$TARGET_SHA"
+          git -c core.hooksPath=/dev/null checkout --quiet --detach "$TARGET_SHA"
+          python3 -B -m unittest discover -s tests -v

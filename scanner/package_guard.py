@@ -4,6 +4,10 @@ Only the reviewed acquisition adapter contacts public registries. This wrapper
 never installs, extracts, imports or executes acquired package bytes.
 """
 import argparse
+from collections import deque
+from concurrent.futures import ThreadPoolExecutor
+from contextlib import closing
+import threading
 import base64
 import hashlib
 import json
@@ -19,7 +23,7 @@ import unicodedata
 
 LIMITS = {"files": 200000, "depth": 128, "lock_bytes": 16 * 1024 * 1024,
           "packages": 10000, "download_bytes": 1024 * 1024 * 1024,
-          "requests": 20000, "seconds": 600, "gaps": 1000,
+          "requests": 20000, "seconds": 900, "gaps": 1000,
           "manifest_bytes": 64 * 1024 * 1024, "manifest_files": 1000,
           "manifest_bundle_bytes": 96 * 1024 * 1024}
 LOCKS = {"package-lock.json", "npm-shrinkwrap.json", "composer.lock"}
@@ -302,6 +306,28 @@ def check_composer_graph(path, manifest, lock, gap):
                         gap(path, "composer-required-package-or-virtual-binding-not-locked")
 
 
+def prefetch_packages(plans, acquire, workers=4):
+    """Bounded read-only downloads; consume results in deterministic lock order."""
+    pool = ThreadPoolExecutor(max_workers=workers, thread_name_prefix='package-data')
+    entries = iter(enumerate(plans.values()))
+    pending = deque()
+    def schedule():
+        entry = next(entries, None)
+        if entry is not None:
+            index, value = entry
+            pending.append((index, value, pool.submit(acquire, value['plan'])))
+    try:
+        for _ in range(workers):
+            schedule()
+        while pending:
+            yield pending.popleft()
+            schedule()
+    finally:
+        for _, _, future in pending:
+            future.cancel()
+        pool.shutdown(wait=True)
+
+
 def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, manifests_input=None, advisories=None, advisory_request=None):
     limits = dict(LIMITS if limits is None else limits)
     if not re.fullmatch(r"[0-9a-f]{40}", source_sha):
@@ -315,6 +341,8 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
     public_packages = []
     advisory = None
     advisory_response_bytes_reserved = 0
+    download_bytes_reserved = 0
+    budget_lock = threading.Lock()
     def check_budget():
         if time.monotonic() - started > limits["seconds"]:
             raise Incomplete("dependency-time-limit")
@@ -322,18 +350,29 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
     def gap(path, reason):
         scanner.gap(path, reason)
     def bounded_fetch(url, max_bytes):
-        nonlocal downloaded_bytes, requests
+        nonlocal downloaded_bytes, requests, download_bytes_reserved
         check_budget()
-        requests += 1
-        if requests > limits["requests"]:
-            raise Incomplete("dependency-request-limit")
-        remaining = limits["download_bytes"] - downloaded_bytes - advisory_response_bytes_reserved
-        if remaining <= 0:
-            raise Incomplete("dependency-download-byte-limit")
-        raw = (fetch or acquisition.public_fetch)(url, min(max_bytes, remaining))
-        if not isinstance(raw, bytes) or len(raw) > min(max_bytes, remaining):
-            raise Incomplete("dependency-download-byte-limit")
-        downloaded_bytes += len(raw)
+        # Reserve the response allowance before I/O. Concurrent readers cannot
+        # each consume the same remaining allowance or escape aggregate limits.
+        with budget_lock:
+            requests += 1
+            if requests > limits["requests"]:
+                raise Incomplete("dependency-request-limit")
+            remaining = limits["download_bytes"] - downloaded_bytes - advisory_response_bytes_reserved - download_bytes_reserved
+            if remaining <= 0:
+                raise Incomplete("dependency-download-byte-limit")
+            allowance = min(max_bytes, remaining)
+            download_bytes_reserved += allowance
+        raw = None
+        try:
+            raw = (fetch or acquisition.public_fetch)(url, allowance)
+            if not isinstance(raw, bytes) or len(raw) > allowance:
+                raise Incomplete("dependency-download-byte-limit")
+        finally:
+            with budget_lock:
+                download_bytes_reserved -= allowance
+                if isinstance(raw, bytes):
+                    downloaded_bytes += len(raw)
         check_budget()
         return raw
     def bounded_advisory_request(method, url, data, max_bytes):
@@ -408,45 +447,47 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
                         gap(path, "composer-lockfile-missing")
             else:
                 gap(path, "unsupported-dependency-ecosystem")
-        for index, value in enumerate(plans.values()):
-            check_budget()
-            package = value["plan"]
-            logical = "package-" + str(index + 1)
-            record = {"ecosystem": package["ecosystem"], "name": package["name"],
-                      "version": package["version"], "reference": package.get("reference"),
-                      "lockfiles": value["lockfiles"], "status": "incomplete"}
-            records.append(record)
-            before_gaps, before_findings, before_files = len(scanner.gaps), len(scanner.findings), scanner.files_scanned
-            try:
-                result = acquisition.acquire(package, fetch=bounded_fetch)
-                raw = result["data"]
-                if not isinstance(raw, bytes) or sha256(raw) != result.get("sha256"):
-                    raise Incomplete("dependency-archive-digest-mismatch")
-                provenance = result.get("provenance")
-                if not isinstance(provenance, dict) or provenance.get("registry_identity_verified") is not True or provenance.get("name") != package["name"] or provenance.get("version") != package["version"]:
-                    raise Incomplete("dependency-provenance-incomplete")
-                if not re.fullmatch(r"[0-9a-f]{64}", provenance.get("metadata_sha256", "")):
-                    raise Incomplete("dependency-provenance-incomplete")
-                public_packages.append({"ecosystem": package["ecosystem"], "name": package["name"], "version": package["version"],
-                                        "public_registry_verified": True})
-                record.update(archive_sha256=result["sha256"], provenance=provenance,
-                              integrity_verified=result.get("integrity_verified") is True)
-                if result.get("integrity_verified") is not True:
-                    gap(logical, "dependency-integrity-not-verified")
-                if not isinstance(result.get("gaps"), list):
-                    raise Incomplete("dependency-acquisition-report-invalid")
-                for item in result["gaps"]:
-                    gap(logical, item["reason"])
-                scanner.archive(logical, raw)
-                if scanner.files_scanned == before_files:
-                    gap(logical, "dependency-package-has-no-inspected-text")
-                blockers = [x for x in scanner.findings[before_findings:] if x["severity"] in ("error", "review") or x["malware"]]
-                record.update(status="blocked" if blockers else "incomplete" if len(scanner.gaps) > before_gaps else "passed",
-                              files_scanned=scanner.files_scanned - before_files,
-                              blocking_findings=len(blockers), coverage_gaps=len(scanner.gaps) - before_gaps)
-            except (acquisition.AcquisitionError, Incomplete) as exc:
-                gap(logical, str(exc))
-                record["status"] = "incomplete"
+        with closing(prefetch_packages(plans, lambda package: acquisition.acquire(package, fetch=bounded_fetch))) as pending_packages:
+            for index, value, acquired in pending_packages:
+                check_budget()
+                package = value["plan"]
+                logical = "package-" + str(index + 1)
+                record = {"ecosystem": package["ecosystem"], "name": package["name"],
+                          "version": package["version"], "reference": package.get("reference"),
+                          "lockfiles": value["lockfiles"], "status": "incomplete"}
+                records.append(record)
+                before_gaps, before_files = len(scanner.gaps), scanner.files_scanned
+                before_blockers = scanner.finding_counts['error'] + scanner.finding_counts['review']
+                try:
+                    result = acquired.result()
+                    raw = result["data"]
+                    if not isinstance(raw, bytes) or sha256(raw) != result.get("sha256"):
+                        raise Incomplete("dependency-archive-digest-mismatch")
+                    provenance = result.get("provenance")
+                    if not isinstance(provenance, dict) or provenance.get("registry_identity_verified") is not True or provenance.get("name") != package["name"] or provenance.get("version") != package["version"]:
+                        raise Incomplete("dependency-provenance-incomplete")
+                    if not re.fullmatch(r"[0-9a-f]{64}", provenance.get("metadata_sha256", "")):
+                        raise Incomplete("dependency-provenance-incomplete")
+                    public_packages.append({"ecosystem": package["ecosystem"], "name": package["name"], "version": package["version"],
+                                            "public_registry_verified": True})
+                    record.update(archive_sha256=result["sha256"], provenance=provenance,
+                                  integrity_verified=result.get("integrity_verified") is True)
+                    if result.get("integrity_verified") is not True:
+                        gap(logical, "dependency-integrity-not-verified")
+                    if not isinstance(result.get("gaps"), list):
+                        raise Incomplete("dependency-acquisition-report-invalid")
+                    for item in result["gaps"]:
+                        gap(logical, item["reason"])
+                    scanner.archive(logical, raw)
+                    if scanner.files_scanned == before_files:
+                        gap(logical, "dependency-package-has-no-inspected-text")
+                    blockers = scanner.finding_counts['error'] + scanner.finding_counts['review'] - before_blockers
+                    record.update(status="blocked" if blockers else "incomplete" if len(scanner.gaps) > before_gaps else "passed",
+                                  files_scanned=scanner.files_scanned - before_files,
+                                  blocking_findings=blockers, coverage_gaps=len(scanner.gaps) - before_gaps)
+                except (acquisition.AcquisitionError, Incomplete) as exc:
+                    gap(logical, str(exc))
+                    record["status"] = "incomplete"
         if advisories is None:
             gap("dependencies", "known-malware-advisory-check-unavailable")
         else:

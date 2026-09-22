@@ -118,6 +118,14 @@ def diagnostic_document(ctx, report, report_sha, manifest_sha, pins):
         findings=clean_findings, gaps=clean_gaps, named_packages=list(named.values()),
         sanitized=True, source_excerpts_included=False, truncated=False,
         omitted={'findings': 0, 'gaps': 0, 'named_packages': 0})
+    if 'finding_counts' in report:
+        document['finding_summary'] = {
+            'observed_by_severity': report['finding_counts'],
+            'retained_details': len(findings),
+            'omitted_warning_details': report['omitted_warning_findings'],
+            'omitted_blocking_details': report['omitted_blocking_findings'],
+            'coverage_complete': report.get('dependency_inventory_complete') is True and not report['gaps'],
+        }
     full_sha = digest(canonical(document))
     document['untruncated_sanitized_sha256'] = full_sha
     while len(canonical(document)) > DIAGNOSTICS_LIMIT:
