@@ -26,7 +26,7 @@ import zipfile
 import content_guard
 
 LIMITS = {'lock_bytes': 16 * 1024 * 1024, 'metadata_bytes': 16 * 1024 * 1024,
-          'archive_bytes': 64 * 1024 * 1024, 'packages': 10000,
+          'archive_bytes': 96 * 1024 * 1024, 'packages': 10000,
           'gaps': 1000, 'request_seconds': 45, 'socket_seconds': 15}
 NPM_NAME = re.compile(r'(?:@[a-z0-9][a-z0-9._-]*/)?[A-Za-z0-9][A-Za-z0-9._-]*')
 NPM_VERSION = re.compile(r'(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?')
