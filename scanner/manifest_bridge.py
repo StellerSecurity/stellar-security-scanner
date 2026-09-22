@@ -408,7 +408,7 @@ def validate_report(report, bundle, pins, manifest_sha):
                 or finding.get('severity') not in ('warning', 'error', 'review', 'info')):
             raise BridgeError('package-finding-invalid')
     counts = report.get('finding_counts')
-    if counts is not None:
+    if any(key in report for key in ('finding_counts', 'omitted_warning_findings', 'omitted_blocking_findings')):
         if (not isinstance(counts, dict) or set(counts) - {'warning', 'info', 'error', 'review'}
                 or any(type(n) is not int or n < 0 for n in counts.values())):
             raise BridgeError('package-finding-summary-invalid')

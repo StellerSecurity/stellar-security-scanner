@@ -35,6 +35,12 @@ class FindingSummaryTests(unittest.TestCase):
                 self.report['finding_counts']={key:value}
                 with self.assertRaises(bridge.BridgeError): self.validate()
 
+    def test_partial_or_null_summary_cannot_hide_omissions(self):
+        self.report['finding_counts']=None
+        with self.assertRaisesRegex(bridge.BridgeError,'summary-invalid'): self.validate()
+        self.report.pop('finding_counts')
+        with self.assertRaisesRegex(bridge.BridgeError,'summary-invalid'): self.validate()
+
     def test_blocking_omissions_cannot_be_misreported_as_warnings(self):
         self.report['finding_counts']={'warning':1,'review':9}
         with self.assertRaisesRegex(bridge.BridgeError,'summary-mismatch'): self.validate()
