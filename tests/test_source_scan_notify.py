@@ -433,7 +433,7 @@ class PackagingTests(OfflineTestCase):
             "content_guard.py": hashlib.sha256((MODULE_PATH.parent / "content_guard.py").read_bytes()).hexdigest(),
             "dependency_worker.py": hashlib.sha256((MODULE_PATH.parent / "dependency_worker.py").read_bytes()).hexdigest(),
             "legacy_worker.py": "5ceaa6f017f8a3570f88094f2ef46ced7d914e7e3e5b927f6cbccbf8dbb7be9e",
-            "malware_advisories.py": "c6bdf98479a5aea3a66bf01b6f473f1d6961dd04230da29890e7cf24061c70a9",
+            "malware_advisories.py": hashlib.sha256((MODULE_PATH.parent / "malware_advisories.py").read_bytes()).hexdigest(),
             "manifest_bridge.py": hashlib.sha256((MODULE_PATH.parent / "manifest_bridge.py").read_bytes()).hexdigest(),
             "package_acquisition.py": hashlib.sha256((MODULE_PATH.parent / "package_acquisition.py").read_bytes()).hexdigest(),
             "package_guard.py": hashlib.sha256((MODULE_PATH.parent / "package_guard.py").read_bytes()).hexdigest(),
