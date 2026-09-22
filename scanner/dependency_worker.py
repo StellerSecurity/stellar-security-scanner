@@ -126,6 +126,13 @@ def diagnostic_document(ctx, report, report_sha, manifest_sha, pins):
             'omitted_blocking_details': report['omitted_blocking_findings'],
             'coverage_complete': report.get('dependency_inventory_complete') is True and not report['gaps'],
         }
+    advisory = report.get('malware_advisory_result')
+    if isinstance(advisory, dict):
+        document['advisory_summary'] = {
+            'complete': advisory.get('complete') is True,
+            'requests': advisory.get('requests') if type(advisory.get('requests')) is int else None,
+            'gaps': [{'reason': safe_diagnostic(g.get('reason'))} for g in advisory.get('gaps', [])[:100] if isinstance(g, dict)],
+        }
     full_sha = digest(canonical(document))
     document['untruncated_sanitized_sha256'] = full_sha
     while len(canonical(document)) > DIAGNOSTICS_LIMIT:
