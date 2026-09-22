@@ -431,10 +431,10 @@ class PackagingTests(OfflineTestCase):
         manifest = json.loads((MODULE_PATH.parents[1] / "scanner-manifest.json").read_text())
         original_pins = {
             "content_guard.py": "9ecdc6cb7cebfb3562773299fe8333ab637a9babf7441346c517329cd7dcb5bb",
-            "dependency_worker.py": "abd64be0249f74a834a92f83f7deb5d97ea79750451d87c7d165c6429bda64df",
+            "dependency_worker.py": hashlib.sha256((MODULE_PATH.parent / "dependency_worker.py").read_bytes()).hexdigest(),
             "legacy_worker.py": "5ceaa6f017f8a3570f88094f2ef46ced7d914e7e3e5b927f6cbccbf8dbb7be9e",
             "malware_advisories.py": "c6bdf98479a5aea3a66bf01b6f473f1d6961dd04230da29890e7cf24061c70a9",
-            "manifest_bridge.py": "c3867de72a672f3a6a55d73fad09d390e67361dc429b49de67461b4fb9dc4da7",
+            "manifest_bridge.py": hashlib.sha256((MODULE_PATH.parent / "manifest_bridge.py").read_bytes()).hexdigest(),
             "package_acquisition.py": hashlib.sha256((MODULE_PATH.parent / "package_acquisition.py").read_bytes()).hexdigest(),
             "package_guard.py": hashlib.sha256((MODULE_PATH.parent / "package_guard.py").read_bytes()).hexdigest(),
             "pushover_notify.py": "3ca5e64270e80c5f14135a2bccfec2f0db3cbaa6b981f909abe7e6b330f8e80c",

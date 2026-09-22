@@ -492,6 +492,7 @@ def main():
     choice = parser.add_mutually_exclusive_group(required=True)
     choice.add_argument("--directory", "--root", dest="directory", type=Path)
     choice.add_argument("--manifest-bundle", type=Path)
+    parser.add_argument("--public-metadata", type=Path)
     parser.add_argument("--source-sha", required=True)
     parser.add_argument("--report", type=Path, required=True)
     parser.add_argument("--content-scanner-sha256", required=True)
@@ -521,7 +522,29 @@ def main():
                 if len(raw) != before.st_size or stable(os.fstat(stream.fileno())) != stable(before):
                     raise Incomplete("dependency-bundle-file-changed")
             supplied = strict_json(raw)
-        result = inspect(args.directory, args.source_sha, acquisition, content, manifests_input=supplied, advisories=advisories)
+        cached_fetch = None
+        if args.public_metadata:
+            descriptor = os.open(args.public_metadata, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+            with os.fdopen(descriptor, "rb") as stream:
+                info = os.fstat(stream.fileno())
+                if not stat.S_ISREG(info.st_mode) or info.st_size > 64 * 1024 * 1024:
+                    raise Incomplete("public-metadata-size-limit")
+                metadata_raw = stream.read(64 * 1024 * 1024 + 1)
+                if len(metadata_raw) != info.st_size or stable(os.fstat(stream.fileno())) != stable(info):
+                    raise Incomplete("public-metadata-file-changed")
+                metadata = strict_json(metadata_raw)
+            if not isinstance(metadata, dict):
+                raise Incomplete("invalid-public-metadata")
+            def cached_fetch(url, maximum):
+                if url.startswith("https://api.github.com/"):
+                    if url not in metadata:
+                        raise Incomplete("public-metadata-missing")
+                    value = json.dumps(metadata[url], separators=(",", ":")).encode()
+                    if len(value) > maximum:
+                        raise Incomplete("public-metadata-size-limit")
+                    return value
+                return acquisition.public_fetch(url, maximum)
+        result = inspect(args.directory, args.source_sha, acquisition, content, fetch=cached_fetch, manifests_input=supplied, advisories=advisories)
         if supplied is not None:
             result["manifest_bundle_sha256"] = sha256(raw)
     except (Incomplete, OSError, ValueError):

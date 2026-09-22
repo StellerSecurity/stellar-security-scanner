@@ -402,7 +402,7 @@ def verify_public_github_archive(raw, owner, repo, commit, fetch=None):
     """Bind every actual ZIP file to the full immutable public Git commit tree.
 
     The archive wrapper directory is removed in memory. Every regular archive
-    member must match a Git blob hash at its exact path. Symlinks, submodules,
+    member must match a Git blob hash at its exact path. Archive symlinks, submodules,
     duplicate/colliding paths, extra members and truncated trees fail closed.
     Files omitted by Git export-ignore are counted; only archive bytes are
     claimed verified. No member is extracted or executed.
@@ -447,7 +447,7 @@ def verify_public_github_archive(raw, owner, repo, commit, fetch=None):
             mode, kind = row.get('mode'), row.get('type')
             if (mode, kind) == ('040000', 'tree'):
                 directories.add(path)
-            elif kind == 'blob' and mode in ('100644', '100755'):
+            elif kind == 'blob' and mode in ('100644', '100755', '120000'):
                 if type(row.get('size')) is not int or row['size'] < 0:
                     _fail('invalid-github-blob-size')
                 files[path] = (mode, sha, row['size'])
@@ -488,6 +488,8 @@ def verify_public_github_archive(raw, owner, repo, commit, fetch=None):
                 if relative not in files or relative in checked:
                     _fail('extra-or-duplicate-archive-file')
                 unused_mode, blob_sha, size = files[relative]
+                if unused_mode == '120000':
+                    _fail('github-linked-archive-member')
                 if info.file_size != size or size > limits['archive_bytes']:
                     _fail('archive-member-size-mismatch-or-limit')
                 if size > max(8 * 1024 * 1024, info.compress_size * limits['compression_ratio']):
@@ -581,7 +583,10 @@ def acquire(package, *, fetch=None):
         if published_row['integrity'] and validated['integrity'] != published_row['integrity']:
             _fail('composer-registry-checksum-mismatch')
     _endpoint(validated['url'])
-    raw = fetch(validated['url'], LIMITS['archive_bytes'])
+    archive_url = validated['url']
+    if ecosystem == 'composer':
+        archive_url = 'https://codeload.github.com/' + validated['repository'] + '/legacy.zip/' + validated['reference']
+    raw = fetch(archive_url, LIMITS['archive_bytes'])
     if not isinstance(raw, bytes) or len(raw) > LIMITS['archive_bytes'] or not raw:
         _fail('invalid-package-archive-size')
     if ecosystem == 'npm':
