@@ -158,8 +158,22 @@ def _npm_row(name, row):
     url = _npm_url(name, version, row.get('resolved'))
     integrity = row.get('integrity')
     _sri(integrity)
-    return {'ecosystem': 'npm', 'name': name, 'version': version, 'url': url,
+    plan = {'ecosystem': 'npm', 'name': name, 'version': version, 'url': url,
             'integrity': integrity, 'reference': None}
+    peers, metadata = row.get('peerDependencies', {}), row.get('peerDependenciesMeta', {})
+    if not isinstance(peers, dict) or not isinstance(metadata, dict):
+        _fail('invalid-npm-peer-metadata')
+    bindings = {}
+    for peer, requirement in peers.items():
+        entry = metadata.get(peer)
+        if isinstance(entry, dict) and entry.get('optional') is True:
+            _name(peer, 'npm')
+            if not isinstance(requirement, str) or not requirement or len(requirement) > 1024:
+                _fail('invalid-npm-peer-metadata')
+            bindings[peer] = requirement
+    if bindings:
+        plan['optional_peer_bindings'] = bindings
+    return plan
 
 
 def _composer_row(row):
@@ -566,6 +580,18 @@ def acquire(package, *, fetch=None):
             _fail('npm-registry-provenance-mismatch')
         if dist.get('integrity') is not None:
             _sri(dist['integrity'])
+        bindings = package.get('optional_peer_bindings', {})
+        if not isinstance(bindings, dict):
+            _fail('invalid-npm-peer-metadata')
+        published_peers = metadata.get('peerDependencies', {})
+        published_meta = metadata.get('peerDependenciesMeta', {})
+        for peer, requirement in bindings.items():
+            _name(peer, 'npm')
+            if (not isinstance(requirement, str) or not requirement or len(requirement) > 1024
+                    or not isinstance(published_peers, dict) or published_peers.get(peer) != requirement
+                    or not isinstance(published_meta, dict) or not isinstance(published_meta.get(peer), dict)
+                    or published_meta[peer].get('optional') is not True):
+                _fail('npm-optional-peer-provenance-mismatch')
     else:
         published = metadata.get('package')
         if (not isinstance(published, dict) or published.get('name') != validated['name']
