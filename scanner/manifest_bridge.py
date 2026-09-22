@@ -121,7 +121,7 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
 
 
 class GitHubReader:
-    """Only metadata/object GETs for the constructor's exact repository."""
+    """Fixed-host GitHub reads; cross-repository objects require public metadata."""
     def __init__(self, repository, token, limits=None, opener=None):
         self.repository = repository_name(repository)
         if not isinstance(token, str) or not token or '\n' in token or '\r' in token:
@@ -132,6 +132,31 @@ class GitHubReader:
         self.opener = opener or urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
 
     def get(self, endpoint):
+        return self._get(self.repository, endpoint)
+
+    def public_objects(self, repository, reference):
+        """Read public commit metadata only; credentials stay in this parent."""
+        if (not isinstance(repository, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{0,99}/[A-Za-z0-9][A-Za-z0-9_.-]{0,99}", repository)
+                or repository.split("/")[1] in (".", "..") or not sha(reference)):
+            raise BridgeError("invalid-public-package-identity")
+        meta = self._get(repository, "")
+        if (meta.get("private") is not False or meta.get("visibility", "public") != "public"
+                or str(meta.get("full_name", "")).lower() != repository.lower() or not positive(meta.get("id"))):
+            raise BridgeError("package-repository-not-public")
+        base = "https://api.github.com/repos/" + repository
+        commit = self._get(repository, "git/commits/" + reference)
+        tree_sha = commit.get("tree", {}).get("sha")
+        if commit.get("sha") != reference or not sha(tree_sha):
+            raise BridgeError("public-commit-mismatch")
+        tree = self._get(repository, "git/trees/" + tree_sha + "?recursive=1")
+        if tree.get("sha") != tree_sha or tree.get("truncated") is not False or not isinstance(tree.get("tree"), list):
+            raise BridgeError("public-tree-incomplete")
+        return {base: {key: meta[key] for key in ("id", "private", "full_name")},
+                base + "/git/commits/" + reference: {"sha": reference, "tree": {"sha": tree_sha}},
+                base + "/git/trees/" + tree_sha + "?recursive=1": {"sha": tree_sha, "truncated": False,
+                    "tree": [{key: row[key] for key in ("path", "mode", "type", "sha", "size") if key in row} for row in tree["tree"]]}}
+
+    def _get(self, repository, endpoint):
         if endpoint == '':
             maximum = 1024 * 1024
         elif re.fullmatch(r'git/commits/[0-9a-f]{40}', endpoint):
@@ -146,7 +171,7 @@ class GitHubReader:
         remaining = self.limits['seconds'] - (time.monotonic() - self.started)
         if remaining <= 0 or self.requests > self.limits['requests']:
             raise BridgeError('github-read-budget-exceeded')
-        url = 'https://api.github.com/repos/' + self.repository + ('/' + endpoint if endpoint else '')
+        url = 'https://api.github.com/repos/' + repository + ('/' + endpoint if endpoint else '')
         request = urllib.request.Request(url, method='GET', headers={
             'Authorization': 'Bearer ' + self._token, 'Accept': 'application/vnd.github+json',
             'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'Stellar-Manifest-Bridge/' + VERSION})
@@ -282,7 +307,40 @@ def collect(ctx, reader, limits=None):
             'source_sha': ctx['target_sha'], 'tree_sha': tree_sha, 'complete': True, 'files': files, 'gaps': gaps}
 
 
-def run_package(bundle, root, pins, scratch, command=subprocess.run):
+def public_package_metadata(bundle, reader):
+    """Prefetch bounded public JSON; no package archives or executable content."""
+    result, identities = {}, set()
+    total = 0
+    for item in bundle['files']:
+        if item['path'].split('/')[-1] != 'composer.lock':
+            continue
+        lock = strict_json(base64.b64decode(item['content_base64'], validate=True))
+        for package in lock.get('packages', []) + lock.get('packages-dev', []):
+            source = package.get('source', {})
+            match = re.fullmatch(r'https://github\.com/([A-Za-z0-9_-]+/[A-Za-z0-9_.-]+?)(?:\.git)?', str(source.get('url', '')))
+            reference = source.get('reference')
+            if not match or not sha(reference):
+                continue
+            identity = (match.group(1), reference)
+            if identity in identities:
+                continue
+            identities.add(identity)
+            if len(identities) > 300:
+                raise BridgeError('public-metadata-package-limit')
+            objects = reader.public_objects(*identity)
+            for url, value in objects.items():
+                if url in result:
+                    if result[url] != value:
+                        raise BridgeError('public-metadata-changed')
+                    continue
+                total += len(json.dumps(value).encode()) + len(url)
+                if total > 64 * 1024 * 1024:
+                    raise BridgeError('public-metadata-byte-limit')
+                result[url] = value
+    return result
+
+
+def run_package(bundle, root, pins, scratch, command=subprocess.run, public_metadata=None):
     """No GitHub/CI/Pushover credential enters this package-parsing subprocess."""
     expected = {'package_guard.py', 'package_acquisition.py', 'content_guard.py', 'source_guard_v2.py', 'malware_advisories.py'}
     if set(pins) != expected:
@@ -299,6 +357,11 @@ def run_package(bundle, root, pins, scratch, command=subprocess.run):
             '--manifest-bundle', str(manifest_path), '--source-sha', bundle['source_sha'],
             '--report', str(report_path), '--content-scanner-sha256', pins['content_guard.py'],
             '--acquisition-sha256', pins['package_acquisition.py'], '--advisory-sha256', pins['malware_advisories.py']]
+    if public_metadata is not None:
+        metadata_path = Path(scratch) / 'public-metadata.json'
+        with metadata_path.open('x') as stream:
+            json.dump(public_metadata, stream, separators=(',', ':'))
+        args += ['--public-metadata', str(metadata_path)]
     result = command(args, cwd=scratch, env={'PATH': os.defpath, 'PYTHONIOENCODING': 'utf-8'},
                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=1200, check=False)
     if result.returncode not in (0, 1, 2):
