@@ -63,5 +63,12 @@ class ContentFormatsTests(unittest.TestCase):
         invalid=raw[:10]+struct.pack('<I',999999)+raw[14:]
         self.assertFalse(content.static_asset('image.bmp',invalid))
 
+    def test_png_favicon_is_string_checked_without_binary_safety_claim(self):
+        for path in ('favicon.ico','favicon.ico.template'):
+            scanner=self.inspect(path,b'\x89PNG\r\n\x1a\n'+b'reverse shell')
+            self.assertEqual(scanner.gaps,[])
+            self.assertEqual(scanner.exclusions[0]['reason'],'opaque-asset-strings-only')
+            self.assertTrue(any(f['malware'] for f in scanner.findings))
+
 
 if __name__=='__main__': unittest.main()

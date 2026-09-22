@@ -78,8 +78,10 @@ class PackageBudgetTests(unittest.TestCase):
         def fetch(url,maximum):
             data=replies[url]
             return fetch_wrapper(url,maximum,data) if fetch_wrapper else data
-        inspector=content.Inspector(engine=engine(),limits={**content.LIMITS,'findings':content_limit})
-        with tempfile.TemporaryDirectory() as directory, patch.object(content,'Inspector',return_value=inspector):
+        inspector=content.Inspector
+        def create_inspector(limits):
+            return inspector(engine=engine(),limits={**limits,'findings':content_limit})
+        with tempfile.TemporaryDirectory() as directory, patch.object(content,'Inspector',side_effect=create_inspector):
             root=Path(directory)
             manifest={'dependencies':dependencies}
             (root/'package.json').write_text(json.dumps(manifest))
@@ -139,6 +141,18 @@ class PackageBudgetTests(unittest.TestCase):
         self.assertLessEqual(len(calls),3)
         self.assertNotEqual(report['status'],'passed')
         self.assertTrue(any(g['reason']=='dependency-request-limit' for g in report['gaps']))
+
+    def test_aggregate_archive_volume_is_applied_and_still_fails_closed(self):
+        short=self.inspect([b'benign']*6,limits={'expanded_bytes':15*1024},content_limit=30)
+        self.assertNotEqual(short['status'],'passed')
+        self.assertTrue(any(g['reason']=='archive-stream-size-limit' for g in short['gaps']))
+        complete=self.inspect([b'benign']*6,limits={'expanded_bytes':62*1024},content_limit=30)
+        self.assertEqual(complete['files_scanned'],6)
+        self.assertTrue(all(p['status']=='passed' for p in complete['packages']))
+        self.assertFalse(any('size-limit' in g['reason'] for g in complete['gaps']))
+        self.assertEqual(complete['limits']['expanded_bytes'],62*1024)
+        self.assertEqual(complete['limits']['archive_bytes'],content.LIMITS['archive_bytes'])
+        self.assertEqual(complete['limits']['members'],content.LIMITS['members'])
 
 
 if __name__=='__main__': unittest.main()
