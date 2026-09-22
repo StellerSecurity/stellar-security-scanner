@@ -75,7 +75,7 @@ def static_asset(path, data):
                   '.jpeg': (b'\xff\xd8\xff',), '.gif': (b'GIF87a', b'GIF89a'),
                   '.woff': (b'wOFF',), '.woff2': (b'wOF2',),
                   '.ttf': (b'\x00\x01\x00\x00',), '.otf': (b'OTTO',),
-                  '.ico': (b'\x00\x00\x01\x00',)}
+                  '.ico': (b'\x00\x00\x01\x00', b'\x89PNG\r\n\x1a\n')}
     if ext in signatures and any(data.startswith(x) for x in signatures[ext]):
         return True
     if ext == '.bmp' and len(data) >= 26 and data[:2] == b'BM':

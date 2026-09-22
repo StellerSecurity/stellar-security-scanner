@@ -23,6 +23,7 @@ import unicodedata
 
 LIMITS = {"files": 200000, "depth": 128, "lock_bytes": 16 * 1024 * 1024,
           "packages": 10000, "download_bytes": 1024 * 1024 * 1024,
+          "expanded_bytes": 2 * 1024 * 1024 * 1024,
           "requests": 20000, "seconds": 900, "gaps": 1000,
           "manifest_bytes": 64 * 1024 * 1024, "manifest_files": 1000,
           "manifest_bundle_bytes": 96 * 1024 * 1024}
@@ -335,6 +336,9 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
     started = time.monotonic()
     scanner_limits = dict(content.LIMITS)
     scanner_limits["seconds"] = limits["seconds"]
+    # Cumulative bytes consumed across all packages, not an in-memory buffer.
+    # Per-response, per-member, concurrency and duration limits stay separate.
+    scanner_limits["expanded_bytes"] = limits["expanded_bytes"]
     scanner = content.Inspector(limits=scanner_limits)
     records, manifests, plans, downloaded_bytes, requests = [], {}, {}, 0, 0
     bundle_validated = False
