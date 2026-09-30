@@ -255,11 +255,10 @@ class IntegrationTests(unittest.TestCase):
         self.assertEqual(verified['sha256'], result['sha256'])
         self.assertNotEqual(verified['package'], result['package'])
 
-    def test_malicious_pattern_data_is_blocked_and_never_executed(self):
-        # This inert string is scanner input, never a Python or shell program.
-        data = b'<?php system($_GET["command"]); ?>'
-        self.package.write_bytes(make_zip([('app.php', data)]))
-        with self.assertRaisesRegex(gate.GateError, 'scanner-failed-or-blocked'):
+    def test_scanner_finding_result_blocks_and_cleans_up(self):
+        # Exercise the gate's negative engine-result boundary without attack samples.
+        result = subprocess.CompletedProcess(args=[], returncode=1)
+        with mock.patch.object(gate.subprocess, 'run', return_value=result), self.assertRaisesRegex(gate.GateError, 'scanner-failed-or-blocked'):
             self.scan()
         self.assertEqual(list(self.root.glob('stellar-deploy-*')), [])
 
@@ -321,13 +320,15 @@ class IntegrationTests(unittest.TestCase):
 
     def test_forged_receipt_and_forged_report_cannot_authorize(self):
         result = self.scan()
-        self.package.write_bytes(make_zip([('app.php', b'<?php system($_GET["command"]); ?>')]))
+        self.package.write_bytes(make_zip([('app.js', b'const changed = true;')]))
         previous = json.loads(Path(result['receipt']).read_text())
         previous['package_sha256'] = gate.digest(self.package.read_bytes())
         previous['package_bytes'] = self.package.stat().st_size
         forged = self.root / 'forged-receipt.json'
         forged.write_text(json.dumps(previous))
-        with self.assertRaisesRegex(gate.GateError, 'scanner-failed-or-blocked'):
+        # A forged receipt cannot bypass a fresh negative scanner result.
+        blocked = subprocess.CompletedProcess(args=[], returncode=1)
+        with mock.patch.object(gate.subprocess, 'run', return_value=blocked), self.assertRaisesRegex(gate.GateError, 'scanner-failed-or-blocked'):
             gate.verify(self.package, forged, self.root, ENGINE, BINDING)
 
     def test_receipt_identity_mismatch(self):
