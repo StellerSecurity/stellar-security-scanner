@@ -3,8 +3,8 @@
   "files": {
     "scanner/cloud/azure_audit.py": "56b379cbe59a7650aa193289c7a7261147871a518ccfc8e392b703f0a7e7075e",
     "scanner/cloud/test_azure_audit.py": "25900d1cabb5fa04dc473a341e83c96e8f421ac09da88dd225af1bd76844960e",
-    "scanner/cloud/github_audit.py": "153c67a49f6ab4b3665825021df174ed8977b45727c66b6018731b477dfe7157",
-    "scanner/cloud/test_github_audit.py": "1d4af1c78e88bd291ae9cb0444000119d68963487f3c89f4c24575a7ab3e1e9e",
+    "scanner/cloud/github_audit.py": "d5b43e90d0aab0b8aa98f664a5c208a0131fd58a821818ab09805721981d474d",
+    "scanner/cloud/test_github_audit.py": "899d50de1a47110b2de54311d92b58ace60c8db04fdb7b5ae6263727a7789dae",
     "scanner/cloud/exposure_probe.py": "b71f89601880f26a08052f2d9c3e8bfb2d2bb6825ad60266a1075aaf3e4ef26d",
     "scanner/cloud/test_exposure_probe.py": "c0807a9d46426d5543fcc5e09f6b0b9ca5c538de56399a336b1e0de6ddcacc49",
     "scanner/cloud/reporting.py": "f43c2769e9c5e15a44e5c71483bdffcc1cba6593c007bb9e1793b6a54699fe4d",

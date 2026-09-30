@@ -121,6 +121,17 @@ class PostureTests(unittest.TestCase):
         self.assertEqual(result["coverage"]["scope"], "partial")
         self.assertIn("github_inventory_visibility_unattested", [f["rule_id"] for f in result["findings"]])
 
+    def test_exact_shared_host_has_source_only_profile(self):
+        class SharedFixture(Fixture):
+            def get(self, path):
+                path = path.replace("StellerSecurity/stellar-security-scanner", "StellerSecurity/example")
+                if path.startswith(PREFIX + "/actions/workflows?"):
+                    return audit.Response(200, {"total_count": 1, "workflows": [WORKFLOWS[0]]})
+                return super().get(path)
+        result, findings = audit.audit_repository(SharedFixture(), {**REPO, "full_name": audit.SHARED_SCANNER[0], "id": audit.SHARED_SCANNER[1]}, NOW)
+        self.assertEqual(result["scanning"]["known_workflows"]["collector"]["status"], "NOT_REQUIRED")
+        self.assertFalse(any("_missing" in f["rule_id"] for f in findings))
+
     def test_missing_expected_repository(self):
         result = audit.audit_organizations(Fixture(), ["StellerSecurity"], NOW, inventory_attested=True, expected_repos=["StellerSecurity/example", "StellerSecurity/missing"])
         self.assertEqual(result["coverage"]["scope"], "partial")
