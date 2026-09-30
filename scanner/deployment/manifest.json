@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "gate_version": "1.0.0",
+  "source_scanner_revision": "e714dd9cabad6dc3ff0e7c84780f1a94b672e8c0",
+  "files": {
+    "scanner/deployment/package_gate.py": "a5007d19a05d91324a4d30c6aaf2ce7bd5b39944b8622ef90b1869ce8922f08b",
+    "scanner/deployment/test_package_gate.py": "207043e14421cfa093cad8ea9c4dcd684c759f63242da41ae888240f0bb58bda"
+  },
+  "production_enforcement_active": false,
+  "scope": "Bounded static text inspection of exact ZIP bytes; unsupported content blocks. No repository/cloud credentials."
+}
