@@ -38,6 +38,7 @@ WORKFLOW_PATHS = {
     "worker": ".github/workflows/stellar-commit-guard.yml",
 }
 CHECK_NAMES = {"Repository source guard", "Repository commit guard", "Repository dependency content guard"}
+SHARED_SCANNER = ("StellerSecurity/stellar-security-scanner", 1373179902)
 UTC = dt.timezone.utc
 MAX_BODY = 16 * 1024 * 1024
 MAX_WORKFLOW = 512 * 1024
@@ -309,8 +310,17 @@ def audit_repository(client, repo: dict, now: dt.datetime):
     by_path = {item.get("path"): item for item in workflows}
     result["scanning"] = {"inventory_complete": not bool(err), "known_workflows": {},
                           "workflow_inventory": [{"id": w["id"], "path": w.get("path"), "state": w.get("state")} for w in workflows]}
+    shared_host = (full_name, repo["id"]) == SHARED_SCANNER
+    result["scanning"]["profile"] = "shared-host-read-only-self-check" if shared_host else "repository-callers"
     for role, path in WORKFLOW_PATHS.items():
         workflow = by_path.get(path)
+        if shared_host and role in ("collector", "worker"):
+            # The independently verified central controller deliberately excludes
+            # this exact public scanner identity from write-capable collection.
+            result["scanning"]["known_workflows"][role] = {"status": "NOT_REQUIRED", "reason": "shared_scanner_host"}
+            if workflow:
+                findings.append(_finding(full_name, "github_shared_host_unexpected_" + role, "high", "The shared public scanner has an unexpected repository collector or worker; review its permissions before use.", path=path))
+            continue
         if not workflow:
             result["scanning"]["known_workflows"][role] = {"status": "UNKNOWN" if err else "MISSING"}
             if not err:
