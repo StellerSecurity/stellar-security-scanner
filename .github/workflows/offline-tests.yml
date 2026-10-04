@@ -36,3 +36,5 @@ jobs:
             "https://github.com/$GITHUB_REPOSITORY.git" "$TARGET_SHA"
           git -c core.hooksPath=/dev/null checkout --quiet --detach "$TARGET_SHA"
           python3 -B -m unittest discover -s tests -v
+          python3 -B -m unittest discover -s scanner/cloud -p 'test_*.py' -v
+          python3 -B -m unittest discover -s scanner/deployment -p 'test_*.py' -v

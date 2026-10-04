@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "files": {
+    "scanner/cloud/azure_audit.py": "56b379cbe59a7650aa193289c7a7261147871a518ccfc8e392b703f0a7e7075e",
+    "scanner/cloud/test_azure_audit.py": "25900d1cabb5fa04dc473a341e83c96e8f421ac09da88dd225af1bd76844960e",
+    "scanner/cloud/github_audit.py": "d5b43e90d0aab0b8aa98f664a5c208a0131fd58a821818ab09805721981d474d",
+    "scanner/cloud/test_github_audit.py": "899d50de1a47110b2de54311d92b58ace60c8db04fdb7b5ae6263727a7789dae",
+    "scanner/cloud/exposure_probe.py": "b71f89601880f26a08052f2d9c3e8bfb2d2bb6825ad60266a1075aaf3e4ef26d",
+    "scanner/cloud/test_exposure_probe.py": "c0807a9d46426d5543fcc5e09f6b0b9ca5c538de56399a336b1e0de6ddcacc49",
+    "scanner/cloud/reporting.py": "f43c2769e9c5e15a44e5c71483bdffcc1cba6593c007bb9e1793b6a54699fe4d",
+    "scanner/cloud/test_reporting.py": "14996efcfb161503fdb9202b547e1bcdf3c4a5d9d58c5d9edecf6d95726adc5f",
+    "scanner/cloud/cloud_posture.py": "ca66afccf50193865ea769d9f0dbd608e9007ceebdde2bd72e4e581a8b1739e4",
+    "scanner/cloud/test_cloud_posture.py": "58f4717d999be8a76886abf96d67ee08d4c09cb28b8db5fe41f6d7a28db7c664"
+  }
+}
