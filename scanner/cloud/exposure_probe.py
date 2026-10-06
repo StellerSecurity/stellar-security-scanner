@@ -174,7 +174,9 @@ def probe_host(host, deadline=None, resolver=None, request=None, clock=time.mono
     control_path = "/.stellar-missing-" + secrets.token_hex(16)
     last_request = [None]
 
-    def fetch(path):
+    diagnostics = {}
+
+    def fetch_once(path):
         remaining = deadline - clock()
         if remaining <= 0:
             return None, "time_budget_exhausted"
@@ -194,11 +196,34 @@ def probe_host(host, deadline=None, resolver=None, request=None, clock=time.mono
                     or not isinstance(value.get("body"), bytes) or len(value["body"]) > MAX_BODY_BYTES):
                 return None, "invalid_http_response"
             return value, None
-        except (OSError, ValueError, http.client.HTTPException):
+        except (OSError, ValueError, http.client.HTTPException) as exc:
+            # Fixed codes only: exception strings can contain untrusted data.
+            if isinstance(exc, ssl.SSLCertVerificationError): code = "tls_certificate_error"
+            elif isinstance(exc, ssl.SSLEOFError): code = "tls_connection_closed"
+            elif isinstance(exc, TimeoutError): code = "request_timeout"
+            elif isinstance(exc, ConnectionError): code = "connection_error"
+            elif isinstance(exc, http.client.RemoteDisconnected): code = "connection_closed"
+            elif isinstance(exc, ssl.SSLError): code = "tls_error"
+            else: code = "request_error"
+            diagnostics[path]['error'] = code
             return None, "request_unavailable"
+
+    def fetch(path):
+        diagnostics[path] = {'attempts': 1}
+        value, error = fetch_once(path)
+        first = diagnostics[path].get('error')
+        if (error == 'request_unavailable' and first in {
+                'tls_connection_closed', 'request_timeout', 'connection_error', 'connection_closed'}
+                and deadline - clock() > REQUEST_INTERVAL_SECONDS):
+            diagnostics[path] = {'attempts': 2, 'first_error': first}
+            value, error = fetch_once(path)
+        if error and 'error' not in diagnostics[path]:
+            diagnostics[path]['error'] = error
+        return value, error
 
     control, error = fetch(control_path)
     if error:
+        result["diagnostic"] = diagnostics[control_path]
         result["reason"] = "missing_path_control_unavailable"
         return result
     if control["status"] not in {200, 401, 403, 404, 410} or control.get("encoded"):
@@ -213,7 +238,7 @@ def probe_host(host, deadline=None, resolver=None, request=None, clock=time.mono
     available = 0
     for path in PATHS:
         response, error = fetch(path)
-        check = {"path": path}
+        check = {"path": path, **diagnostics[path]}
         if error:
             complete = False
             check["result"] = error
