@@ -31,7 +31,7 @@ import zlib
 VERSION = '1.0.0'
 SCANNER_COMMIT = 'e714dd9cabad6dc3ff0e7c84780f1a94b672e8c0'
 SCANNER_HASHES = {
-    'content_guard.py': '2940571e4eec4f5bd11bb88a08f656abee8a9377e10a3ba6fc39f357fe0c731f',
+    'content_guard.py': '32ec77838fd68a9d8b871de34b7de0f5c424e037b15c71c52a43bd1001da1ba9',
     'source_guard_v2.py': 'bf8f1ae7afe74df2ba7db41c2304b6ff499a02026a55c98333d0594338986908',
 }
 MAX_ZIP = 256 * 1024 * 1024
