@@ -27,7 +27,7 @@ LIMITS = {"files": 200000, "depth": 128, "lock_bytes": 16 * 1024 * 1024,
           "requests": 20000, "seconds": 900, "gaps": 1000,
           "manifest_bytes": 64 * 1024 * 1024, "manifest_files": 1000,
           "manifest_bundle_bytes": 96 * 1024 * 1024}
-LOCKS = {"package-lock.json", "npm-shrinkwrap.json", "composer.lock"}
+LOCKS = {"package-lock.json", "npm-shrinkwrap.json", "composer.lock", "yarn.lock"}
 MANIFESTS = {"package.json", "composer.json"}
 UNSUPPORTED = {"yarn.lock", "pnpm-lock.yaml", "bun.lock", "bun.lockb", "poetry.lock", "uv.lock",
                "Pipfile", "Pipfile.lock", "pyproject.toml", "requirements.txt", "requirements.in",
@@ -403,7 +403,9 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
             name = path.rsplit("/", 1)[-1]
             prefix = path[:-len(name)]
             if name in LOCKS:
-                if name != "composer.lock":
+                if name == "yarn.lock":
+                    gap(path, "yarn-manifest-graph-binding-needs-review")
+                elif name != "composer.lock":
                     manifest_raw = manifests.get(prefix + "package.json")
                     if manifest_raw is None:
                         gap(path, "npm-root-manifest-missing")
@@ -440,7 +442,7 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
                     has_dependencies = any(manifest.get(field) for field in dependency_fields)
                     if manifest.get("workspaces"):
                         gap(path, "npm-workspaces-require-explicit-coverage-review")
-                    if has_dependencies and not any(prefix + lock in manifests for lock in ("package-lock.json", "npm-shrinkwrap.json")):
+                    if has_dependencies and not any(prefix + lock in manifests for lock in ("package-lock.json", "npm-shrinkwrap.json", "yarn.lock")):
                         gap(path, "npm-lockfile-missing")
                 else:
                     for field in ("require", "require-dev"):
