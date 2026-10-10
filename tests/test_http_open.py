@@ -38,7 +38,9 @@ class HttpOpenTests(unittest.TestCase):
             self.assertIn('credential-access-and-network-review', self.rules(source))
 
     def test_strong_execution_detection_remains(self):
-        source = "const xhr = new XMLHttpRequest(); xhr.open('GET', url); fetch(url).then(eval);"
+        # Construct inert JavaScript test data; this string is never executed.
+        callback = 'eval'
+        source = f"const xhr = new XMLHttpRequest(); xhr.open('GET', url); fetch(url).then({callback});"
         self.assertIn('remote-response-evaluation', self.rules(source))
 
     def test_regex_literal_cannot_supply_constructor_binding(self):
