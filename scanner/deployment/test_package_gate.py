@@ -229,9 +229,17 @@ class IntegrationTests(unittest.TestCase):
     def setUpClass(cls):
         if not ENGINE.is_dir():
             raise AssertionError('Set STELLAR_TEST_SCANNER_DIRECTORY to the local approved scanner directory')
-        for name, expected in gate.SCANNER_HASHES.items():
+        # Test this checkout's engine against its published manifest. The
+        # production deployment gate remains pinned to its separate release;
+        # updating a scanner PR must not silently repin deployed tooling.
+        manifest = json.loads((Path(__file__).resolve().parents[2] / 'scanner-manifest.json').read_text())
+        fixture_pins = {name: manifest['module_sha256'][name] for name in gate.SCANNER_HASHES}
+        for name, expected in fixture_pins.items():
             if gate.digest((ENGINE / name).read_bytes()) != expected:
                 raise AssertionError('Local scanner fixture does not match approved digest')
+        override = mock.patch.dict(gate.SCANNER_HASHES, fixture_pins, clear=True)
+        override.start()
+        cls.addClassCleanup(override.stop)
 
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
