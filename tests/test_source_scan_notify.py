@@ -438,7 +438,7 @@ class PackagingTests(OfflineTestCase):
             "package_acquisition.py": hashlib.sha256((MODULE_PATH.parent / "package_acquisition.py").read_bytes()).hexdigest(),
             "package_guard.py": hashlib.sha256((MODULE_PATH.parent / "package_guard.py").read_bytes()).hexdigest(),
             "pushover_notify.py": "3ca5e64270e80c5f14135a2bccfec2f0db3cbaa6b981f909abe7e6b330f8e80c",
-            "source_guard_v2.py": "bf8f1ae7afe74df2ba7db41c2304b6ff499a02026a55c98333d0594338986908",
+            "source_guard_v2.py": hashlib.sha256((MODULE_PATH.parent / "source_guard_v2.py").read_bytes()).hexdigest(),
         }
         self.assertEqual(manifest["module_sha256"], original_pins)
         self.assertEqual(manifest["notifier_sha256"], original_pins["pushover_notify.py"])
