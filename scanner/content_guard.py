@@ -28,6 +28,25 @@ ARCHIVE_SUFFIX = re.compile(r'\.(zip|tgz|tar|tar\.gz|tar\.bz2|tar\.xz|gz|bz2|xz|
 SUSPICION_RULES = {'credential-access-and-network-review',
                    'environment-collection-and-network-review',
                    'persistence-and-process-review'}
+NON_RUNTIME_REVIEW_SUFFIX = re.compile(
+    r'(?:^|/)(?:readme|changelog|license|notice)(?:\.[^/]*)?$|\.(?:md|markdown|txt|rst|map|d\.ts|d\.mts|d\.cts)$',
+    re.I,
+)
+
+
+def runtime_review_path(path):
+    """Return true when capability correlations should block package review.
+
+    Documentation, source maps and declaration files often contain API names,
+    examples or browser/runtime type declarations that look like network,
+    environment or credential access but are not executable package behavior.
+    They still receive warning findings; strong execution and known-loader
+    detections remain blocking through their original error/malware severity.
+    """
+    logical = path.rsplit('!', 1)[-1]
+    if NON_RUNTIME_REVIEW_SUFFIX.search(logical):
+        return False
+    return True
 
 
 class Incomplete(Exception):
@@ -239,7 +258,7 @@ class Inspector:
         for row in rows:
             rule = row['rule']
             plain = re.sub(r'^(?:decoded-content:|lifecycle:[^:]+:)+', '', rule)
-            suspected = plain in SUSPICION_RULES
+            suspected = plain in SUSPICION_RULES and runtime_review_path(path)
             severity = 'review' if suspected else row['level']
             # Capability correlations require manual review; co-occurrence does
             # not prove spyware or establish data flow to a network sink.
