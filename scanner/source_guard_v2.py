@@ -113,6 +113,41 @@ def decoded_literals(text):
             continue
 
 
+def http_open_positions(text):
+    """Recognize only simple, unmodified XMLHttpRequest receivers.
+
+    This is a bounded false-positive correction, not a JavaScript parser. Any
+    ambiguous syntax retains the original review finding. Strings/comments are
+    masked so examples cannot establish a receiver binding for executable code.
+    """
+    if len(text) > MAX_FILE or '`' in text:
+        return set()
+    token = re.compile(r'''//[^\n]*|/\*[\s\S]*?\*/|'(?:\\.|[^'\\\r\n])*'|"(?:\\.|[^"\\\r\n])*"''')
+    masked = token.sub(lambda m: re.sub(r'[^\n]', ' ', m[0]), text)
+    # Unsupported/unterminated strings and comments are not safely classified.
+    if re.search(r'''['"/]''', masked):
+        return set()
+    constructors = list(re.finditer(r'\bXMLHttpRequest\b', masked))
+    if any(not re.search(r'\bnew\s+$', masked[:m.start()]) for m in constructors):
+        return set()
+    result = set()
+    declaration = re.compile(r'\b(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*new\s+XMLHttpRequest\s*\(\s*\)\s*;')
+    for binding in declaration.finditer(masked):
+        name = re.escape(binding[1])
+        identifier = re.compile(r'(?<![\w$])' + name + r'(?![\w$])')
+        call = re.compile(r'(?<![\w$.])' + name + r'\s*\.\s*(open)\s*\(')
+        for match in call.finditer(masked, binding.end()):
+            # Extra uses include reassignment, passing an alias, mutation and
+            # parameter shadowing; keep those cases under manual review.
+            if len(list(identifier.finditer(masked[binding.start():match.start()]))) != 1:
+                break
+            args = text[match.end():]
+            if re.match(r'''\s*(?:(['"])(?:GET|HEAD|POST|PUT|PATCH|DELETE|OPTIONS)\1|(?:config|this)\.method(?:\.toUpperCase\(\))?)\s*,''', args):
+                result.add(match.start(1))
+            break
+    return result
+
+
 def behavior_rules(path, text):
     """Heuristic correlations are review warnings; narrow execution patterns block."""
     found = []
@@ -139,7 +174,9 @@ def behavior_rules(path, text):
     process = re.search(r'\b(?:child_process|execSync|spawnSync|subprocess|ProcessBuilder|Process\.Start|shell_exec|os\.system|Command::new|Runtime\.getRuntime)\b', text)
     dynamic = re.search(r'\b(?:eval|Function)\s*\(|\bvm\.runIn(?:New|This)Context\s*\(', text)
     secrets = re.search(r'Login Data|Local State|Cookies(?:\.sqlite)?|logins\.json|key4\.db|\.ssh[\\/]|\.aws[\\/]|\.azure[\\/]|\.gnupg[\\/]|Chrome[/\\].*User Data|wallet\.dat|keychain-db', text, re.I)
-    reads = re.search(r'\b(?:readFile(?:Sync)?|read_bytes|read_text|open|ReadAllBytes|ReadAllText|sqlite3|readdir(?:Sync)?)\s*\(', text)
+    read_calls = list(re.finditer(r'\b(?P<api>readFile(?:Sync)?|read_bytes|read_text|open|ReadAllBytes|ReadAllText|sqlite3|readdir(?:Sync)?)\s*\(', text))
+    http_opens = http_open_positions(text) if any(m['api'] == 'open' for m in read_calls) else set()
+    reads = next((m for m in read_calls if m['api'] != 'open' or m.start() not in http_opens), None)
     if network and dynamic:
         add('network-and-dynamic-execution-review', 'warning', dynamic)
     if secrets and reads:

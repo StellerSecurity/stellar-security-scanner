@@ -203,6 +203,107 @@ def _composer_row(row):
             'repository': source_repo, 'source_url': source['url']}
 
 
+def _yarn_v1_rows(raw):
+    """Parse the bounded canonical Yarn v1 subset; reject ambiguous syntax.
+
+    No YAML parser, tags, aliases, interpolation, installs or package execution.
+    Unsupported syntax is a coverage gap, never silently skipped.
+    """
+    if not isinstance(raw, bytes) or len(raw) > LIMITS['lock_bytes']:
+        _fail('lock-size-limit')
+    try:
+        text = raw.decode('utf-8')
+    except UnicodeError:
+        _fail('invalid-yarn-encoding')
+    if '# yarn lockfile v1' not in text.splitlines()[:5]:
+        _fail('unsupported-yarn-lock-version')
+    token = r'(?:"(?:[^"\\]|\\.)*"|[^\s",:]+)'
+    pair = re.compile('(' + token + ') (' + token + ')')
+    headers = re.compile('(' + token + ')(?:, |$)')
+    def scalar(value):
+        try:
+            decoded = json.loads(value) if value.startswith('"') else value
+        except (ValueError, RecursionError):
+            _fail('invalid-yarn-scalar')
+        if not isinstance(decoded, str) or not decoded or any(ord(c) < 32 for c in decoded):
+            _fail('invalid-yarn-scalar')
+        return decoded
+    entries, row, name, children = [], None, None, None
+    seen_headers = set()
+    for line in text.splitlines():
+        if not line or line.startswith('#'):
+            continue
+        if len(line) > 65536 or '\t' in line:
+            _fail('invalid-yarn-line')
+        if not line.startswith(' '):
+            if not line.endswith(':'):
+                _fail('invalid-yarn-entry')
+            values, offset, unsupported = [], 0, False
+            header = line[:-1]
+            while offset < len(header):
+                match = headers.match(header, offset)
+                if not match:
+                    _fail('invalid-yarn-selector')
+                selector = scalar(match.group(1))
+                if selector in seen_headers:
+                    _fail('duplicate-yarn-selector')
+                seen_headers.add(selector)
+                split = selector.find('@', 1)
+                if split < 1:
+                    _fail('invalid-yarn-selector')
+                selected = _name(selector[:split], 'npm')
+                requirement = selector[split + 1:]
+                if requirement.startswith('npm:'):
+                    alias = requirement[4:]
+                    alias_split = alias.find('@', 1)
+                    if alias_split < 1:
+                        _fail('invalid-yarn-alias')
+                    selected = _name(alias[:alias_split], 'npm')
+                    requirement = alias[alias_split + 1:]
+                if not requirement:
+                    _fail('invalid-yarn-selector')
+                unsupported = unsupported or ':' in requirement
+                values.append(selected)
+                offset = match.end()
+            if not values or len(set(values)) != 1:
+                _fail('ambiguous-yarn-package')
+            name, row, children = values[0], {}, None
+            if unsupported:
+                row['_yarn_unsupported_resolution'] = True
+            entries.append((name, row))
+            if len(entries) > LIMITS['packages']:
+                _fail('lock-package-limit')
+        elif row is None:
+            _fail('invalid-yarn-entry')
+        elif line.startswith('    '):
+            match = pair.fullmatch(line[4:])
+            if children is None or not match:
+                _fail('unsupported-yarn-field')
+            key, value = scalar(match.group(1)), scalar(match.group(2))
+            _name(key, 'npm')
+            if key in children:
+                _fail('duplicate-yarn-field')
+            children[key] = value
+        else:
+            if not line.startswith('  '):
+                _fail('invalid-yarn-indentation')
+            value = line[2:]
+            if value in ('dependencies:', 'optionalDependencies:'):
+                key = value[:-1]
+                if key in row:
+                    _fail('duplicate-yarn-field')
+                children = row[key] = {}
+                continue
+            match = pair.fullmatch(value)
+            if not match:
+                _fail('unsupported-yarn-field')
+            key, value = scalar(match.group(1)), scalar(match.group(2))
+            if key not in ('version', 'resolved', 'integrity') or key in row:
+                _fail('unsupported-or-duplicate-yarn-field')
+            row[key], children = value, None
+    return entries
+
+
 def plan_packages(lockpath, raw, *, composer_manifest=None):
     """Return normalized package plans and coverage gaps without any network.
 
@@ -229,6 +330,13 @@ def plan_packages(lockpath, raw, *, composer_manifest=None):
             _fail('lock-package-limit')
     try:
         filename = PurePosixPath(str(lockpath)).name
+        if filename == 'yarn.lock':
+            for name, row in _yarn_v1_rows(raw):
+                if row.pop('_yarn_unsupported_resolution', False):
+                    gap('unsupported-yarn-resolution')
+                else:
+                    add(_npm_row, name, row)
+            return {'packages': packages, 'gaps': gaps}
         if filename not in ('package-lock.json', 'npm-shrinkwrap.json', 'composer.lock'):
             return {'packages': [], 'gaps': [{'path': str(lockpath), 'reason': 'unsupported-lockfile-ecosystem'}]}
         lock = _json(raw, LIMITS['lock_bytes'])
@@ -302,6 +410,13 @@ def _endpoint(value):
         _url(value, allowed_query='recursive=1')
         return 'github-tree-metadata'
     parsed = _url(value)
+    if parsed.hostname == 'index.crates.io':
+        name = parsed.path.rsplit('/', 1)[-1]
+        if re.fullmatch(r'[a-z0-9][a-z0-9_-]{0,63}', name):
+            prefix = str(len(name)) if len(name) < 3 else '3/' + name[0] if len(name) == 3 else name[:2] + '/' + name[2:4]
+            if parsed.path == '/' + prefix + '/' + name:
+                return 'cargo-public-index-metadata'
+        _fail('unapproved-package-origin')
     if parsed.hostname == 'registry.npmjs.org':
         path = urllib.parse.unquote(parsed.path)
         # Metadata is canonical /name/version (scope slash URL-encoded); archive
@@ -530,13 +645,15 @@ def verify_public_github_archive(raw, owner, repo, commit, fetch=None):
         _fail('invalid-github-archive-binding')
 
 
-def acquire(package, *, fetch=None):
+def acquire(package, *, fetch=None, metadata_only=False):
     """Verify registry identity and return archive bytes for static inspection.
 
     Composer ZIP members are bound to an immutable Git tree when a strong archive
     checksum is absent. No downloaded content is interpreted as Python,
     installed, extracted to disk, or uploaded. Injected fetch is for offline tests.
     """
+    if type(metadata_only) is not bool:
+        _fail('invalid-acquisition-mode')
     if not isinstance(package, dict):
         _fail('invalid-package-plan')
     fetch = fetch or public_fetch
@@ -608,6 +725,9 @@ def acquire(package, *, fetch=None):
             _fail('composer-registry-provenance-mismatch')
         if published_row['integrity'] and validated['integrity'] != published_row['integrity']:
             _fail('composer-registry-checksum-mismatch')
+    if metadata_only:
+        return {'ecosystem': ecosystem, 'name': validated['name'], 'version': validated['version'],
+                'public_registry_verified': True, 'archive_inspected': False}
     _endpoint(validated['url'])
     archive_url = validated['url']
     if ecosystem == 'composer':

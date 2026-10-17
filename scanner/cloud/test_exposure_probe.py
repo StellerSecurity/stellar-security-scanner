@@ -241,3 +241,47 @@ class NetworkSafetyTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RetryDiagnosticsTests(unittest.TestCase):
+    def run_probe(self, failures):
+        calls=[]
+        def request(host, address, path, timeout):
+            if path=='/.env':
+                calls.append(timeout)
+                if len(calls)<=len(failures):raise failures[len(calls)-1]
+            return response()
+        with patch.object(p, 'REQUEST_INTERVAL_SECONDS', 0):
+            result=p.probe_host(HOST,resolver=resolver,request=request)
+        return result, calls, next(c for c in result['checks'] if c['path']=='/.env')
+
+    def test_transient_tls_failure_recovers_once(self):
+        result,calls,check=self.run_probe([ssl.SSLEOFError('secret text')])
+        self.assertEqual(len(calls),2)
+        self.assertEqual(check['first_error'],'tls_connection_closed')
+        self.assertEqual(check['result'],'not_public_at_checked_path')
+        self.assertEqual(result['coverage'],'complete')
+        self.assertNotIn('secret text',json.dumps(result))
+
+    def test_persistent_timeout_stays_incomplete(self):
+        result,calls,check=self.run_probe([TimeoutError(),TimeoutError(),TimeoutError()])
+        self.assertEqual(len(calls),2)
+        self.assertEqual(check['error'],'request_timeout')
+        self.assertEqual(check['result'],'request_unavailable')
+        self.assertEqual(result['coverage'],'partial')
+
+    def test_certificate_failure_is_not_retried(self):
+        result,calls,check=self.run_probe([ssl.SSLCertVerificationError('private')])
+        self.assertEqual(len(calls),1)
+        self.assertEqual(check['error'],'tls_certificate_error')
+        self.assertEqual(result['coverage'],'partial')
+
+    def test_deadline_prevents_retry(self):
+        now=[0.0];calls=[]
+        def request(host,address,path,timeout):
+            calls.append(path)
+            now[0]=10.0
+            raise TimeoutError()
+        result=p.probe_host(HOST,deadline=1.0,resolver=resolver,request=request,clock=lambda:now[0])
+        self.assertEqual(len(calls),1)
+        self.assertEqual(result['coverage'],'unavailable')
