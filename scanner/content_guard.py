@@ -97,6 +97,14 @@ def static_asset(path, data):
                   '.ico': (b'\x00\x00\x01\x00', b'\x89PNG\r\n\x1a\n')}
     if ext in signatures and any(data.startswith(x) for x in signatures[ext]):
         return True
+    if ext == '.eot' and len(data) >= 82:
+        # Embedded OpenType fixed header; retain string inspection below.
+        size = int.from_bytes(data[:4], 'little')
+        font_size = int.from_bytes(data[4:8], 'little')
+        version = int.from_bytes(data[8:12], 'little')
+        return (82 <= size <= len(data) and 0 < font_size <= size - 82
+                and version in (0x00010000, 0x00020001, 0x00020002)
+                and data[34:36] == b'LP')
     if ext == '.bmp' and len(data) >= 26 and data[:2] == b'BM':
         size = int.from_bytes(data[2:6], 'little')
         offset = int.from_bytes(data[10:14], 'little')
@@ -120,7 +128,12 @@ def decode_text(path, data):
         # fallback for arbitrary binary bytes or a remotely selected codec.
         if PurePosixPath(path).suffix.lower() not in ('.html', '.htm', '.xml'):
             raise
-        declarations = re.findall(br'(?:charset|encoding)\s*=\s*[\'\"]?([a-zA-Z0-9_-]+)', data[:4096])
+        # A script's charset describes that external resource, not this document.
+        # Restrict declarations to XML prologs and HTML metadata; conflicting
+        # declarations within those headers still fail closed.
+        headers = re.findall(br'<\?xml\b[^>]*\?>|<meta\b[^>]*>', data[:4096], re.I)
+        declarations = re.findall(br'(?:charset|encoding)\s*=\s*[\'\"]?([a-zA-Z0-9_-]+)',
+                                  b' '.join(headers), re.I)
         names = {name.lower().replace(b'_', b'-') for name in declarations}
         supported = {b'windows-1252': 'cp1252', b'iso-8859-1': 'iso-8859-1', b'euc-jp': 'euc_jp'}
         if len(names) != 1 or next(iter(names)) not in supported:
@@ -129,6 +142,17 @@ def decode_text(path, data):
 
 
 def executable(data):
+    # Object archives, AIX XCOFF and Flash contain executable/object content.
+    # Recognition routes them to the existing binary-review policy, never to
+    # text inspection or an assertion of binary safety.
+    if data.startswith(b'!<arch>\n'):
+        return True
+    if (len(data) >= 24 and data[:2] in (b'\x01\xdf', b'\x01\xf7')
+            and 0 < int.from_bytes(data[2:4], 'big') < 4096):
+        return True
+    if (len(data) >= 8 and data[:3] in (b'FWS', b'CWS', b'ZWS')
+            and 1 <= data[3] <= 50 and int.from_bytes(data[4:8], 'little') >= 8):
+        return True
     return any(data.startswith(x) for x in (b'MZ', b'\x7fELF', b'\x00asm', b'dex\n',
                b'\xca\xfe\xba\xbe', b'\xce\xfa\xed\xfe', b'\xcf\xfa\xed\xfe',
                b'\xfe\xed\xfa\xce', b'\xfe\xed\xfa\xcf'))
@@ -315,6 +339,22 @@ class Inspector:
             content_digests[name] = value_digest
             self.content(name, value, depth)
         try:
+            if (raw.startswith(b'\x1f\x8b') and path.lower().endswith('.gz')
+                    and not path.lower().endswith('.tar.gz')):
+                # A standalone gzip stream is a compressed file, not a tarball.
+                # Bound expansion before scanning the decoded bytes recursively.
+                ceiling = min(self.limits['text_bytes'], self.limits['expanded_bytes'],
+                              max(8 * 1024 * 1024, len(raw) * self.limits['compression_ratio']))
+                inflater = zlib.decompressobj(31)
+                decoded = inflater.decompress(raw, ceiling + 1)
+                if len(decoded) > ceiling or inflater.unconsumed_tail:
+                    raise Incomplete('gzip-expansion-limit')
+                if not inflater.eof or inflater.unused_data:
+                    raise Incomplete('gzip-trailing-or-incomplete-stream')
+                self.archive_stream_bytes += len(decoded)
+                self.check_budget()
+                self.content(path[:-3], decoded, depth + 1)
+                return
             if raw.startswith((b'PK\x03\x04', b'PK\x05\x06')):
                 self.preflight_zip(raw)
                 with zipfile.ZipFile(io.BytesIO(raw)) as arc:
