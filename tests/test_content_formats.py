@@ -1,6 +1,7 @@
 """Static-only format recognition must not turn binaries into clean source."""
 from pathlib import Path
 import struct
+import gzip
 import sys
 import unittest
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'scanner'))
@@ -29,6 +30,52 @@ class ContentFormatsTests(unittest.TestCase):
             scanner=self.inspect('fixture.html',raw)
             self.assertEqual(scanner.files_scanned,0)
             self.assertTrue(scanner.gaps)
+
+    def test_external_script_charset_does_not_override_document_encoding(self):
+        raw = ('<?xml version="1.0" encoding="EUC-JP"?>'
+               '<script src="external.js" charset="utf-8"></script>'
+               '<p>日本 reverse shell</p>').encode('euc_jp')
+        scanner = self.inspect('fixture.html', raw)
+        self.assertEqual(scanner.gaps, [])
+        self.assertTrue(any(f['malware'] for f in scanner.findings))
+
+    def test_standalone_gzip_contents_are_inspected(self):
+        scanner = self.inspect('main.css.gz', gzip.compress(b'body { color: pink; }'))
+        self.assertEqual(scanner.gaps, [])
+        self.assertEqual(scanner.files_scanned, 1)
+        scanner = self.inspect('example.txt.gz', gzip.compress(b'reverse shell'))
+        self.assertTrue(any(f['malware'] for f in scanner.findings))
+
+    def test_invalid_or_concatenated_gzip_does_not_pass(self):
+        raw = gzip.compress(b'body {}')
+        for value in (raw[:-1], raw + b'junk', raw + gzip.compress(b'reverse shell')):
+            scanner = self.inspect('main.css.gz', value)
+            self.assertTrue(scanner.gaps)
+
+    def test_gzip_expansion_is_bounded(self):
+        scanner = content.Inspector(engine=engine(), limits={**content.LIMITS, 'text_bytes': 32})
+        scanner.content('large.css.gz', gzip.compress(b'A' * 1000))
+        self.assertTrue(any(g['reason'] == 'gzip-expansion-limit' for g in scanner.gaps))
+
+    def test_legacy_executable_formats_remain_binary_review_gaps(self):
+        for raw in (b'!<arch>\n' + b'\0' * 80,
+                    b'\x01\xf7\0\x02' + b'\0' * 68,
+                    b'CWS\x0e' + struct.pack('<I', 400) + b'\0' * 20):
+            scanner = self.inspect('opaque.data', raw)
+            self.assertEqual(scanner.gaps[0]['reason'], 'executable-binary-needs-independent-review')
+            self.assertEqual(scanner.files_scanned, 0)
+
+    def test_eot_font_header_is_validated_and_appended_text_is_scanned(self):
+        raw = bytearray(100)
+        struct.pack_into('<III', raw, 0, 100, 18, 0x00020001)
+        raw[34:36] = b'LP'
+        scanner = self.inspect('font.eot', bytes(raw) + b'reverse shell')
+        self.assertEqual(scanner.gaps, [])
+        self.assertTrue(any(f['malware'] for f in scanner.findings))
+        for offset in (0, 4, 8, 34):
+            altered = raw.copy()
+            altered[offset:offset+4] = b'\xff' * 4
+            self.assertFalse(content.static_asset('font.eot', altered))
 
     def test_declarations_do_not_decode_arbitrary_binary_or_source(self):
         for path in ('unknown.dat','index.js','module.node'):
