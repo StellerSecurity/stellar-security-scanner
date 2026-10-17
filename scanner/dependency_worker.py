@@ -330,16 +330,22 @@ def scan(ctx, bridge, checks, pins, root, reader, command=None):
     record = dict(ctx, schema=1, dependency_worker_version=VERSION, state='incomplete', check_id=None)
     endpoint = 'repos/' + ctx['repository'] + '/check-runs'
     url = 'https://github.com/' + ctx['repository'] + '/actions/runs/' + str(ctx['run_id']) + '/attempts/' + str(ctx['run_attempt'])
+    phase = 'create-check'
+    completion_attempted = False
     try:
         check = checks.request(endpoint, {'name': CHECK_NAME, 'head_sha': ctx['target_sha'],
             'external_id': external_id(ctx), 'status': 'in_progress', 'details_url': url}, 'POST')
         check_identity(check, ctx)
         record['check_id'] = check['id']
+        phase = 'collect-manifests'
         bundle = bridge.collect(ctx, reader)
         package_pins = {name: pins[name] for name in ('package_guard.py', 'package_acquisition.py', 'content_guard.py', 'source_guard_v2.py', 'malware_advisories.py')}
         with tempfile.TemporaryDirectory(prefix='stellar-package-analysis-') as scratch:
+            phase = 'read-package-metadata'
             kwargs = {'public_metadata': bridge.public_package_metadata(bundle, reader)} if command is None else {'command': command}
+            phase = 'inspect-package-contents'
             report, report_sha, manifest_sha = bridge.run_package(bundle, root, package_pins, scratch, **kwargs)
+        phase = 'prepare-diagnostics'
         proof = payload(ctx, report, report_sha, manifest_sha, pins)
         document, preview = diagnostic_document(ctx, report, report_sha, manifest_sha, pins)
         proof['diagnostics'] = diagnostics_metadata(document, preview)
@@ -350,6 +356,8 @@ def scan(ctx, bridge, checks, pins, root, reader, command=None):
         if len(summary.encode()) > 60000:
             raise WorkerError('summary-limit')
         conclusion = 'success' if proof['inspection_status'] == 'passed' and proof['coverage_complete'] else 'failure'
+        phase = 'publish-result'
+        completion_attempted = True
         final = checks.request(endpoint + '/' + str(check['id']), {'status': 'completed', 'conclusion': conclusion,
             'output': {'title': 'Static dependency content inspection: ' + proof['inspection_status'], 'summary': summary}}, 'PATCH')
         check_identity(final, ctx, check['id'])
@@ -358,8 +366,25 @@ def scan(ctx, bridge, checks, pins, root, reader, command=None):
         record.update(state='reported', proof=proof, conclusion=conclusion, summary_sha256=digest(summary.encode()))
         return record, 0 if conclusion == 'success' else 1, summary
     except Exception:
-        # Neither an uncertain check write nor a package operation is retried.
-        return record, 1, HEADER + 'Inspection incomplete; no package-cleanliness result is asserted.\n'
+        # Use only fixed phase names, never exception messages or package output:
+        # errors can contain URLs, tokens, paths or untrusted package text.
+        record['failure_phase'] = phase
+        summary = HEADER + ('Inspection incomplete during ' + phase +
+                            '; no package-cleanliness result is asserted.\n')
+        # Close an identity-verified check when scanning failed before publication.
+        # Never retry an uncertain result write or claim a package report exists.
+        if record['check_id'] is not None and not completion_attempted:
+            try:
+                final = checks.request(endpoint + '/' + str(record['check_id']), {
+                    'status': 'completed', 'conclusion': 'failure',
+                    'output': {'title': 'Dependency inspection incomplete', 'summary': summary}}, 'PATCH')
+                check_identity(final, ctx, record['check_id'])
+                record['failure_check_confirmed'] = (
+                    final.get('status') == 'completed' and final.get('conclusion') == 'failure'
+                    and final.get('output', {}).get('summary') == summary)
+            except Exception:
+                record['failure_check_confirmed'] = False
+        return record, 1, summary
 
 
 def validate_record(record, ctx, pins):
