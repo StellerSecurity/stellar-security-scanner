@@ -10,6 +10,7 @@ import os
 from pathlib import Path, PurePosixPath
 import re
 import stat
+import struct
 import tarfile
 import time
 import types
@@ -235,6 +236,9 @@ class Inspector:
         if executable(data) or EXECUTABLE_SUFFIX.search(path):
             self.gap(path, 'executable-binary-needs-independent-review')
             return
+        if data[:2] in (b'\x1a\x01', b'\x1e\x02'):
+            self.terminfo(path, data)
+            return
         if data.startswith((b'PK\x03\x04', b'PK\x05\x06', b'\x1f\x8b')) or ARCHIVE_SUFFIX.search(path):
             self.archive(path, data, depth + 1)
             return
@@ -259,6 +263,79 @@ class Inspector:
             self.gap(path, 'nontext-content')
             return
         self.inspect_text(path, text)
+
+    def terminfo(self, path, raw):
+        """Validate ncurses term(5) framing; inspect strings without terminal IO.
+
+        Format: https://invisible-island.net/ncurses/man/term.5.html
+        This recognizes data, not native binaries or PHP archives."""
+        try:
+            if not 12 <= len(raw) <= 32768:
+                raise Incomplete('invalid-terminfo-size')
+            magic, names, booleans, numbers, strings, size = struct.unpack_from('<6H', raw)
+            if magic not in (0x11a, 0x21e):
+                raise Incomplete('invalid-terminfo-magic')
+            width = 2 if magic == 0x11a else 4
+            position = 12
+            def take(count):
+                nonlocal position
+                if count < 0 or position + count > len(raw):
+                    raise Incomplete('truncated-terminfo')
+                value = raw[position:position + count]
+                position += count
+                return value
+            def align():
+                if position % 2 and take(1) != b'\0':
+                    raise Incomplete('invalid-terminfo-padding')
+            def flags(count):
+                if any(x not in (0, 1, 254, 255) for x in take(count)):
+                    raise Incomplete('invalid-terminfo-boolean')
+            def numeric(count):
+                if any(x[0] < -2 for x in struct.iter_unpack('<h' if width == 2 else '<i', take(count * width))):
+                    raise Incomplete('invalid-terminfo-number')
+            def endpoints(offsets, table, allow_missing=True):
+                ends = []
+                for offset in offsets:
+                    if allow_missing and offset in (-1, -2):
+                        continue
+                    if offset < 0 or offset >= len(table):
+                        raise Incomplete('invalid-terminfo-string-offset')
+                    end = table.find(b'\0', offset)
+                    if end < 0:
+                        raise Incomplete('unterminated-terminfo-string')
+                    ends.append(end + 1)
+                return max(ends, default=0)
+            if not 2 <= names <= 128:
+                raise Incomplete('invalid-terminfo-names')
+            name = take(names)
+            if name[-1:] != b'\0' or any(x < 32 or x > 126 for x in name[:-1]):
+                raise Incomplete('invalid-terminfo-names')
+            flags(booleans)
+            align()
+            numeric(numbers)
+            offsets = [x[0] for x in struct.iter_unpack('<h', take(strings * 2))]
+            table = take(size)
+            endpoints(offsets, table)
+            if position < len(raw):
+                align()
+                eb, en, es, entries, length = struct.unpack('<5H', take(10))
+                if entries != eb + en + 2 * es:
+                    raise Incomplete('invalid-terminfo-extended-count')
+                flags(eb)
+                align()
+                numeric(en)
+                offsets = [x[0] for x in struct.iter_unpack('<h', take(entries * 2))]
+                table = take(length)
+                names_start = endpoints(offsets[:es], table)
+                endpoints(offsets[es:], table[names_start:], allow_missing=False)
+            if position != len(raw):
+                raise Incomplete('terminfo-trailing-data')
+            self.exclusions.append({'path': path, 'reason': 'validated-terminfo-strings-only'})
+            # The validated tables are data, not native code. Scan every byte's
+            # textual representation, including unreferenced table strings.
+            self.inspect_text(path, raw.decode('latin1'), counted=False)
+        except (Incomplete, struct.error) as exc:
+            self.gap(path, str(exc) if isinstance(exc, Incomplete) else 'invalid-terminfo')
 
     def inspect_text(self, path, text, counted=True):
         if len(text.encode('utf-8')) > self.limits['text_bytes']:
