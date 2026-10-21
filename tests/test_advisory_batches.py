@@ -27,6 +27,21 @@ class AdvisoryBatchTests(unittest.TestCase):
             return ([{'type':'malware','withdrawn_at':None,'ghsa_id':'GHSA-abcd-1234-efgh'}] if matches else []),None
         return request,calls
 
+    def test_maven_qualifier_versions_are_checked_without_normalization(self):
+        packages = [dict(ecosystem='maven', name='io.netty:netty-buffer',
+                         version='4.1.110.Final', public_registry_verified=True)]
+        request, calls = self.transport()
+        result = advisory.check_packages(packages, request=request)
+        self.assertTrue(result['complete'], result['gaps'])
+        self.assertEqual(urllib.parse.parse_qs(urllib.parse.urlsplit(calls[0]).query)['affects'],
+                         ['io.netty:netty-buffer@4.1.110.Final'])
+
+    def test_maven_versions_reject_query_and_path_injection(self):
+        for version in ('1,evil@2', '../1', '1&x=y', '1\\evil', '1\n2', '1 2', '', 'x' * 129):
+            with self.subTest(version=version), self.assertRaises(advisory.AdvisoryError):
+                advisory.coordinates([dict(ecosystem='maven', name='io.netty:netty-buffer',
+                                           version=version, public_registry_verified=True)])
+
     def test_large_inventory_stays_under_anonymous_hourly_request_limit(self):
         request,calls=self.transport()
         result=advisory.check_packages(self.packages(),request=request)
