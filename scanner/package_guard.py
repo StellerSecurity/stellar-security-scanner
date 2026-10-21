@@ -517,6 +517,15 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
                             'version':package['version'], 'public_registry_verified':False,
                             'reviewed_git_identity_verified':True, 'reference':package['reference'],
                             'repository':package['repository']})
+                    if package['ecosystem'] == 'npm':
+                        expected_bundled = package.get('bundled_packages', [])
+                        actual_bundled = provenance.get('bundled_packages', [])
+                        if (not isinstance(actual_bundled, list)
+                                or sorted(actual_bundled, key=lambda p: p['path']) != sorted(expected_bundled, key=lambda p: p['path'])):
+                            raise Incomplete('bundled-provenance-incomplete')
+                        for child in actual_bundled:
+                            public_packages.append({'ecosystem': 'npm', 'name': child['name'],
+                                'version': child['version'], 'public_registry_verified': True})
                     record.update(archive_sha256=result["sha256"], provenance=provenance,
                                   integrity_verified=result.get("integrity_verified") is True)
                     if result.get("integrity_verified") is not True:
