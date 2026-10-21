@@ -482,6 +482,12 @@ def validate_report(report, bundle, pins, manifest_sha, acquisition=None):
     expected = [{'path': x['path'], 'sha256': digest(base64.b64decode(x['content_base64'], validate=True))} for x in bundle['files']]
     if report.get('dependency_manifests') != expected or report.get('dependency_manifest_count') != len(expected):
         raise BridgeError('package-manifest-inventory-mismatch')
+    expected_gradle_review = None
+    if acquisition is not None and hasattr(acquisition, 'reviewed_gradle_release'):
+        expected_gradle_review = acquisition.reviewed_gradle_release(bundle, {
+            item['path']: base64.b64decode(item['content_base64'], validate=True) for item in bundle['files']})
+    if report.get('gradle_release_review') != expected_gradle_review:
+        raise BridgeError('gradle-release-review-binding-mismatch')
     expected_archives = []
     for item in bundle['files']:
         if re.search(r'\.(?:jar|aar)$', item['path'], re.I):

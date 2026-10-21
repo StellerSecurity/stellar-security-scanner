@@ -413,6 +413,7 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
     scanner = dependency_inspector(content, scanner_limits)
     records, manifests, plans, downloaded_bytes, requests = [], {}, {}, 0, 0
     repository_artifacts = []
+    gradle_release_review = None
     bundle_validated = False
     public_packages = []
     advisory = None
@@ -468,6 +469,8 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
     try:
         manifests, discovery_gaps = manifest_bundle(manifests_input, source_sha, limits) if manifests_input is not None else discover(root, check_budget, limits)
         bundle_validated = manifests_input is not None
+        if bundle_validated and hasattr(acquisition, 'reviewed_gradle_release'):
+            gradle_release_review = acquisition.reviewed_gradle_release(manifests_input, manifests)
         for item in discovery_gaps:
             gap(item["path"], item["reason"])
         for path, raw in sorted(manifests.items()):
@@ -516,6 +519,9 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
                         check_composer_graph(path, strict_json(manifest_raw), strict_json(raw), gap)
                 planned = acquisition.plan_packages(path, raw, composer_manifest=manifests.get(prefix + "composer.json"))
                 for item in planned["gaps"]:
+                    if (gradle_release_review is not None and path == 'gradle/verification-metadata.xml'
+                            and item['reason'] == 'gradle-build-graph-binding-required'):
+                        continue
                     gap(path, item["reason"])
                 for package in planned["packages"]:
                     identity = json.dumps(package, sort_keys=True, separators=(",", ":"))
@@ -544,7 +550,8 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
                     if has_packages and prefix + "composer.lock" not in manifests:
                         gap(path, "composer-lockfile-missing")
             else:
-                gap(path, "unsupported-dependency-ecosystem")
+                if gradle_release_review is None or path not in gradle_release_review['build_files']:
+                    gap(path, "unsupported-dependency-ecosystem")
         if any(row['plan']['ecosystem'] == 'maven' for row in plans.values()):
             scanner.limits['members'] = 250000
         with closing(prefetch_packages(plans, lambda package: acquisition.acquire(package, fetch=bounded_fetch))) as pending_packages:
@@ -649,6 +656,7 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
                   input={"kind": "dependency-lock-manifest", "sha256": sha256(json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode()),
                          "digest_scope": "inspected-dependency-manifests"},
                   packages=records, repository_artifacts=repository_artifacts,
+                  gradle_release_review=gradle_release_review,
                   dependency_manifest_count=len(manifests), dependency_manifests=manifest,
                   dependency_inventory_complete=not result["gaps"],
                   downloads_as_data_only=True, installed_or_executed_packages=False,

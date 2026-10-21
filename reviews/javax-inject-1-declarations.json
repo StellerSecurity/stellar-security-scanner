@@ -1,0 +1,153 @@
+{
+  "schema": 1,
+  "id": "javax-inject-1-declarations",
+  "artifact": "javax.inject:javax.inject:1",
+  "jar_sha256": "91c77044a50c481636c32d916fd89c9118a72195390452c81065080f957de7ff",
+  "upstream": "https://repo.maven.apache.org/maven2/javax/inject/javax.inject/1/javax.inject-1.jar",
+  "license": "Apache-2.0",
+  "scope": "Only these six exact class-file contents. Other members, changed bytes and other versions are not cleared. No claim about implementations of Provider or dependency-injection frameworks.",
+  "method": "Read complete javap -v -p -c output for all six classes, including every constant and annotation. No class was loaded or executed.",
+  "annotations": "Inject targets method/constructor/field; Qualifier and Scope target annotations; Named is a Qualifier with empty default; Singleton is a Scope. All five annotations have RUNTIME retention and Documented metadata. Provider has no annotations.",
+  "classes": [
+    {
+      "path": "javax/inject/Inject.class",
+      "bytes": 450,
+      "sha256": "87895971be929a6978e1f8f1970a14fa3c9acd5fef33f8b728cc44daea380102",
+      "class_version": 49,
+      "fields": [],
+      "methods": [],
+      "attributes": [
+        "SourceFile",
+        "RuntimeVisibleAnnotations"
+      ],
+      "superclass": "java/lang/Object",
+      "interfaces": [
+        "java/lang/annotation/Annotation"
+      ],
+      "code_attributes": 0,
+      "native_methods": 0,
+      "initializers": 0,
+      "constant_pool_tags": [
+        1,
+        7
+      ]
+    },
+    {
+      "path": "javax/inject/Named.class",
+      "bytes": 418,
+      "sha256": "0607fbadc7b04e1c03384e368911c8aaa37340ba620603694a7dc263eb73fb02",
+      "class_version": 49,
+      "fields": [],
+      "methods": [
+        "public abstract value()Ljava/lang/String; with empty-string AnnotationDefault"
+      ],
+      "attributes": [
+        "SourceFile",
+        "RuntimeVisibleAnnotations"
+      ],
+      "superclass": "java/lang/Object",
+      "interfaces": [
+        "java/lang/annotation/Annotation"
+      ],
+      "code_attributes": 0,
+      "native_methods": 0,
+      "initializers": 0,
+      "constant_pool_tags": [
+        1,
+        7
+      ]
+    },
+    {
+      "path": "javax/inject/Provider.class",
+      "bytes": 226,
+      "sha256": "6af2bf5f918f02ea77ec1ca598522dcb87a35fd65fff74422423fb9967c12d1f",
+      "class_version": 49,
+      "fields": [],
+      "methods": [
+        "public abstract get()Ljava/lang/Object; with generic signature ()TT;"
+      ],
+      "attributes": [
+        "SourceFile",
+        "Signature"
+      ],
+      "superclass": "java/lang/Object",
+      "interfaces": [],
+      "code_attributes": 0,
+      "native_methods": 0,
+      "initializers": 0,
+      "constant_pool_tags": [
+        1,
+        7
+      ]
+    },
+    {
+      "path": "javax/inject/Qualifier.class",
+      "bytes": 433,
+      "sha256": "bbcbbc9aab41f3f240d666f568f506419d352bd0b16751403fac05db9ae1daaa",
+      "class_version": 49,
+      "fields": [],
+      "methods": [],
+      "attributes": [
+        "SourceFile",
+        "RuntimeVisibleAnnotations"
+      ],
+      "superclass": "java/lang/Object",
+      "interfaces": [
+        "java/lang/annotation/Annotation"
+      ],
+      "code_attributes": 0,
+      "native_methods": 0,
+      "initializers": 0,
+      "constant_pool_tags": [
+        1,
+        7
+      ]
+    },
+    {
+      "path": "javax/inject/Scope.class",
+      "bytes": 425,
+      "sha256": "39d3ee48b6fcda9a03c38c351dca61b403a08d688cf2cdaf1ab1b649ab1d3978",
+      "class_version": 49,
+      "fields": [],
+      "methods": [],
+      "attributes": [
+        "SourceFile",
+        "RuntimeVisibleAnnotations"
+      ],
+      "superclass": "java/lang/Object",
+      "interfaces": [
+        "java/lang/annotation/Annotation"
+      ],
+      "code_attributes": 0,
+      "native_methods": 0,
+      "initializers": 0,
+      "constant_pool_tags": [
+        1,
+        7
+      ]
+    },
+    {
+      "path": "javax/inject/Singleton.class",
+      "bytes": 359,
+      "sha256": "bf6716b541e624a5a8e6619cca4f82cc5074640ca9c1f195a1c740ad01c364bf",
+      "class_version": 49,
+      "fields": [],
+      "methods": [],
+      "attributes": [
+        "SourceFile",
+        "RuntimeVisibleAnnotations"
+      ],
+      "superclass": "java/lang/Object",
+      "interfaces": [
+        "java/lang/annotation/Annotation"
+      ],
+      "code_attributes": 0,
+      "native_methods": 0,
+      "initializers": 0,
+      "constant_pool_tags": [
+        1,
+        7
+      ]
+    }
+  ]
+}

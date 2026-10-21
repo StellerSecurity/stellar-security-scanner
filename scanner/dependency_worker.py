@@ -145,6 +145,23 @@ def diagnostic_document(ctx, report, report_sha, manifest_sha, pins):
         sanitized=True, source_excerpts_included=False, truncated=False,
         omitted={'findings': 0, 'gaps': 0, 'named_packages': 0})
     document['coverage_summary'] = coverage_summary(report, gaps)
+    release_review = report.get('gradle_release_review')
+    if release_review is not None:
+        # The parent already binds this record to the immutable repository tree.
+        # Preserve its limited scope in both the full and preview diagnostics.
+        if (not isinstance(release_review, dict)
+                or release_review.get('compiled_dependency_clearance') is not False
+                or not isinstance(release_review.get('scope'), str)):
+            raise WorkerError('invalid-release-review-diagnostic')
+        review_summary = {'scope': safe_diagnostic(release_review['scope']),
+                          'compiled_dependency_clearance': False}
+        for field, size in (('tree_sha', 40), ('reviewed_commit', 40),
+                            ('inventory_sha256', 64), ('apk_sha256', 64)):
+            value = release_review.get(field)
+            if not isinstance(value, str) or not re.fullmatch('[0-9a-f]{' + str(size) + '}', value):
+                raise WorkerError('invalid-release-review-diagnostic')
+            review_summary[field] = value
+        document['gradle_release_review'] = review_summary
     if 'finding_counts' in report:
         document['finding_summary'] = {
             'observed_by_severity': report['finding_counts'],
@@ -231,6 +248,10 @@ def summary_text(proof, preview):
                      if type(total) is int else 'The total number of coverage gaps is unavailable. ')
     coverage_text += ('The gaps arrays and totals.gaps count retained examples; '
                       'they are not a complete gap count.\n\n')
+    if preview.get('gradle_release_review') is not None:
+        coverage_text += ('A separately reviewed release build is bound to this exact source tree. '
+                          'Its task scope is recorded in the diagnostic preview. '
+                          'This does not clear compiled dependencies or attest other build variants.\n\n')
     return (HEADER + '```json\n' + canonical(proof).decode() + '\n```\n\n'
         + '## Named diagnostic preview\n\n```json\n' + canonical(preview).decode() + '\n```\n\n'
         + coverage_text
