@@ -4,7 +4,7 @@ Only the reviewed acquisition adapter contacts public registries. This wrapper
 never installs, extracts, imports or executes acquired package bytes.
 """
 import argparse
-from collections import deque
+from collections import Counter, deque
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import closing
 import threading
@@ -27,7 +27,7 @@ LIMITS = {"files": 200000, "depth": 128, "lock_bytes": 16 * 1024 * 1024,
           "requests": 20000, "seconds": 900, "gaps": 1000,
           "manifest_bytes": 64 * 1024 * 1024, "manifest_files": 1000,
           "manifest_bundle_bytes": 96 * 1024 * 1024}
-LOCKS = {"package-lock.json", "npm-shrinkwrap.json", "composer.lock", "yarn.lock"}
+LOCKS = {"package-lock.json", "npm-shrinkwrap.json", "composer.lock", "yarn.lock", "verification-metadata.xml"}
 MANIFESTS = {"package.json", "composer.json"}
 UNSUPPORTED = {"yarn.lock", "pnpm-lock.yaml", "bun.lock", "bun.lockb", "poetry.lock", "uv.lock",
                "Pipfile", "Pipfile.lock", "pyproject.toml", "requirements.txt", "requirements.in",
@@ -339,6 +339,12 @@ def verified_origin(package, provenance, acquisition):
         return False
     if provenance.get('name') != package['name'] or provenance.get('version') != package['version']:
         return False
+    if package['ecosystem'] == 'maven':
+        try:
+            expected = acquisition.acquire_maven(package, None, True)['provenance']
+        except acquisition.AcquisitionError:
+            return False
+        return provenance == expected
     if provenance.get('registry') != 'reviewed-public-git':
         registry = {'npm': 'registry.npmjs.org', 'composer': 'packagist.org'}.get(package['ecosystem'])
         return registry is not None and provenance.get('registry') == registry and provenance.get('registry_identity_verified') is True
@@ -364,6 +370,32 @@ def verified_origin(package, provenance, acquisition):
             and type(binding.get('omitted_tracked_files')) is int and binding['omitted_tracked_files'] >= 0)
 
 
+def dependency_inspector(content, limits):
+    scanner = content.Inspector(limits=limits)
+    scanner.coverage_gap_counts = Counter()
+    scanner.coverage_gap_samples = Counter()
+    scanner.coverage_gap_total = 0
+    original_report = scanner.report
+    def gap(path, reason):
+        scanner.coverage_gap_total += 1
+        scanner.coverage_gap_counts[reason] += 1
+        # Exact counts, rather than retained samples, decide package completeness.
+        if scanner.coverage_gap_samples[reason] < 20 and len(scanner.gaps) < scanner.limits['findings']:
+            scanner.gaps.append({'path':path, 'reason':reason})
+            scanner.coverage_gap_samples[reason] += 1
+    def report(*args, **kwargs):
+        result = original_report(*args, **kwargs)
+        result.update(coverage_gap_counts=dict(scanner.coverage_gap_counts),
+                      coverage_gap_total=scanner.coverage_gap_total,
+                      omitted_gap_details=scanner.coverage_gap_total-len(scanner.gaps))
+        if scanner.coverage_gap_total and result['status'] == 'passed':
+            result['status'] = 'incomplete'
+        return result
+    scanner.gap = gap
+    scanner.report = report
+    return scanner
+
+
 def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, manifests_input=None, advisories=None, advisory_request=None):
     limits = dict(LIMITS if limits is None else limits)
     if not re.fullmatch(r"[0-9a-f]{40}", source_sha):
@@ -374,7 +406,7 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
     # Cumulative bytes consumed across all packages, not an in-memory buffer.
     # Per-response, per-member, concurrency and duration limits stay separate.
     scanner_limits["expanded_bytes"] = limits["expanded_bytes"]
-    scanner = content.Inspector(limits=scanner_limits)
+    scanner = dependency_inspector(content, scanner_limits)
     records, manifests, plans, downloaded_bytes, requests = [], {}, {}, 0, 0
     bundle_validated = False
     public_packages = []
@@ -440,7 +472,7 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
             if name in LOCKS:
                 if name == "yarn.lock":
                     gap(path, "yarn-manifest-graph-binding-needs-review")
-                elif name != "composer.lock":
+                elif name not in ("composer.lock", "verification-metadata.xml"):
                     manifest_raw = manifests.get(prefix + "package.json")
                     if manifest_raw is None:
                         gap(path, "npm-root-manifest-missing")
@@ -488,6 +520,8 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
                         gap(path, "composer-lockfile-missing")
             else:
                 gap(path, "unsupported-dependency-ecosystem")
+        if any(row['plan']['ecosystem'] == 'maven' for row in plans.values()):
+            scanner.limits['members'] = 250000
         with closing(prefetch_packages(plans, lambda package: acquisition.acquire(package, fetch=bounded_fetch))) as pending_packages:
             for index, value, acquired in pending_packages:
                 check_budget()
@@ -496,8 +530,10 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
                 record = {"ecosystem": package["ecosystem"], "name": package["name"],
                           "version": package["version"], "reference": package.get("reference"),
                           "lockfiles": value["lockfiles"], "status": "incomplete"}
+                if package['ecosystem'] == 'maven':
+                    record['file'] = package['file']
                 records.append(record)
-                before_gaps, before_files = len(scanner.gaps), scanner.files_scanned
+                before_gaps, before_files = scanner.coverage_gap_total, scanner.files_scanned
                 before_blockers = scanner.finding_counts['error'] + scanner.finding_counts['review']
                 try:
                     result = acquired.result()
@@ -534,13 +570,16 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
                         raise Incomplete("dependency-acquisition-report-invalid")
                     for item in result["gaps"]:
                         gap(logical, item["reason"])
-                    scanner.archive(logical, raw)
+                    if package['ecosystem'] == 'maven':
+                        scanner.content(logical + '/' + package['file'], raw)
+                    else:
+                        scanner.archive(logical, raw)
                     if scanner.files_scanned == before_files:
                         gap(logical, "dependency-package-has-no-inspected-text")
                     blockers = scanner.finding_counts['error'] + scanner.finding_counts['review'] - before_blockers
-                    record.update(status="blocked" if blockers else "incomplete" if len(scanner.gaps) > before_gaps else "passed",
+                    record.update(status="blocked" if blockers else "incomplete" if scanner.coverage_gap_total > before_gaps else "passed",
                                   files_scanned=scanner.files_scanned - before_files,
-                                  blocking_findings=blockers, coverage_gaps=len(scanner.gaps) - before_gaps,
+                                  blocking_findings=blockers, coverage_gaps=scanner.coverage_gap_total - before_gaps,
                                   opaque_verified_binaries=0)
                 except (acquisition.AcquisitionError, Incomplete) as exc:
                     gap(logical, str(exc))
@@ -567,14 +606,14 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
                         record.setdefault("malware_advisories", []).append(finding.get("id"))
     except (Incomplete, content.Incomplete, OSError, ValueError, TypeError, KeyError, RecursionError) as exc:
         reason = str(exc) if isinstance(exc, (Incomplete, content.Incomplete)) else "dependency-inspection-failed"
-        if len(scanner.gaps) < scanner.limits["findings"]:
-            gap("dependencies", reason)
+        gap("dependencies", reason)
     empty_dependency_inventory = not plans and not records and not scanner.gaps
     result = scanner.report(source_sha, "dependency-archives")
     if empty_dependency_inventory:
         # No declared packages is a complete empty dependency inventory, not a
         # source-content clean claim. Keep files_scanned=0; never fabricate a scan.
         result["gaps"] = []
+        result.update(coverage_gap_counts={}, coverage_gap_total=0, omitted_gap_details=0)
         result["status"] = "passed"
     manifest = [{"path": path, "sha256": sha256(raw)} for path, raw in sorted(manifests.items())]
     result.update(scanner_sha256=sha256(Path(__file__).read_bytes()), dependency_guard_version="1.0.0",

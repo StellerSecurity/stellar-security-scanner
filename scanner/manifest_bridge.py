@@ -19,7 +19,7 @@ VERSION = '1.0.0-proposal'
 ORGANIZATIONS = {'StellerSecurity': 142119599, 'Stellar-seo-websites': 293014096,
                  'StellarMail': 213555580, 'StellarSecurity-Packages': 246878660}
 MANIFEST_NAMES = frozenset({'package-lock.json', 'npm-shrinkwrap.json', 'composer.lock',
-    'package.json', 'composer.json', 'yarn.lock', 'pnpm-lock.yaml', 'bun.lock', 'bun.lockb',
+    'verification-metadata.xml', 'package.json', 'composer.json', 'yarn.lock', 'pnpm-lock.yaml', 'bun.lock', 'bun.lockb',
     'poetry.lock', 'uv.lock', 'Pipfile', 'Pipfile.lock', 'pyproject.toml', 'requirements.txt',
     'requirements.in', 'Cargo.toml', 'Cargo.lock', 'go.mod', 'go.sum', 'Gemfile', 'Gemfile.lock',
     'build.gradle', 'build.gradle.kts', 'gradle.lockfile', 'pom.xml', 'packages.config',
@@ -56,8 +56,35 @@ def sha256_id(value):
     return isinstance(value, str) and bool(re.fullmatch('[0-9a-f]{64}', value))
 
 
+def validate_gap_summary(report):
+    if 'coverage_gap_total' not in report:
+        return
+    counts, total, omitted = (report.get(k) for k in
+                              ('coverage_gap_counts', 'coverage_gap_total', 'omitted_gap_details'))
+    gaps = report.get('gaps')
+    if (not isinstance(counts, dict) or not isinstance(gaps, list)
+            or type(total) is not int or type(omitted) is not int or min(total, omitted) < 0
+            or any(not isinstance(k, str) or type(v) is not int or v < 1 for k,v in counts.items())
+            or sum(counts.values()) != total or total != len(gaps) + omitted
+            or any(not isinstance(g, dict) or g.get('reason') not in counts for g in gaps)
+            or any(sum(g.get('reason') == reason for g in gaps) > n for reason,n in counts.items())
+            or total and (report.get('status') == 'passed' or report.get('dependency_inventory_complete') is True)):
+        raise BridgeError('package-gap-summary-mismatch')
+
+
 def verified_package_origin(package, provenance):
     """Validate registry and separately reviewed Git proofs without conflating them."""
+    if package['ecosystem'] == 'maven':
+        import package_acquisition as acquisition
+        try:
+            name = package['name'].split(':')
+            if len(name) != 2:
+                return False
+            plan = acquisition._maven_plan(*name, package['version'], package.get('file'),
+                                           [package.get('archive_sha256')])
+            return provenance == acquisition.acquire_maven(plan, None, True)['provenance']
+        except acquisition.AcquisitionError:
+            return False
     registry = provenance.get('registry')
     if registry != 'reviewed-public-git':
         expected = 'registry.npmjs.org' if package['ecosystem'] == 'npm' else 'packagist.org'
@@ -430,6 +457,7 @@ def validate_report(report, bundle, pins, manifest_sha):
     for name in ('findings', 'gaps', 'packages', 'exclusions'):
         if not isinstance(report.get(name), list):
             raise BridgeError('package-report-list-invalid')
+    validate_gap_summary(report)
     if report['status'] == 'passed' and any(
             isinstance(item, dict) and item.get('reason') == 'opaque-verified-dependency-binary-not-executed'
             for item in report['exclusions']):
@@ -465,7 +493,7 @@ def validate_report(report, bundle, pins, manifest_sha):
         if not isinstance(package, dict) or package.get('status') not in ('passed', 'blocked', 'incomplete'):
             raise BridgeError('package-state-invalid')
         identity = tuple(package.get(k) for k in ('ecosystem', 'name', 'version'))
-        if identity[0] not in ('npm', 'composer') or any(not isinstance(x, str) or not x for x in identity):
+        if identity[0] not in ('npm', 'composer', 'maven') or any(not isinstance(x, str) or not x for x in identity):
             raise BridgeError('package-coordinate-invalid')
         identities.add(identity)
         if package['status'] == 'passed':
