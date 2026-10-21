@@ -16,6 +16,7 @@ import tarfile
 import time
 import types
 import unicodedata
+import xml.etree.ElementTree as ET
 import zipfile
 import zlib
 
@@ -509,6 +510,27 @@ class Inspector:
             return
         if '\x00' in text:
             self.gap(path, 'binary-content')
+            return
+        # Android's resource translations can legitimately contain more bidi
+        # marks than visible letters (e.g. values-en-rXC). Validate XML framing
+        # before treating format controls as text, and scan both the original
+        # and decoded/normalized content so marks cannot hide an indicator.
+        if path.lower().endswith('.xml') and any(unicodedata.category(c) == 'Cf' for c in text):
+            try:
+                if re.search(r'<!\s*(?:DOCTYPE|ENTITY)\b', text, re.I):
+                    raise ValueError('XML declarations are not allowed')
+                root = ET.fromstring(text)
+                if sum(1 for _ in root.iter()) > self.limits['members']:
+                    raise ValueError('XML node limit')
+            except (ET.ParseError, ValueError):
+                self.gap(path, 'invalid-format-control-xml')
+                return
+            self.inspect_text(path, text)
+            normalized = ''.join(c for c in text if unicodedata.category(c) != 'Cf')
+            self.inspect_text(path, normalized, counted=False)
+            decoded = '\n'.join(''.join(root.itertext()).splitlines())
+            decoded += '\n' + '\n'.join(v for node in root.iter() for v in node.attrib.values())
+            self.inspect_text(path, ''.join(c for c in decoded if unicodedata.category(c) != 'Cf'), counted=False)
             return
         if len(text) and sum(c.isprintable() or c in '\r\n\t' for c in text) / len(text) < .90:
             self.gap(path, 'nontext-content')
