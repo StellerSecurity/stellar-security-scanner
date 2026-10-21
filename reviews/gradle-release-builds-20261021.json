@@ -132,9 +132,45 @@
         "shared_executable_cache_mounted": false,
         "fresh_rebuild_claimed": false
       }
+    },
+    {
+      "repository": "StellerSecurity/Stellar.Android.AntivirusApp",
+      "repository_id": 717465599,
+      "tree_sha": "f51565ebd21c2167bc17efbd06be1ea7c8f43848",
+      "reviewed_commit": "8567f4fb0eeb37e0f0353329ce82c2a2cd646bd6",
+      "source_file_count": 325,
+      "source_bound": true,
+      "scope": "assembleRelease, testReleaseUnitTest and lintRelease; other variants are not attested",
+      "tasks": [
+        ":app:assembleRelease",
+        ":app:testReleaseUnitTest",
+        ":app:lintRelease"
+      ],
+      "inventory_sha256": "ddc61fddb2d786956a858f671123d8685ed2f3a52a78f61b43e2a980b2b56861",
+      "init_sha256": "f944745653f314bbd5d0bc64f8a755f94fe1010cf21a54e094847a211145c6aa",
+      "runner_sha256": "a5bd7b4afb308b84365af08e3aec664c40b9765348ee4f6aaed5a250a111b4ae",
+      "verification_metadata_sha256": "23031034ae53c7f98b2db8b73c397d1ba9a3c03d6508ed748155f28d26708e06",
+      "build_files": {
+        "build.gradle": "989f25ca232bd8a62fea908a4fe3d8c41b783d652e33edfac4e6c728bbc0402b",
+        "app/build.gradle": "817262c3227e1bc4b145bf5458c2470eb2b88b940665c2c80051874fda457153"
+      },
+      "resolved_configurations": 25,
+      "unit_tests": 71,
+      "lint_errors": 0,
+      "apk_sha256": "ad9310e503db26422beb1eedb4d00fd08cc693e685df57ae186485140000d6b5",
+      "fresh_derivations_match_previous_apk": false,
+      "network_enabled": false,
+      "strict_dependency_verification": true,
+      "compiled_dependency_clearance": false,
+      "derivation_cache": {
+        "scope": "same isolated cache from verified cold build",
+        "origin_inventory_sha256": "6d379f2eedffbfc379947b42817b35b03c7b1f24ddb8010540083ef633f8fa7f",
+        "shared_executable_cache_mounted": false,
+        "fresh_rebuild_claimed": false
+      }
     }
   ],
-  "method": "All tracked source bytes were matched to each immutable Git tree before and after an isolated offline release build. Shared downloaded artifacts were mounted read-only with strict checksums; derived transforms and compiled build scripts were regenerated in empty per-build caches. Both unsigned APKs matched the previous builds byte for byte. Every original resolved Maven artifact matched verification-metadata.xml. Local SDK contents and generated compile-only outputs remain separately subject to content review.",
+  "method": "Tracked source bytes were matched to each immutable Git tree and the recorded offline release build. Shared downloaded artifacts were mounted read-only with strict checksums. Initial cold builds regenerated derived transforms and compiled build scripts; later records explicitly identify reuse of that isolated cache. Each record identifies its tested APK and dependency inventory. Local SDK contents and generated compile-only outputs remain separately subject to content review.",
   "limitations": [
     "Only the named release tasks are attested. Other variants and changed Git trees are outside this review.",
     "No compiled dependency is cleared by checksums, a graph receipt, passing tests or matching APK outputs."
