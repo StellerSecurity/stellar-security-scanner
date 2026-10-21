@@ -1,0 +1,29 @@
+{
+  "jar_sha256": "5d325b5c2c5d4bc8bf44145d24eb4d4beb060d13d11ebe48898936ed5cd1564e",
+  "members": [
+    {
+      "path": "cocoapods/dynamic/dummy.framework/Info.plist",
+      "sha256": "c9fffb209b9330f5919b30c505be2f14c96f0390ed66c8a63542da1b2814a4a5",
+      "files_scanned": 1,
+      "gaps": [],
+      "findings": [],
+      "exclusions": [],
+      "decoded_text_sha256": "903f0d1f505f4d6097da30acc812767866c5db99eca5f7eeaabff1e01844b80a"
+    },
+    {
+      "path": "cocoapods/static/dummy.framework/Info.plist",
+      "sha256": "102745e4c200a8ffe5408a3df6b486d2b5867e00e7e255693550b799fa4b032e",
+      "files_scanned": 1,
+      "gaps": [],
+      "findings": [],
+      "exclusions": [],
+      "decoded_text_sha256": "d5a63009131227483b4884455e8d24ebf5c5f1207eb4d390d4b0b62fbd6f091d"
+    }
+  ],
+  "archive_executable_clearance": false,
+  "format": "bplist00 metadata subset: strings, integers, booleans, arrays and dictionaries",
+  "format_source": "https://github.com/apple-oss-distributions/CF/blob/main/CFBinaryPList.c",
+  "scope": "Decode and inspect all string objects and dictionary keys. No target deserialization or execution. Opaque data, UID/keyed archives and unsupported types remain coverage gaps.",
+  "framing": "Exact offset table and trailer, full record consumption, reachable acyclic object graph, unique string dictionary keys, bounded depth/counts/text.",
+  "tests": "12 regressions, including 1000 seeded byte mutations checked against the independent stdlib parser, executable masquerading, duplicate keys, cycles, opaque payloads and malformed framing."
+}
