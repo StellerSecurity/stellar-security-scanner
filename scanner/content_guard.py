@@ -411,7 +411,7 @@ def kotlin_metadata_text(data, limit, root):
 
 
 def public_suffix_text(data, limit):
-    """OkHttp 5.1 BasePublicSuffixList: two big-endian sized UTF-8 lists."""
+    """OkHttp 3.14/5.1 suffix data: two big-endian sized UTF-8 lists."""
     if not 8 <= len(data) <= min(limit, 1024 * 1024):
         return None
     position, strings = 0, []
@@ -840,7 +840,10 @@ class Inspector:
             return
         resource_reader = None
         member = path.rsplit('!', 1)[-1]
-        if member == 'assets/PublicSuffixDatabase.list':
+        if member in ('assets/PublicSuffixDatabase.list',
+                      'okhttp3/internal/publicsuffix/publicsuffixes'):
+            # OkHttp 3.x stores the same framing in publicsuffixes.gz. The
+            # bounded gzip reader above recursively inspects the decoded file.
             resource_reader = public_suffix_text
         elif member == 'META-INF/dgminfo':
             resource_reader = groovy_dgm_text

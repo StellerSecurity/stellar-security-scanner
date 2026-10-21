@@ -1,5 +1,6 @@
 """Known Java resource formats are parsed, never loaded or executed."""
 from pathlib import Path
+import gzip
 import struct
 import sys
 import unittest
@@ -38,6 +39,44 @@ class JavaResourceTests(unittest.TestCase):
                         number(3) + b'com' + number(0)):
             self.assertTrue(self.inspect('assets/PublicSuffixDatabase.list', invalid).gaps)
         self.assertIsNone(content.public_suffix_text(raw, 4))
+
+    def test_legacy_gzip_suffix_list_inspects_both_lists(self):
+        for lists in ((b'reverse shell\n', b'normal\n'),
+                      (b'normal\n', 're\u200everse sh\u200fell\n'.encode())):
+            raw = b''.join(number(len(value)) + value for value in lists)
+            scanner = self.inspect('okhttp3/internal/publicsuffix/publicsuffixes.gz',
+                                   gzip.compress(raw))
+            self.assertEqual(scanner.gaps, [])
+            self.assertTrue(any(f['malware'] for f in scanner.findings))
+            self.assertEqual(scanner.exclusions, [])
+
+    def test_legacy_gzip_suffix_list_rejects_extra_members_and_invalid_data(self):
+        path = 'okhttp3/internal/publicsuffix/publicsuffixes.gz'
+        raw = number(4) + b'com\n' + number(0)
+        compressed = gzip.compress(raw)
+        invalid = [compressed + gzip.compress(b'hidden'), compressed + b'tail',
+                   compressed[:-1], gzip.compress(raw + b'tail'),
+                   gzip.compress(raw[:-1]), gzip.compress(number(0xffffffff)),
+                   gzip.compress(number(2) + b'\xff\n' + number(0)),
+                   gzip.compress(number(2) + b'\0\n' + number(0))]
+        for value in invalid:
+            self.assertTrue(self.inspect(path, value).gaps)
+
+    def test_legacy_suffix_path_cannot_hide_executable_or_unknown_binary(self):
+        path = 'okhttp3/internal/publicsuffix/publicsuffixes.gz'
+        for raw in (b'\x7fELF' + b'\0' * 100, b'\xca\xfe\xba\xbe' + b'\0' * 100):
+            scanner = self.inspect(path, gzip.compress(raw))
+            self.assertTrue(any(g['reason'] == 'executable-binary-needs-independent-review'
+                                for g in scanner.gaps))
+        raw = number(4) + b'com\n' + number(0)
+        self.assertTrue(self.inspect('elsewhere/publicsuffixes.gz', gzip.compress(raw)).gaps)
+
+    def test_legacy_suffix_gzip_respects_expansion_budget(self):
+        raw = number(4) + b'com\n' + number(0)
+        scanner = content.Inspector(engine=engine(), limits={**content.LIMITS, 'text_bytes': 8})
+        scanner.content('library.jar!okhttp3/internal/publicsuffix/publicsuffixes.gz',
+                        gzip.compress(raw))
+        self.assertTrue(any(g['reason'] == 'gzip-expansion-limit' for g in scanner.gaps))
 
     def dgm(self, strings=(b'java.lang.String', b'Helper', b'getValue')):
         return utf(strings[0]) + number(0) + utf(b'') + number(1) + utf(strings[1]) + utf(strings[2]) + number(0) + number(1) + number(0)
