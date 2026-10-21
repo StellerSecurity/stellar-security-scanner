@@ -206,8 +206,11 @@ def kotlin_module_text(data, limit):
     if count != 3:
         return None
     version = struct.unpack_from('>3I', data, 4)
+    # Kotlin BinaryVersion defines patch changes as format-compatible. AndroidX
+    # uses 1.9.9999; an arbitrary patch ceiling incorrectly rejects that data.
+    # Retain known major/minor schemas and the nonnegative JVM Int boundary.
     if not ((version[0] == 1 and version[1] <= 9) or
-            (version[0] == 2 and version[1] <= 2)) or version[2] > 100:
+            (version[0] == 2 and version[1] <= 2)) or version[2] > 0x7fffffff:
         return None
     offset = 16
     if version[:2] >= (1, 4):
