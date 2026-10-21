@@ -145,16 +145,6 @@ def scan_counts(event, repository, token):
     if len(native) != 1:
         raise NotificationError('The scan job could not be matched to this attempt.')
     job_start, job_end = times(native[0])
-    # GitHub replaces details_url on checks created with GITHUB_TOKEN. Require
-    # one report inside the exact native job window and reject overlapping jobs.
-    for check in checks:
-        if check['id'] == native[0]['id'] or '/actions/runs/' not in (check.get('details_url') or ''):
-            continue
-        other_start = datetime.datetime.fromisoformat(check['started_at'].replace('Z', '+00:00'))
-        other_end = (datetime.datetime.fromisoformat(check['completed_at'].replace('Z', '+00:00'))
-                     if check.get('completed_at') else end)
-        if other_start <= job_end and other_end >= job_start:
-            raise NotificationError('Overlapping scan jobs prevent an unambiguous report match.')
     reports = []
     for check in checks:
         if check.get('name') != SCANNER_NAME:
@@ -167,9 +157,24 @@ def scan_counts(event, repository, token):
         allowed_urls = (wanted_url, 'https://github.com/' + repository + '/runs/' + str(check['id']))
         if check.get('details_url') not in allowed_urls:
             continue
+        binding = check.get('external_id')
+        expected_binding = 'stellar-source:' + str(run['id']) + ':' + str(run['run_attempt']) + ':' + check['head_sha']
+        if binding is not None and binding != expected_binding:
+            continue
         reports.append(check)
     if len(reports) != 1:
         raise NotificationError('No unambiguous complete report was matched to this scan attempt.')
+    if reports[0].get('external_id') is None:
+        # GitHub replaces details_url on checks created with GITHUB_TOKEN. Require
+        # one report inside the exact native job window and reject overlapping jobs.
+        for check in checks:
+            if check['id'] == native[0]['id'] or '/actions/runs/' not in (check.get('details_url') or ''):
+                continue
+            other_start = datetime.datetime.fromisoformat(check['started_at'].replace('Z', '+00:00'))
+            other_end = (datetime.datetime.fromisoformat(check['completed_at'].replace('Z', '+00:00'))
+                         if check.get('completed_at') else end)
+            if other_start <= job_end and other_end >= job_start:
+                raise NotificationError('Overlapping scan jobs prevent an unambiguous report match.')
     counts = report_counts(reports[0]['output']['summary'])
     if reports[0].get('conclusion') != ('failure' if counts['blocking'] else 'success'):
         raise NotificationError('The report result is inconsistent.')

@@ -11,7 +11,7 @@
   "exported_module_sha256": {
     "scanner/advisory_refresh.py": "0859c0da7c5022284319430fcaa690494d56b6400b3ec1fe1ef8d99190c682e1",
     "scanner/cargo_metadata.py": "d3f064963e694a649a4efcd4fe5c7c45cf94ee939725d57596989dd2fb03688e",
-    "scanner/content_guard.py": "24f838d92f5144d0569e8dbd22f494a7cf6d6565dd7131af98ef4801d77c566d",
+    "scanner/content_guard.py": "be9117eead71c2f53f5f8d7bf4ecb22b2d40f69331bf9978756f1a49611d0584",
     "scanner/dependency_worker.py": "58ce88050757c7f027b237530393724b5178b04932439aa9f07d7b7ae4840b7f",
     "scanner/legacy_worker.py": "5ceaa6f017f8a3570f88094f2ef46ced7d914e7e3e5b927f6cbccbf8dbb7be9e",
     "scanner/malware_advisories.py": "cc9ea8120803a9cef2bd028acc8707a7144f8a2add544f10537e9011a350bfcb",
@@ -20,11 +20,11 @@
     "scanner/package_guard.py": "cbb8a49cad965a66f98fcf4dd4726c12043c1a34cd34a5605fea4c245ebac462",
     "scanner/pushover_notify.py": "3ca5e64270e80c5f14135a2bccfec2f0db3cbaa6b981f909abe7e6b330f8e80c",
     "scanner/source_guard.py": "d44f5fcf1f70c2239cb60352b43d29691dab865fb25ea9eaf6f7f9afa80375b4",
-    "scanner/source_guard_v2.py": "d1c2ab9c954d77957708d515c95c009e75f8ff1b6a6d47750df118c536eeeda5",
-    "scanner/source_scan_notify.py": "b8db23cd3ff4960ed9bc824e5702cf3a3e64c1fdcf7288f1fbc7a9d81e9fb41c"
+    "scanner/source_guard_v2.py": "85a206f0741e0b1a3976f6cc636e68ce8e964e87ab4684453022e0d8cb350b9e",
+    "scanner/source_scan_notify.py": "794162e9a049cb344690e392a59bc18f32580d2c0e94787722e0ecc298d1fc6b"
   },
   "module_sha256": {
-    "content_guard.py": "24f838d92f5144d0569e8dbd22f494a7cf6d6565dd7131af98ef4801d77c566d",
+    "content_guard.py": "be9117eead71c2f53f5f8d7bf4ecb22b2d40f69331bf9978756f1a49611d0584",
     "dependency_worker.py": "58ce88050757c7f027b237530393724b5178b04932439aa9f07d7b7ae4840b7f",
     "legacy_worker.py": "5ceaa6f017f8a3570f88094f2ef46ced7d914e7e3e5b927f6cbccbf8dbb7be9e",
     "malware_advisories.py": "cc9ea8120803a9cef2bd028acc8707a7144f8a2add544f10537e9011a350bfcb",
@@ -32,7 +32,7 @@
     "package_acquisition.py": "47ad317972a91febb6d8046ca25df49bc999c67a2149b7204225762b1e89b5cb",
     "package_guard.py": "cbb8a49cad965a66f98fcf4dd4726c12043c1a34cd34a5605fea4c245ebac462",
     "pushover_notify.py": "3ca5e64270e80c5f14135a2bccfec2f0db3cbaa6b981f909abe7e6b330f8e80c",
-    "source_guard_v2.py": "d1c2ab9c954d77957708d515c95c009e75f8ff1b6a6d47750df118c536eeeda5"
+    "source_guard_v2.py": "85a206f0741e0b1a3976f6cc636e68ce8e964e87ab4684453022e0d8cb350b9e"
   },
   "notifier_sha256": "3ca5e64270e80c5f14135a2bccfec2f0db3cbaa6b981f909abe7e6b330f8e80c",
   "proof_schema": 1,
@@ -45,16 +45,16 @@
   "shared_repository_id": 1373179902,
   "source_engine_sha256": "d44f5fcf1f70c2239cb60352b43d29691dab865fb25ea9eaf6f7f9afa80375b4",
   "source_guard_version": "2.1.0",
-  "source_scan_notifier_sha256": "b8db23cd3ff4960ed9bc824e5702cf3a3e64c1fdcf7288f1fbc7a9d81e9fb41c",
+  "source_scan_notifier_sha256": "794162e9a049cb344690e392a59bc18f32580d2c0e94787722e0ecc298d1fc6b",
   "source_scan_notifier_version": "1.2.1",
   "source_worker_version": "1.1.0",
   "source_workflow_sha256": "ca377351a0043654b8eb3cff792ac2e339f421e932ccb9b70a19de151de3efc0",
   "workflow_path": ".github/workflows/commit-check.yml",
-  "workflow_sha256": "0cedd030eb3c71224c65f234a1cc2bf0f71bffc1b893dfeaddf2419a0995210c",
+  "workflow_sha256": "177927047b7570202697c28e8aa1f7a806d167633b683710cb7d9f87250d44f8",
   "workflow_sha256_by_path": {
-    ".github/workflows/commit-check.yml": "0cedd030eb3c71224c65f234a1cc2bf0f71bffc1b893dfeaddf2419a0995210c",
+    ".github/workflows/commit-check.yml": "177927047b7570202697c28e8aa1f7a806d167633b683710cb7d9f87250d44f8",
     ".github/workflows/push-notify.yml": "977a13212f2ee9645935238422cc3fd0ac83a8b29abc7b3ecc0786fa0b940597",
-    ".github/workflows/scan-notify.yml": "92f46b449ea9f6588283af0264ad1367ea1c37faeb4c88f807ba2a9df918704f",
-    ".github/workflows/source-check.yml": "ca377351a0043654b8eb3cff792ac2e339f421e932ccb9b70a19de151de3efc0"
+    ".github/workflows/scan-notify.yml": "1af2e1d9211590991832927f9ba0d0490caa61ecf5241299e20134d4d2fac31d",
+    ".github/workflows/source-check.yml": "10b2f7470231da5bf264ff4522b8ee808ae8c404ecc926aac35b3b30763cf59c"
   }
 }
