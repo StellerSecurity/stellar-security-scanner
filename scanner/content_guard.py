@@ -304,6 +304,18 @@ def php_charset_table(path, data):
     return None
 
 
+def reviewed_native_code(path, data):
+    """Exact code review, not a package-wide exemption or a signature trust rule.
+
+    Review evidence: reviews/symfony-hiddeninput-20120325.json. The C++ main,
+    complete x86 disassembly, imports and PE layout were inspected. Any byte
+    change, appended data, or different member path requires a new review.
+    """
+    return (path.endswith('/Resources/bin/hiddeninput.exe')
+            and len(data) == 9216
+            and digest(data) == '8fdff52a7430dba14fb97239c7fe414710991f16da269374e0936a1385f3a318')
+
+
 class Inspector:
     def __init__(self, engine=None, limits=None):
         self.engine = engine or load_engine()
@@ -385,7 +397,13 @@ class Inspector:
             self.archive(path, data, depth + 1)
             return
         if executable(data) or EXECUTABLE_SUFFIX.search(path):
-            self.gap(path, 'executable-binary-needs-independent-review')
+            if reviewed_native_code(path, data):
+                self.files_scanned += 1
+                self.exclusions.append({'path': path,
+                    'reason': 'exact-native-code-review:symfony-hiddeninput-20120325',
+                    'sha256': digest(data)})
+            else:
+                self.gap(path, 'executable-binary-needs-independent-review')
             return
         # Source generators can mention __HALT_COMPILER() in a string, and
         # Composer names PHP proxy scripts '*.phar'. Require binary framing
@@ -917,7 +935,7 @@ class Inspector:
                 'omitted_warning_findings': self.omitted_warning_findings,
                 'omitted_blocking_findings': self.omitted_blocking_findings,
                 'limits': self.limits,
-                'scope': 'Static text and lifecycle patterns; opaque assets receive string checks only; sensitive files excluded. No code execution or full binary malware analysis.',
+                'scope': 'Static text/lifecycle patterns and recorded exact-byte native reviews; opaque assets receive string checks only; sensitive files excluded. No code execution or full binary malware analysis.',
                 'installed_or_executed_packages': False, 'network_requests': 0}
 
 
