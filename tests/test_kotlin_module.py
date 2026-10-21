@@ -44,6 +44,16 @@ class KotlinModuleTests(unittest.TestCase):
         raw = module(field(2, field(1, b'') + field(2, b'Helpers')), version=(1, 1, 15))
         self.assertEqual(self.inspect(raw).gaps, [])
 
+    def test_compatible_patch_versions_still_inspect_every_name(self):
+        for patch in (101, 9999, 0x7fffffff):
+            raw = module(field(1, field(1, b'androidx.compose') + field(2, b'reverse shell')),
+                         version=(1, 9, patch))
+            scanner = self.inspect(raw)
+            self.assertEqual(scanner.gaps, [])
+            self.assertTrue(any(f['malware'] for f in scanner.findings))
+        for version in ((1, 9, 0xffffffff), (1, 10, 9999), (2, 3, 9999)):
+            self.assertTrue(self.inspect(module(field(3, b'name'), version=version)).gaps)
+
     def test_multifile_and_relocated_package_indices(self):
         parts = field(1, b'org.example') + field(2, b'Part') + field(3, b'\x01') + field(4, b'Facade')
         parts += field(5, b'Moved') + field(6, b'\x00') + b'\x38\x01'
