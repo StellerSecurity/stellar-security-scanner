@@ -9,6 +9,7 @@ from unittest.mock import patch
 import zipfile
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scanner'))
 import package_acquisition as acquisition
+import manifest_bridge as bridge
 
 NAME = 'mondago/application-insights'
 VERSION, REPO, REF = acquisition.REVIEWED_COMPOSER_GIT[NAME]
@@ -25,6 +26,27 @@ def plan(value=None, repositories=None):
         composer_manifest=json.dumps({'repositories': repositories}).encode())
 
 class ReviewedGitTests(unittest.TestCase):
+    def test_parent_accepts_only_exact_git_evidence_without_registry_claim(self):
+        for name, (version, repository, reference) in acquisition.REVIEWED_COMPOSER_GIT.items():
+            package = {'ecosystem':'composer','name':name,'version':version}
+            proof = {'registry':'reviewed-public-git','registry_identity_verified':False,
+                'reviewed_git_identity_verified':True,'reference':reference,'checksum_algorithm':'git-tree',
+                'archive_binding':{'repository':repository,'commit':reference,'tree':'a'*40,
+                    'all_actual_archive_files_verified':True,'verified_archive_files':2,
+                    'verified_archive_bytes':100,'omitted_tracked_files':0,
+                    'binding':'github-immutable-commit-and-git-blob-sha1'}}
+            self.assertTrue(bridge.verified_package_origin(package,proof))
+            for key,value in [('version','9.9.9'),('name','evil/fork'),('ecosystem','npm')]:
+                self.assertFalse(bridge.verified_package_origin(dict(package,**{key:value}),proof))
+            for key,value in [('reference','b'*40),('registry_identity_verified',True),
+                    ('reviewed_git_identity_verified',False),('archive_binding',None)]:
+                self.assertFalse(bridge.verified_package_origin(package,dict(proof,**{key:value})))
+            for key,value in [('repository','evil/fork'),('commit','b'*40),('tree',''),
+                    ('all_actual_archive_files_verified',False),('verified_archive_files',True),
+                    ('verified_archive_bytes',0),('omitted_tracked_files',-1),('binding','unverified')]:
+                bad=copy.deepcopy(proof);bad['archive_binding'][key]=value
+                self.assertFalse(bridge.verified_package_origin(package,bad))
+
     def test_exact_identity_and_explicit_repository_required(self):
         self.assertFalse(plan()['gaps'])
         self.assertEqual(plan()['packages'][0]['registry_context'], 'reviewed-public-git')

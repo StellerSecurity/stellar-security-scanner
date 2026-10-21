@@ -56,6 +56,37 @@ def sha256_id(value):
     return isinstance(value, str) and bool(re.fullmatch('[0-9a-f]{64}', value))
 
 
+def verified_package_origin(package, provenance):
+    """Validate registry and separately reviewed Git proofs without conflating them."""
+    registry = provenance.get('registry')
+    if registry != 'reviewed-public-git':
+        expected = 'registry.npmjs.org' if package['ecosystem'] == 'npm' else 'packagist.org'
+        return registry == expected and provenance.get('registry_identity_verified') is True
+    reviewed = {
+        'mondago/application-insights': ('0.5.1', 'mondago/ApplicationInsights-PHP',
+            'b6b7a8a443770e60a4d25dd442e64f03865b2c63'),
+        'mondago/laravel-application-insights': ('0.7.0', 'mondago/laravel-azure-application-insights',
+            '81cd3069bb287410ab5ffb7f15c21be04549f606'),
+    }
+    identity = reviewed.get(package['name'])
+    binding = provenance.get('archive_binding')
+    return (package['ecosystem'] == 'composer' and identity is not None
+            and package['version'] == identity[0]
+            and provenance.get('reference') == identity[2]
+            and provenance.get('registry_identity_verified') is False
+            and provenance.get('reviewed_git_identity_verified') is True
+            and provenance.get('checksum_algorithm') == 'git-tree'
+            and isinstance(binding, dict)
+            and binding.get('repository') == identity[1]
+            and binding.get('commit') == identity[2] and sha(binding.get('tree'))
+            and binding.get('all_actual_archive_files_verified') is True
+            and binding.get('binding') == 'github-immutable-commit-and-git-blob-sha1'
+            and positive(binding.get('verified_archive_files'))
+            and positive(binding.get('verified_archive_bytes'))
+            and type(binding.get('omitted_tracked_files')) is int
+            and binding['omitted_tracked_files'] >= 0)
+
+
 def strict_json(raw):
     def pairs(items):
         result = {}
@@ -437,9 +468,8 @@ def validate_report(report, bundle, pins, manifest_sha):
             provenance = package.get('provenance')
             if (not sha256_id(package.get('archive_sha256'))
                     or package.get('integrity_verified') is not True or not isinstance(provenance, dict)
-                    or provenance.get('registry_identity_verified') is not True
+                    or not verified_package_origin(package, provenance)
                     or provenance.get('name') != package['name'] or provenance.get('version') != package['version']
-                    or provenance.get('registry') != ('registry.npmjs.org' if package['ecosystem'] == 'npm' else 'packagist.org')
                     or not sha256_id(provenance.get('metadata_sha256'))
                     or type(package.get('files_scanned')) is not int or package['files_scanned'] <= 0
                     or package.get('blocking_findings') != 0 or package.get('coverage_gaps') != 0):
