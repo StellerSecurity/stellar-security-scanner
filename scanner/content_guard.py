@@ -494,6 +494,104 @@ def groovy_dgm_text(data, limit):
         return None
 
 
+def plist_metadata_text(data, limit):
+    """Decode bounded bplist00 metadata without instantiating target objects.
+
+    Format: apple-oss-distributions/CF, CFBinaryPList.c. This deliberately
+    supports only strings, integers, booleans, arrays and dictionaries. Data,
+    UID/keyed archives, dates and other types remain coverage gaps. Every
+    record byte and reference must be accounted for, including unused objects.
+    """
+    try:
+        if not 42 <= len(data) <= limit or data[:8] != b'bplist00':
+            return None
+        reserved, offset_size, ref_size, count, root, table = struct.unpack('>6sBBQQQ', data[-32:])
+        if (reserved != b'\0' * 6 or offset_size not in (1, 2, 4, 8)
+                or ref_size not in (1, 2, 4, 8) or not 1 <= count <= 10000
+                or root >= count or table < 9 or table + count * offset_size != len(data) - 32):
+            return None
+        offsets = [int.from_bytes(data[table + i * offset_size:table + (i + 1) * offset_size], 'big')
+                   for i in range(count)]
+        if offsets[0] != 8 or offsets[-1] >= table or any(a >= b for a, b in zip(offsets, offsets[1:])):
+            return None
+        records, strings, text_size, edges = [], [], 0, 0
+        for start, end in zip(offsets, offsets[1:] + [table]):
+            token, position = data[start], start + 1
+            kind, size = token >> 4, token & 15
+            if kind in (5, 6, 10, 13) and size == 15:
+                if position >= end or not 0x10 <= data[position] <= 0x13:
+                    return None
+                width = 1 << (data[position] & 15)
+                position += 1
+                if position + width > end:
+                    return None
+                size = int.from_bytes(data[position:position + width], 'big')
+                position += width
+            value, refs = None, []
+            if token in (8, 9):
+                value = token == 9
+            elif kind == 1 and size <= 3:
+                width = 1 << size
+                if position + width > end:
+                    return None
+                value = int.from_bytes(data[position:position + width], 'big', signed=size == 3)
+                position += width
+            elif kind in (5, 6):
+                width = size * (2 if kind == 6 else 1)
+                if position + width > end:
+                    return None
+                value = data[position:position + width].decode('utf-16be' if kind == 6 else 'ascii')
+                position += width
+                if any(unicodedata.category(c) == 'Cc' and c not in '\r\n\t' for c in value):
+                    return None
+                text_size += len(value.encode('utf-8')) + 1
+                if text_size > limit:
+                    return None
+                strings.append(value)
+            elif kind in (10, 13):
+                references = size * (2 if kind == 13 else 1)
+                edges += references
+                if edges > 100000 or position + references * ref_size != end:
+                    return None
+                refs = [int.from_bytes(data[position + i * ref_size:position + (i + 1) * ref_size], 'big')
+                        for i in range(references)]
+                if any(ref >= count for ref in refs):
+                    return None
+                position = end
+            else:
+                return None
+            if position != end:
+                return None
+            records.append((kind, value, refs))
+        if records[root][0] != 13:
+            return None
+        for kind, value, refs in records:
+            if kind == 13:
+                keys = [records[ref][1] for ref in refs[:len(refs) // 2]]
+                if any(not isinstance(key, str) for key in keys) or len(set(keys)) != len(keys):
+                    return None
+        visiting, heights = set(), {}
+
+        def visit(ref, depth):
+            if depth > 32 or ref in visiting:
+                raise ValueError('cyclic or overdeep plist')
+            if ref in heights:
+                return heights[ref]
+            visiting.add(ref)
+            height = 1 + max((visit(child, depth + 1) for child in records[ref][2]), default=0)
+            visiting.remove(ref)
+            heights[ref] = height
+            return height
+
+        if visit(root, 1) > 32 or len(heights) != count:
+            return None
+        # Inspect each string once, including dictionary keys. Expanding a
+        # shared object graph would permit exponential memory consumption.
+        return '\n'.join(strings)
+    except (ValueError, UnicodeError, IndexError, struct.error, RecursionError):
+        return None
+
+
 def decode_text(path, data):
     if data.startswith((b'\xff\xfe', b'\xfe\xff')):
         return data.decode('utf-16')
@@ -847,6 +945,8 @@ class Inspector:
             resource_reader = public_suffix_text
         elif member == 'META-INF/dgminfo':
             resource_reader = groovy_dgm_text
+        elif member.endswith('.plist') and data.startswith(b'bplist'):
+            resource_reader = plist_metadata_text
         if resource_reader is not None:
             text = resource_reader(data, self.limits['text_bytes'])
             if text is None:
