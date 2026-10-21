@@ -478,9 +478,12 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
             name = path.rsplit("/", 1)[-1]
             prefix = path[:-len(name)]
             if repository_archive(name):
+                origin = (acquisition.reviewed_repository_origin(path, raw)
+                          if hasattr(acquisition, 'reviewed_repository_origin') else None)
                 record = {"path": path, "sha256": sha256(raw), "bytes": len(raw),
                           "blob_sha": hashlib.sha1(b"blob " + str(len(raw)).encode() + b"\0" + raw).hexdigest(),
-                          "status": "incomplete", "upstream_identity_verified": False,
+                          "status": "incomplete", "upstream_identity_verified": origin is not None,
+                          "origin_review": origin,
                           "installed_or_executed": False, "files_scanned": 0,
                           "blocking_findings": 0, "coverage_gaps": 0}
                 repository_artifacts.append(record)
@@ -489,7 +492,8 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
                 # Git binding proves which bytes were committed, not their
                 # upstream origin or safety. Local archives never become public
                 # registry coordinates and are never uploaded for inspection.
-                gap(path, "repository-artifact-upstream-identity-unverified")
+                if origin is None:
+                    gap(path, "repository-artifact-upstream-identity-unverified")
                 scanner.content("repository/" + path, raw)
                 if scanner.files_scanned == before_files:
                     gap(path, "dependency-package-has-no-inspected-text")

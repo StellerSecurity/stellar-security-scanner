@@ -560,6 +560,21 @@ def _maven_plan(group, name, version, filename, hashes):
             'file':filename, 'sha256':receipt['sha256'], 'url':receipt['url']}
 
 
+# Published upstream checksum reviewed over HTTPS. This identifies one archive;
+# it never approves its executable members, or a different/modified wrapper.
+REPOSITORY_ORIGIN_REVIEWS = ({'path': 'gradle/wrapper/gradle-wrapper.jar', 'upstream': 'Gradle', 'version': '8.13', 'bytes': 43705, 'sha256': '81a82aaea5abcc8ff68b3dfcb58b3c3c429378efd98e7433460610fecd7ae45f', 'checksum_url': 'https://services.gradle.org/distributions/gradle-8.13-wrapper.jar.sha256', 'final_url': 'https://downloads.gradle.org/distributions/gradle-8.13-wrapper.jar.sha256', 'content_clearance': False},)
+
+
+def reviewed_repository_origin(path, raw):
+    if not isinstance(raw, bytes):
+        return None
+    for review in REPOSITORY_ORIGIN_REVIEWS:
+        if (path == review['path'] and len(raw) == review['bytes']
+                and hashlib.sha256(raw).hexdigest() == review['sha256']):
+            return json.loads(json.dumps(review))
+    return None
+
+
 # Exact release-build observations reviewed independently of the scanned repo.
 # A changed Git tree requires new evidence. This records dependency graph scope,
 # never a clearance of any compiled dependency or another build variant.
