@@ -2,6 +2,8 @@
 import copy
 import io
 import json
+import hashlib
+import tempfile
 from pathlib import Path
 import sys
 import unittest
@@ -10,6 +12,9 @@ import zipfile
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scanner'))
 import package_acquisition as acquisition
 import manifest_bridge as bridge
+import package_guard as guard
+import content_guard as content
+import malware_advisories as advisories
 
 NAME = 'mondago/application-insights'
 VERSION, REPO, REF = acquisition.REVIEWED_COMPOSER_GIT[NAME]
@@ -26,16 +31,75 @@ def plan(value=None, repositories=None):
         composer_manifest=json.dumps({'repositories': repositories}).encode())
 
 class ReviewedGitTests(unittest.TestCase):
+    def test_worker_inspects_reviewed_fork_and_queries_exact_commit(self):
+        output=io.BytesIO()
+        with zipfile.ZipFile(output,'w') as archive:
+            archive.writestr('root/example.php','<?php return 1;')
+        body=output.getvalue()
+        proof={'registry':'reviewed-public-git','registry_identity_verified':False,
+            'reviewed_git_identity_verified':True,'name':NAME,'version':VERSION,
+            'reference':REF,'checksum_algorithm':'git-tree','metadata_sha256':'f'*64,
+            'archive_binding':{'repository':REPO,'commit':REF,'tree':'a'*40,
+                'all_actual_archive_files_verified':True,'verified_archive_files':1,
+                'verified_archive_bytes':len(body),'omitted_tracked_files':0,
+                'binding':'github-immutable-commit-and-git-blob-sha1'}}
+        result={'data':body,'sha256':hashlib.sha256(body).hexdigest(),'integrity_verified':True,
+                'gaps':[],'provenance':proof}
+        requests=[]
+        def request(method,url,data,maximum):
+            advisories.approved_endpoint(method,url,data)
+            requests.append((method,data))
+            return ({'results':[{}]} if method=='POST' else []),None
+        with tempfile.TemporaryDirectory() as tmp, patch.object(acquisition,'acquire',return_value=result):
+            root=Path(tmp)
+            (root/'composer.json').write_text(json.dumps({'require':{NAME:VERSION},
+                'repositories':[{'type':'git','url':'https://github.com/'+REPO}]}))
+            (root/'composer.lock').write_text(json.dumps({'packages':[row()]}))
+            report=guard.inspect(root,'a'*40,acquisition,content,advisories=advisories,advisory_request=request)
+        self.assertEqual(report['status'],'passed',report['gaps'])
+        self.assertEqual(report['packages'][0]['files_scanned'],1)
+        self.assertFalse(report['packages'][0]['provenance']['registry_identity_verified'])
+        self.assertEqual(requests[0],('POST',{'queries':[{'commit':REF}]}))
+
+    def test_fork_advisory_cannot_substitute_arbitrary_public_or_private_commit(self):
+        good={'ecosystem':'composer','name':NAME,'version':VERSION,'public_registry_verified':False,
+              'reviewed_git_identity_verified':True,'repository':REPO,'reference':REF}
+        for field,value in [('reference','a'*40),('repository','private/secret'),
+                            ('reviewed_git_identity_verified',False),('version','0.5.2')]:
+            result=advisories.check_packages([dict(good,**{field:value})],
+                request=lambda *a:self.fail('invalid identity reached network'))
+            self.assertFalse(result['complete'])
+        for query in ({'commit':'a'*40}, {'commit':REF,'version':'0.5.1'}, {'commit':[]},
+                      {'commit':REF,'package':{'name':NAME,'ecosystem':'Packagist'}}):
+            with self.assertRaises(advisories.AdvisoryError):
+                advisories.approved_endpoint('POST',advisories.OSV_SINGLE,query)
+
+    def test_reviewed_fork_advisory_pagination_preserves_commit_and_detects_malware(self):
+        good={'ecosystem':'composer','name':NAME,'version':VERSION,'public_registry_verified':False,
+              'reviewed_git_identity_verified':True,'repository':REPO,'reference':REF}
+        def request(method,url,data,maximum):
+            if url==advisories.OSV_BATCH: return {'results':[{'next_page_token':'page2'}]},None
+            if url==advisories.OSV_SINGLE:
+                self.assertEqual(data,{'commit':REF,'page_token':'page2'})
+                return {'vulns':[{'id':'MAL-2026-123'}]},None
+            return [],None
+        result=advisories.check_packages([good],request=request)
+        self.assertTrue(result['complete'],result['gaps'])
+        self.assertEqual(result['malicious'][0]['id'],'MAL-2026-123')
+
     def test_parent_accepts_only_exact_git_evidence_without_registry_claim(self):
         for name, (version, repository, reference) in acquisition.REVIEWED_COMPOSER_GIT.items():
             package = {'ecosystem':'composer','name':name,'version':version}
             proof = {'registry':'reviewed-public-git','registry_identity_verified':False,
+                'name':name,'version':version,
                 'reviewed_git_identity_verified':True,'reference':reference,'checksum_algorithm':'git-tree',
                 'archive_binding':{'repository':repository,'commit':reference,'tree':'a'*40,
                     'all_actual_archive_files_verified':True,'verified_archive_files':2,
                     'verified_archive_bytes':100,'omitted_tracked_files':0,
                     'binding':'github-immutable-commit-and-git-blob-sha1'}}
             self.assertTrue(bridge.verified_package_origin(package,proof))
+            worker_plan = dict(package,registry_context='reviewed-public-git',repository=repository,reference=reference)
+            self.assertTrue(guard.verified_origin(worker_plan,proof,acquisition))
             for key,value in [('version','9.9.9'),('name','evil/fork'),('ecosystem','npm')]:
                 self.assertFalse(bridge.verified_package_origin(dict(package,**{key:value}),proof))
             for key,value in [('reference','b'*40),('registry_identity_verified',True),
@@ -46,6 +110,7 @@ class ReviewedGitTests(unittest.TestCase):
                     ('verified_archive_bytes',0),('omitted_tracked_files',-1),('binding','unverified')]:
                 bad=copy.deepcopy(proof);bad['archive_binding'][key]=value
                 self.assertFalse(bridge.verified_package_origin(package,bad))
+                self.assertFalse(guard.verified_origin(worker_plan,bad,acquisition))
 
     def test_exact_identity_and_explicit_repository_required(self):
         self.assertFalse(plan()['gaps'])

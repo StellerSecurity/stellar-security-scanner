@@ -430,6 +430,10 @@ def validate_report(report, bundle, pins, manifest_sha):
     for name in ('findings', 'gaps', 'packages', 'exclusions'):
         if not isinstance(report.get(name), list):
             raise BridgeError('package-report-list-invalid')
+    if report['status'] == 'passed' and any(
+            isinstance(item, dict) and item.get('reason') == 'opaque-verified-dependency-binary-not-executed'
+            for item in report['exclusions']):
+        raise BridgeError('passed-package-has-uninspected-executable')
     for name in ('dependency_manifest_count', 'files_scanned'):
         if type(report.get(name)) is not int or report[name] < 0:
             raise BridgeError('package-report-count-invalid')
@@ -472,7 +476,8 @@ def validate_report(report, bundle, pins, manifest_sha):
                     or provenance.get('name') != package['name'] or provenance.get('version') != package['version']
                     or not sha256_id(provenance.get('metadata_sha256'))
                     or type(package.get('files_scanned')) is not int or package['files_scanned'] <= 0
-                    or package.get('blocking_findings') != 0 or package.get('coverage_gaps') != 0):
+                    or package.get('blocking_findings') != 0 or package.get('coverage_gaps') != 0
+                    or package.get('opaque_verified_binaries', 0) != 0):
                 raise BridgeError('passed-package-provenance-invalid')
     advisory = report.get('malware_advisory_result')
     if advisory is not None:

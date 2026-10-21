@@ -305,6 +305,12 @@ class Inspector:
         self.members_seen += 1
         self.check_budget()
         self.manifest.append({'path': path, 'bytes': len(data), 'sha256': digest(data)})
+        # JAR/AAR are containers: inspect every member instead of hiding their
+        # resources/source/native payloads behind one opaque archive gap. Class
+        # and native bytecode still require independent content review.
+        if re.search(r'\.(?:jar|aar)$', path, re.I) and data.startswith((b'PK\x03\x04', b'PK\x05\x06')):
+            self.archive(path, data, depth + 1)
+            return
         if executable(data) or EXECUTABLE_SUFFIX.search(path):
             self.gap(path, 'executable-binary-needs-independent-review')
             return

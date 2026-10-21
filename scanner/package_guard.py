@@ -329,27 +329,39 @@ def prefetch_packages(plans, acquire, workers=4):
         pool.shutdown(wait=True)
 
 
-def convert_integrity_verified_binary_gaps(scanner, start_index):
-    """Treat opaque binaries in verified public packages as exclusions.
+def verified_origin(package, provenance, acquisition):
+    """Check the child result without inventing registry proof for a Git fork.
 
-    The dependency guard cannot perform binary malware analysis. For npm
-    packages whose registry identity and lockfile integrity were verified, the
-    binary is still reported in exclusions and remains covered by provenance,
-    lifecycle/source scanning and public malware advisory checks. Unverified
-    packages continue to fail closed through coverage gaps.
+    The parent independently checks the same evidence before publishing a check.
+    A checksum/provenance match never clears content-inspection coverage gaps.
     """
-    retained = scanner.gaps[:start_index]
-    converted = []
-    for item in scanner.gaps[start_index:]:
-        if item.get("reason") == "executable-binary-needs-independent-review":
-            converted.append({"path": item.get("path", "dependencies"),
-                              "reason": "opaque-verified-dependency-binary-not-executed"})
-        else:
-            retained.append(item)
-    if converted:
-        scanner.exclusions.extend(converted)
-        scanner.gaps[:] = retained
-    return len(converted)
+    if not isinstance(provenance, dict):
+        return False
+    if provenance.get('name') != package['name'] or provenance.get('version') != package['version']:
+        return False
+    if provenance.get('registry') != 'reviewed-public-git':
+        registry = {'npm': 'registry.npmjs.org', 'composer': 'packagist.org'}.get(package['ecosystem'])
+        return registry is not None and provenance.get('registry') == registry and provenance.get('registry_identity_verified') is True
+    reviewed = acquisition.REVIEWED_COMPOSER_GIT.get(package['name'])
+    binding = provenance.get('archive_binding')
+    return (package['ecosystem'] == 'composer' and reviewed is not None
+            and package['version'] == reviewed[0]
+            and package.get('registry_context') == 'reviewed-public-git'
+            and package.get('repository') == reviewed[1]
+            and package.get('reference') == reviewed[2]
+            and provenance.get('reference') == reviewed[2]
+            and provenance.get('registry_identity_verified') is False
+            and provenance.get('reviewed_git_identity_verified') is True
+            and provenance.get('checksum_algorithm') == 'git-tree'
+            and isinstance(binding, dict)
+            and binding.get('repository') == reviewed[1] and binding.get('commit') == reviewed[2]
+            and isinstance(binding.get('tree'), str)
+            and re.fullmatch('[0-9a-f]{40}', binding['tree']) is not None and binding['tree'] != '0' * 40
+            and binding.get('all_actual_archive_files_verified') is True
+            and binding.get('binding') == 'github-immutable-commit-and-git-blob-sha1'
+            and all(type(binding.get(k)) is int and 0 < binding[k] < 10**20
+                    for k in ('verified_archive_files', 'verified_archive_bytes'))
+            and type(binding.get('omitted_tracked_files')) is int and binding['omitted_tracked_files'] >= 0)
 
 
 def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, manifests_input=None, advisories=None, advisory_request=None):
@@ -493,12 +505,18 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
                     if not isinstance(raw, bytes) or sha256(raw) != result.get("sha256"):
                         raise Incomplete("dependency-archive-digest-mismatch")
                     provenance = result.get("provenance")
-                    if not isinstance(provenance, dict) or provenance.get("registry_identity_verified") is not True or provenance.get("name") != package["name"] or provenance.get("version") != package["version"]:
+                    if not verified_origin(package, provenance, acquisition):
                         raise Incomplete("dependency-provenance-incomplete")
                     if not re.fullmatch(r"[0-9a-f]{64}", provenance.get("metadata_sha256", "")):
                         raise Incomplete("dependency-provenance-incomplete")
-                    public_packages.append({"ecosystem": package["ecosystem"], "name": package["name"], "version": package["version"],
-                                            "public_registry_verified": True})
+                    if provenance.get('registry_identity_verified') is True:
+                        public_packages.append({"ecosystem": package["ecosystem"], "name": package["name"], "version": package["version"],
+                                                "public_registry_verified": True})
+                    else:
+                        public_packages.append({'ecosystem':package['ecosystem'], 'name':package['name'],
+                            'version':package['version'], 'public_registry_verified':False,
+                            'reviewed_git_identity_verified':True, 'reference':package['reference'],
+                            'repository':package['repository']})
                     record.update(archive_sha256=result["sha256"], provenance=provenance,
                                   integrity_verified=result.get("integrity_verified") is True)
                     if result.get("integrity_verified") is not True:
@@ -508,16 +526,13 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
                     for item in result["gaps"]:
                         gap(logical, item["reason"])
                     scanner.archive(logical, raw)
-                    converted_binary_gaps = 0
-                    if result.get("integrity_verified") is True:
-                        converted_binary_gaps = convert_integrity_verified_binary_gaps(scanner, before_gaps)
                     if scanner.files_scanned == before_files:
                         gap(logical, "dependency-package-has-no-inspected-text")
                     blockers = scanner.finding_counts['error'] + scanner.finding_counts['review'] - before_blockers
                     record.update(status="blocked" if blockers else "incomplete" if len(scanner.gaps) > before_gaps else "passed",
                                   files_scanned=scanner.files_scanned - before_files,
                                   blocking_findings=blockers, coverage_gaps=len(scanner.gaps) - before_gaps,
-                                  opaque_verified_binaries=converted_binary_gaps)
+                                  opaque_verified_binaries=0)
                 except (acquisition.AcquisitionError, Incomplete) as exc:
                     gap(logical, str(exc))
                     record["status"] = "incomplete"

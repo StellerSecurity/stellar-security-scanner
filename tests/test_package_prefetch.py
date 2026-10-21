@@ -96,6 +96,15 @@ class PackageBudgetTests(unittest.TestCase):
         self.assertEqual(report['finding_counts'],{'warning':12,'error':1})
         self.assertTrue(any(f['malware'] for f in report['findings']))
 
+    def test_registry_and_hash_verified_native_binary_cannot_pass(self):
+        report=self.inspect([b'MZ'+b'\0'*30, b'benign'])
+        self.assertTrue(report['packages'][0]['integrity_verified'])
+        self.assertTrue(report['packages'][0]['provenance']['registry_identity_verified'])
+        self.assertEqual(report['packages'][0]['status'],'incomplete')
+        self.assertEqual(report['packages'][1]['status'],'passed')
+        self.assertEqual(report['exclusions'],[])
+        self.assertTrue(any(g['reason']=='executable-binary-needs-independent-review' for g in report['gaps']))
+
     def test_failed_acquisition_keeps_order_and_inspects_remaining_packages(self):
         def fetch(url,maximum,data):
             if url.endswith('test-1-1.0.0.tgz'): raise acquisition.AcquisitionError('synthetic-download-failed')
