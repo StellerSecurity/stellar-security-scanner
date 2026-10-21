@@ -560,6 +560,21 @@ def _maven_plan(group, name, version, filename, hashes):
             'file':filename, 'sha256':receipt['sha256'], 'url':receipt['url']}
 
 
+# Published upstream checksum reviewed over HTTPS. This identifies one archive;
+# it never approves its executable members, or a different/modified wrapper.
+REPOSITORY_ORIGIN_REVIEWS = ({'path': 'gradle/wrapper/gradle-wrapper.jar', 'upstream': 'Gradle', 'version': '8.13', 'bytes': 43705, 'sha256': '81a82aaea5abcc8ff68b3dfcb58b3c3c429378efd98e7433460610fecd7ae45f', 'checksum_url': 'https://services.gradle.org/distributions/gradle-8.13-wrapper.jar.sha256', 'final_url': 'https://downloads.gradle.org/distributions/gradle-8.13-wrapper.jar.sha256', 'content_clearance': False},)
+
+
+def reviewed_repository_origin(path, raw):
+    if not isinstance(raw, bytes):
+        return None
+    for review in REPOSITORY_ORIGIN_REVIEWS:
+        if (path == review['path'] and len(raw) == review['bytes']
+                and hashlib.sha256(raw).hexdigest() == review['sha256']):
+            return json.loads(json.dumps(review))
+    return None
+
+
 # Exact release-build observations reviewed independently of the scanned repo.
 # A changed Git tree requires new evidence. This records dependency graph scope,
 # never a clearance of any compiled dependency or another build variant.
@@ -606,7 +621,33 @@ GRADLE_RELEASE_REVIEWS = ({'repository': 'StellerSecurity/Stellar.Android.Antivi
   'fresh_derivations_match_previous_apk': True,
   'network_enabled': False,
   'strict_dependency_verification': True,
-  'compiled_dependency_clearance': False})
+  'compiled_dependency_clearance': False},
+ {'repository': 'StellerSecurity/Stellar.Android.AntivirusApp',
+  'repository_id': 717465599,
+  'tree_sha': '4eb221621d8896990f73d82bafd52ed36ec7f2b6',
+  'reviewed_commit': '7029ae47fe6db2b43edfb34fa6228ca7427dc726',
+  'source_file_count': 319,
+  'source_bound': True,
+  'scope': 'assembleRelease, testReleaseUnitTest and lintRelease; other variants are not attested',
+  'tasks': [':app:assembleRelease', ':app:testReleaseUnitTest', ':app:lintRelease'],
+  'inventory_sha256': '88cf55567e66f76e2d1d69d9ff1b46164f885480e53ed050d12d62ecce371e50',
+  'init_sha256': 'f944745653f314bbd5d0bc64f8a755f94fe1010cf21a54e094847a211145c6aa',
+  'runner_sha256': '8b70a33bc6b1aa0929d55655bbffe1c822e4e97e432daab13d6963e21cc3e137',
+  'verification_metadata_sha256': '23031034ae53c7f98b2db8b73c397d1ba9a3c03d6508ed748155f28d26708e06',
+  'build_files': {'build.gradle': '989f25ca232bd8a62fea908a4fe3d8c41b783d652e33edfac4e6c728bbc0402b',
+                  'app/build.gradle': '817262c3227e1bc4b145bf5458c2470eb2b88b940665c2c80051874fda457153'},
+  'resolved_configurations': 25,
+  'unit_tests': 53,
+  'lint_errors': 0,
+  'apk_sha256': '3598ea208b64c044c06f06d471e6bef89002025b5d2119321f8034afe4b2c723',
+  'fresh_derivations_match_previous_apk': False,
+  'network_enabled': False,
+  'strict_dependency_verification': True,
+  'compiled_dependency_clearance': False,
+  'derivation_cache': {'scope': 'same isolated cache from verified cold build',
+                       'origin_inventory_sha256': '6d379f2eedffbfc379947b42817b35b03c7b1f24ddb8010540083ef633f8fa7f',
+                       'shared_executable_cache_mounted': False,
+                       'fresh_rebuild_claimed': False}})
 
 
 def reviewed_gradle_release(bundle, manifests):

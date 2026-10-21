@@ -489,11 +489,15 @@ def validate_report(report, bundle, pins, manifest_sha, acquisition=None):
     if report.get('gradle_release_review') != expected_gradle_review:
         raise BridgeError('gradle-release-review-binding-mismatch')
     expected_archives = []
+    origin_reviews = {}
     for item in bundle['files']:
         if re.search(r'\.(?:jar|aar)$', item['path'], re.I):
             raw = base64.b64decode(item['content_base64'], validate=True)
             expected_archives.append({'path': item['path'], 'sha256': digest(raw),
                                       'bytes': len(raw), 'blob_sha': object_hash('blob', raw)})
+            origin_reviews[item['path']] = (
+                acquisition.reviewed_repository_origin(item['path'], raw)
+                if acquisition is not None and hasattr(acquisition, 'reviewed_repository_origin') else None)
     artifacts = report.get('repository_artifacts', [])
     if not isinstance(artifacts, list) or len(artifacts) != len(expected_archives):
         raise BridgeError('repository-artifact-inventory-mismatch')
@@ -503,7 +507,8 @@ def validate_report(report, bundle, pins, manifest_sha, acquisition=None):
                 or type(artifact.get('bytes')) is not int):
             raise BridgeError('repository-artifact-identity-mismatch')
         if (artifact.get('status') not in ('blocked', 'incomplete')
-                or artifact.get('upstream_identity_verified') is not False
+                or artifact.get('upstream_identity_verified') is not (origin_reviews[artifact['path']] is not None)
+                or artifact.get('origin_review') != origin_reviews[artifact['path']]
                 or artifact.get('installed_or_executed') is not False
                 or any(type(artifact.get(k)) is not int or artifact[k] < 0
                        for k in ('files_scanned', 'coverage_gaps', 'blocking_findings'))):
