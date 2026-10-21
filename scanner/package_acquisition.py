@@ -36,6 +36,15 @@ GH_REPO = r'[A-Za-z0-9][A-Za-z0-9_.-]{0,99}/[A-Za-z0-9][A-Za-z0-9_.-]{0,99}'
 SHA = r'[0-9a-f]{40}'
 SRI_ALGORITHMS = {'sha256': 32, 'sha384': 48, 'sha512': 64}
 
+# Explicitly reviewed public forks which are not published at their locked
+# versions on Packagist. No caller-supplied repository can extend this policy.
+REVIEWED_COMPOSER_GIT = {
+    'mondago/application-insights': ('0.5.1', 'mondago/ApplicationInsights-PHP',
+        'b6b7a8a443770e60a4d25dd442e64f03865b2c63'),
+    'mondago/laravel-application-insights': ('0.7.0', 'mondago/laravel-azure-application-insights',
+        '81cd3069bb287410ab5ffb7f15c21be04549f606'),
+}
+
 
 class AcquisitionError(ValueError):
     """Safe fixed error code only; never include raw URLs or remote exceptions."""
@@ -201,6 +210,28 @@ def _composer_row(row):
             'virtual_bindings': bindings,
             'integrity': 'sha1-' + checksum if checksum else None, 'reference': ref,
             'repository': source_repo, 'source_url': source['url']}
+
+
+def _reviewed_composer_row(row):
+    if not isinstance(row, dict) or row.get('name') not in REVIEWED_COMPOSER_GIT:
+        _fail('unreviewed-composer-git-package')
+    version, repo, ref = REVIEWED_COMPOSER_GIT[row['name']]
+    source = row.get('source', {})
+    if (not isinstance(source, dict) or row.get('version') != version or source.get('type') != 'git'
+            or _github_source(source.get('url')) != repo or source.get('reference') != ref):
+        _fail('reviewed-composer-git-identity-mismatch')
+    url = 'https://api.github.com/repos/' + repo + '/zipball/' + ref
+    dist = row.get('dist')
+    if dist is not None and (not isinstance(dist, dict) or dist.get('type') != 'zip' or dist.get('url') != url
+            or dist.get('reference') != ref or dist.get('shasum')):
+        _fail('reviewed-composer-git-distribution-mismatch')
+    normalized = dict(row, dist={'type': 'zip', 'url': url, 'reference': ref, 'shasum': ''})
+    plan = _composer_row(normalized)
+    requirements = row.get('require', {})
+    if not isinstance(requirements, dict) or any(not isinstance(k, str) or not isinstance(v, str)
+            for k, v in requirements.items()):
+        _fail('invalid-composer-dependency-edges')
+    return dict(plan, registry_context='reviewed-public-git', requirements=requirements)
 
 
 def _yarn_v1_rows(raw):
@@ -378,8 +409,16 @@ def plan_packages(lockpath, raw, *, composer_manifest=None):
                 _fail('composer-repository-context-missing')
             manifest = _json(composer_manifest, LIMITS['lock_bytes'])
             repositories = manifest.get('repositories', [])
+            reviewed_urls = {'https://github.com/' + row[1] for row in REVIEWED_COMPOSER_GIT.values()}
+            custom_urls = set()
             if repositories not in ([], {}):
-                _fail('custom-composer-repositories-need-explicit-review')
+                if not isinstance(repositories, list):
+                    _fail('custom-composer-repositories-need-explicit-review')
+                for repository in repositories:
+                    if (not isinstance(repository, dict) or set(repository) != {'type', 'url'}
+                            or repository['type'] != 'git' or repository['url'] not in reviewed_urls):
+                        _fail('custom-composer-repositories-need-explicit-review')
+                    custom_urls.add(repository['url'])
             if 'packages' not in lock:
                 _fail('invalid-composer-packages-list')
             for key in ('packages', 'packages-dev'):
@@ -391,9 +430,16 @@ def plan_packages(lockpath, raw, *, composer_manifest=None):
                     if count > LIMITS['packages']:
                         _fail('lock-package-limit')
                     before = len(packages)
-                    add(_composer_row, row)
+                    custom = isinstance(row, dict) and row.get('name') in REVIEWED_COMPOSER_GIT
+                    if custom:
+                        if 'https://github.com/' + REVIEWED_COMPOSER_GIT[row['name']][1] not in custom_urls:
+                            _fail('reviewed-composer-repository-not-declared')
+                        add(_reviewed_composer_row, row)
+                    else:
+                        add(_composer_row, row)
                     if len(packages) > before:
-                        packages[-1]['registry_context'] = 'default-packagist'
+                        if not custom:
+                            packages[-1]['registry_context'] = 'default-packagist'
         else:
             gap('unsupported-lockfile-ecosystem')
     except AcquisitionError as exc:
@@ -645,6 +691,45 @@ def verify_public_github_archive(raw, owner, repo, commit, fetch=None):
         _fail('invalid-github-archive-binding')
 
 
+def acquire_reviewed_git(package, fetch, metadata_only):
+    if not isinstance(package.get('virtual_bindings'), dict):
+        _fail('invalid-composer-virtual-bindings')
+    validated = _reviewed_composer_row({'name': package.get('name'), 'version': package.get('version'),
+        'source': {'type': 'git', 'url': package.get('source_url'), 'reference': package.get('reference')},
+        'provide': package.get('virtual_bindings', {}).get('provide', {}),
+        'replace': package.get('virtual_bindings', {}).get('replace', {}),
+        'require': package.get('requirements')})
+    if validated != package:
+        _fail('invalid-reviewed-composer-plan')
+    repo = validated['repository']
+    metadata_raw = fetch('https://api.github.com/repos/' + repo, LIMITS['metadata_bytes'])
+    metadata = _json(metadata_raw, LIMITS['metadata_bytes'])
+    if (metadata.get('private') is not False or metadata.get('full_name') != repo
+            or type(metadata.get('id')) is not int or metadata['id'] <= 0):
+        _fail('composer-source-is-not-verified-public')
+    if metadata_only:
+        return {'ecosystem': 'composer', 'name': validated['name'], 'version': validated['version'],
+                'public_registry_verified': False, 'reviewed_git_identity_verified': True, 'archive_inspected': False}
+    raw = fetch('https://codeload.github.com/' + repo + '/legacy.zip/' + validated['reference'], LIMITS['archive_bytes'])
+    if not isinstance(raw, bytes) or len(raw) > LIMITS['archive_bytes']:
+        _fail('archive-size-limit')
+    owner, name = repo.split('/')
+    binding = verify_public_github_archive(raw, owner, name, validated['reference'], fetch=fetch)
+    with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+        manifests = [n for n in archive.namelist() if n.count('/') == 1 and n.endswith('/composer.json')]
+        if len(manifests) != 1 or archive.getinfo(manifests[0]).file_size > LIMITS['metadata_bytes']:
+            _fail('reviewed-composer-manifest-missing')
+        manifest = _json(archive.read(manifests[0]), LIMITS['metadata_bytes'])
+    if (manifest.get('name') != validated['name'] or manifest.get('require', {}) != validated['requirements']
+            or any(manifest.get(k, {}) != validated['virtual_bindings'][k] for k in ('provide', 'replace'))):
+        _fail('reviewed-composer-manifest-mismatch')
+    return {'data': raw, 'sha256': hashlib.sha256(raw).hexdigest(), 'integrity_verified': True, 'gaps': [],
+            'provenance': {'registry': 'reviewed-public-git', 'registry_identity_verified': False,
+                'reviewed_git_identity_verified': True, 'metadata_sha256': hashlib.sha256(metadata_raw).hexdigest(),
+                'name': validated['name'], 'version': validated['version'], 'reference': validated['reference'],
+                'checksum_algorithm': 'git-tree', 'archive_binding': binding}}
+
+
 def acquire(package, *, fetch=None, metadata_only=False):
     """Verify registry identity and return archive bytes for static inspection.
 
@@ -658,6 +743,8 @@ def acquire(package, *, fetch=None, metadata_only=False):
         _fail('invalid-package-plan')
     fetch = fetch or public_fetch
     ecosystem = package.get('ecosystem')
+    if ecosystem == 'composer' and package.get('registry_context') == 'reviewed-public-git':
+        return acquire_reviewed_git(package, fetch, metadata_only)
     if ecosystem == 'npm':
         validated = _npm_row(package.get('name'), {'name': package.get('name'),
                      'version': package.get('version'), 'resolved': package.get('url'),
