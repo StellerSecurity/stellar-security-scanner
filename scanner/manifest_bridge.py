@@ -19,7 +19,7 @@ VERSION = '1.0.0-proposal'
 ORGANIZATIONS = {'StellerSecurity': 142119599, 'Stellar-seo-websites': 293014096,
                  'StellarMail': 213555580, 'StellarSecurity-Packages': 246878660}
 MANIFEST_NAMES = frozenset({'package-lock.json', 'npm-shrinkwrap.json', 'composer.lock',
-    'package.json', 'composer.json', 'yarn.lock', 'pnpm-lock.yaml', 'bun.lock', 'bun.lockb',
+    'verification-metadata.xml', 'package.json', 'composer.json', 'yarn.lock', 'pnpm-lock.yaml', 'bun.lock', 'bun.lockb',
     'poetry.lock', 'uv.lock', 'Pipfile', 'Pipfile.lock', 'pyproject.toml', 'requirements.txt',
     'requirements.in', 'Cargo.toml', 'Cargo.lock', 'go.mod', 'go.sum', 'Gemfile', 'Gemfile.lock',
     'build.gradle', 'build.gradle.kts', 'gradle.lockfile', 'pom.xml', 'packages.config',
@@ -58,6 +58,17 @@ def sha256_id(value):
 
 def verified_package_origin(package, provenance):
     """Validate registry and separately reviewed Git proofs without conflating them."""
+    if package['ecosystem'] == 'maven':
+        import package_acquisition as acquisition
+        try:
+            name = package['name'].split(':')
+            if len(name) != 2:
+                return False
+            plan = acquisition._maven_plan(*name, package['version'], package.get('file'),
+                                           [package.get('archive_sha256')])
+            return provenance == acquisition.acquire_maven(plan, None, True)['provenance']
+        except acquisition.AcquisitionError:
+            return False
     registry = provenance.get('registry')
     if registry != 'reviewed-public-git':
         expected = 'registry.npmjs.org' if package['ecosystem'] == 'npm' else 'packagist.org'
@@ -465,7 +476,7 @@ def validate_report(report, bundle, pins, manifest_sha):
         if not isinstance(package, dict) or package.get('status') not in ('passed', 'blocked', 'incomplete'):
             raise BridgeError('package-state-invalid')
         identity = tuple(package.get(k) for k in ('ecosystem', 'name', 'version'))
-        if identity[0] not in ('npm', 'composer') or any(not isinstance(x, str) or not x for x in identity):
+        if identity[0] not in ('npm', 'composer', 'maven') or any(not isinstance(x, str) or not x for x in identity):
             raise BridgeError('package-coordinate-invalid')
         identities.add(identity)
         if package['status'] == 'passed':

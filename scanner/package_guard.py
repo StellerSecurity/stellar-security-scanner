@@ -27,7 +27,7 @@ LIMITS = {"files": 200000, "depth": 128, "lock_bytes": 16 * 1024 * 1024,
           "requests": 20000, "seconds": 900, "gaps": 1000,
           "manifest_bytes": 64 * 1024 * 1024, "manifest_files": 1000,
           "manifest_bundle_bytes": 96 * 1024 * 1024}
-LOCKS = {"package-lock.json", "npm-shrinkwrap.json", "composer.lock", "yarn.lock"}
+LOCKS = {"package-lock.json", "npm-shrinkwrap.json", "composer.lock", "yarn.lock", "verification-metadata.xml"}
 MANIFESTS = {"package.json", "composer.json"}
 UNSUPPORTED = {"yarn.lock", "pnpm-lock.yaml", "bun.lock", "bun.lockb", "poetry.lock", "uv.lock",
                "Pipfile", "Pipfile.lock", "pyproject.toml", "requirements.txt", "requirements.in",
@@ -339,6 +339,12 @@ def verified_origin(package, provenance, acquisition):
         return False
     if provenance.get('name') != package['name'] or provenance.get('version') != package['version']:
         return False
+    if package['ecosystem'] == 'maven':
+        try:
+            expected = acquisition.acquire_maven(package, None, True)['provenance']
+        except acquisition.AcquisitionError:
+            return False
+        return provenance == expected
     if provenance.get('registry') != 'reviewed-public-git':
         registry = {'npm': 'registry.npmjs.org', 'composer': 'packagist.org'}.get(package['ecosystem'])
         return registry is not None and provenance.get('registry') == registry and provenance.get('registry_identity_verified') is True
@@ -440,7 +446,7 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
             if name in LOCKS:
                 if name == "yarn.lock":
                     gap(path, "yarn-manifest-graph-binding-needs-review")
-                elif name != "composer.lock":
+                elif name not in ("composer.lock", "verification-metadata.xml"):
                     manifest_raw = manifests.get(prefix + "package.json")
                     if manifest_raw is None:
                         gap(path, "npm-root-manifest-missing")
@@ -496,6 +502,8 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
                 record = {"ecosystem": package["ecosystem"], "name": package["name"],
                           "version": package["version"], "reference": package.get("reference"),
                           "lockfiles": value["lockfiles"], "status": "incomplete"}
+                if package['ecosystem'] == 'maven':
+                    record['file'] = package['file']
                 records.append(record)
                 before_gaps, before_files = len(scanner.gaps), scanner.files_scanned
                 before_blockers = scanner.finding_counts['error'] + scanner.finding_counts['review']
@@ -534,7 +542,10 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
                         raise Incomplete("dependency-acquisition-report-invalid")
                     for item in result["gaps"]:
                         gap(logical, item["reason"])
-                    scanner.archive(logical, raw)
+                    if package['ecosystem'] == 'maven':
+                        scanner.content(logical + '/' + package['file'], raw)
+                    else:
+                        scanner.archive(logical, raw)
                     if scanner.files_scanned == before_files:
                         gap(logical, "dependency-package-has-no-inspected-text")
                     blockers = scanner.finding_counts['error'] + scanner.finding_counts['review'] - before_blockers
