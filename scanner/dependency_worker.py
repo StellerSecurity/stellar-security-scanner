@@ -334,7 +334,7 @@ def payload(ctx, report, report_sha, manifest_sha, pins):
         evidence_counts=evidence, malware=signals(evidence))
 
 
-def scan(ctx, bridge, checks, pins, root, reader, command=None):
+def scan(ctx, bridge, checks, pins, root, reader, command=None, github_advisory_token=None):
     record = dict(ctx, schema=1, dependency_worker_version=VERSION, state='incomplete', check_id=None)
     endpoint = 'repos/' + ctx['repository'] + '/check-runs'
     url = 'https://github.com/' + ctx['repository'] + '/actions/runs/' + str(ctx['run_id']) + '/attempts/' + str(ctx['run_attempt'])
@@ -351,6 +351,8 @@ def scan(ctx, bridge, checks, pins, root, reader, command=None):
         with tempfile.TemporaryDirectory(prefix='stellar-package-analysis-') as scratch:
             phase = 'read-package-metadata'
             kwargs = {'public_metadata': bridge.public_package_metadata(bundle, reader)} if command is None else {'command': command}
+            if github_advisory_token is not None:
+                kwargs['github_advisory_token'] = github_advisory_token
             phase = 'inspect-package-contents'
             report, report_sha, manifest_sha = bridge.run_package(bundle, root, package_pins, scratch, **kwargs)
         phase = 'prepare-diagnostics'
@@ -541,7 +543,8 @@ def main():
         checks = legacy.CheckAPI(os.environ.get('GH_TOKEN', ''))
         if sys.argv[1] == 'scan':
             record, status, summary = scan(ctx, bridge, checks, pins, Path(__file__).parent,
-                bridge.GitHubReader(ctx['repository'], os.environ.get('GH_TOKEN', '')))
+                bridge.GitHubReader(ctx['repository'], os.environ.get('GH_TOKEN', '')),
+                github_advisory_token=os.environ.get('GH_TOKEN', ''))
             encoded = json.dumps(record, sort_keys=True, separators=(',', ':'))
             if len(encoded) > 16384:
                 raise WorkerError('result-output-limit')

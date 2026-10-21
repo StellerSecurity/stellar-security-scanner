@@ -5,6 +5,7 @@ This is an unpublished first-party proposal. It never checks out repository code
 import argparse
 import base64
 import builtins
+from contextlib import ExitStack
 import hashlib
 import json
 import os
@@ -401,7 +402,8 @@ def public_package_metadata(bundle, reader):
     return result
 
 
-def run_package(bundle, root, pins, scratch, command=subprocess.run, public_metadata=None):
+def run_package(bundle, root, pins, scratch, command=subprocess.run, public_metadata=None,
+                github_advisory_token=None):
     """No GitHub/CI/Pushover credential enters this package-parsing subprocess."""
     expected = {'package_guard.py', 'package_acquisition.py', 'content_guard.py', 'source_guard_v2.py', 'malware_advisories.py'}
     if set(pins) != expected:
@@ -440,8 +442,18 @@ def run_package(bundle, root, pins, scratch, command=subprocess.run, public_meta
         with metadata_path.open('x') as stream:
             json.dump(public_metadata, stream, separators=(',', ':'))
         args += ['--public-metadata', str(metadata_path)]
-    result = command(args, cwd=scratch, env={'PATH': os.defpath, 'PYTHONIOENCODING': 'utf-8'},
-                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=1200, check=False)
+    with ExitStack() as contexts:
+        descriptor_args = {}
+        if github_advisory_token is not None:
+            advisory = types.ModuleType('verified_malware_advisories')
+            advisory.__file__ = str(Path(root) / 'malware_advisories.py')
+            exec(compile(verified['malware_advisories.py'], advisory.__file__, 'exec', dont_inherit=True), advisory.__dict__)
+            descriptor = contexts.enter_context(advisory.github_advisory_broker(github_advisory_token))
+            args += ['--advisory-descriptor', str(descriptor)]
+            descriptor_args['pass_fds'] = (descriptor,)
+        result = command(args, cwd=scratch, env={'PATH': os.defpath, 'PYTHONIOENCODING': 'utf-8'},
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=1200,
+                         check=False, **descriptor_args)
     if result.returncode not in (0, 1, 2):
         raise BridgeError('package-process-failed')
     fd = os.open(report_path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)

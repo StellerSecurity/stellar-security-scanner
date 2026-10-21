@@ -811,7 +811,12 @@ class _NoRedirect(urllib.request.HTTPRedirectHandler):
 
 
 def public_fetch(url, max_bytes):
-    """HTTPS GET without ambient auth/proxies; at most one bound GitHub redirect."""
+    """HTTPS GET with one bound GitHub redirect or fixed Maven Central fallback.
+
+    A Maven error never supplies the next URL. Sonatype documents the two
+    canonical TLS endpoints at https://central.sonatype.org/faq/ssl/.
+    Both paths still refer to the same independently pinned artifact bytes.
+    """
     kind = _endpoint(url)
     if type(max_bytes) is not int or not 0 < max_bytes <= LIMITS['archive_bytes']:
         _fail('invalid-request-byte-limit')
@@ -832,6 +837,11 @@ def public_fetch(url, max_bytes):
             location = exc.headers.get('Location') if exc.headers is not None else None
             code = exc.code
             exc.close()
+            if (not attempt and kind == 'reviewed-maven-artifact'
+                    and urllib.parse.urlsplit(url).netloc == 'repo.maven.apache.org'
+                    and code in (301, 302, 303, 307, 308, 429, 500, 502, 503, 504)):
+                current = 'https://repo1.maven.org' + urllib.parse.urlsplit(url).path
+                continue
             if attempt or code not in (301, 302, 303, 307, 308) or kind != 'composer-archive' or not location:
                 # Fixed numeric status only: never expose URL, headers or body.
                 _fail('package-request-rejected-http-' + str(code) if type(code) is int
