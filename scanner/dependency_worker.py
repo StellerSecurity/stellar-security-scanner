@@ -64,6 +64,29 @@ def safe_diagnostic(value):
     return value
 
 
+def coverage_summary(report, gaps):
+    """Keep observed gap counts separate from bounded diagnostic examples."""
+    keys = {'coverage_gap_counts', 'coverage_gap_total', 'omitted_gap_details'}
+    if not keys.intersection(report):
+        # Older reports contain examples only: never infer a complete total.
+        return {'observed_total': None, 'observed_by_reason': None,
+                'retained_examples': len(gaps), 'omitted_examples': None}
+    counts = report.get('coverage_gap_counts')
+    total, omitted = report.get('coverage_gap_total'), report.get('omitted_gap_details')
+    if (not keys <= report.keys() or not isinstance(counts, dict) or len(counts) > 1000
+            or any(not isinstance(k, str) or not re.fullmatch(r'[a-z0-9][a-z0-9-]{0,127}', k)
+                   or type(v) is not int or not 0 < v <= 10_000_000 for k, v in counts.items())
+            or type(total) is not int or not 0 <= total <= 10_000_000
+            or total != sum(counts.values()) or type(omitted) is not int
+            or omitted != total - len(gaps) or omitted < 0):
+        raise WorkerError('diagnostic-coverage-count-mismatch')
+    retained = collections.Counter(item.get('reason') for item in gaps)
+    if any(not isinstance(k, str) or counts.get(k, 0) < n for k, n in retained.items()):
+        raise WorkerError('diagnostic-coverage-count-mismatch')
+    return {'observed_total': total, 'observed_by_reason': dict(sorted(counts.items())),
+            'retained_examples': len(gaps), 'omitted_examples': omitted}
+
+
 def diagnostic_document(ctx, report, report_sha, manifest_sha, pins):
     """Preserve all bounded finding/gap identities; omit package source content."""
     packages = report.get('packages', [])
@@ -121,6 +144,7 @@ def diagnostic_document(ctx, report, report_sha, manifest_sha, pins):
         findings=clean_findings, gaps=clean_gaps, named_packages=list(named.values()),
         sanitized=True, source_excerpts_included=False, truncated=False,
         omitted={'findings': 0, 'gaps': 0, 'named_packages': 0})
+    document['coverage_summary'] = coverage_summary(report, gaps)
     if 'finding_counts' in report:
         document['finding_summary'] = {
             'observed_by_severity': report['finding_counts'],
@@ -201,8 +225,15 @@ def validate_diagnostics_metadata(proof):
 
 
 def summary_text(proof, preview):
+    coverage = preview.get('coverage_summary', {})
+    total = coverage.get('observed_total')
+    coverage_text = ('Observed coverage gaps: ' + str(total) + '. '
+                     if type(total) is int else 'The total number of coverage gaps is unavailable. ')
+    coverage_text += ('The gaps arrays and totals.gaps count retained examples; '
+                      'they are not a complete gap count.\n\n')
     return (HEADER + '```json\n' + canonical(proof).decode() + '\n```\n\n'
         + '## Named diagnostic preview\n\n```json\n' + canonical(preview).decode() + '\n```\n\n'
+        + coverage_text
         + 'Full bounded sanitized diagnostics are retained in the native package-step log as '
         + DIAGNOSTICS_PREFIX + ' records, bound by the SHA256 above. Capability-only correlations '
         + 'require manual review and do not by themselves trigger malware notifications.\n')
