@@ -79,6 +79,16 @@ class PharTests(unittest.TestCase):
                       ('a','a/b.php'),('a/b.php','a'),('a//b','b'),('/a','b')]:
             self.assertTrue(self.inspect(fixture([(n,b'code') for n in names])).gaps)
 
+    def test_legacy_trailers_are_framing_not_content_approval(self):
+        for identifier, algorithm in [(1, 'md5'), (2, 'sha1')]:
+            raw=fixture([('payload.js',b'reverse shell')])[:-72]
+            signed=raw+hashlib.new(algorithm,raw).digest()+struct.pack('<I',identifier)+b'GBMB'
+            scan=self.inspect(signed)
+            self.assertEqual(scan.gaps,[])
+            self.assertTrue(any(f['malware'] for f in scan.findings))
+            bad=bytearray(signed);bad[-9]^=1
+            self.assertTrue(any(g['reason']=='phar-checksum-mismatch' for g in self.inspect(bytes(bad)).gaps))
+
     def test_binary_member_is_not_claimed_scanned(self):
         scan = self.inspect(fixture([('hidden.so',b'\x7fELF'+b'\0'*40)]))
         self.assertTrue(any(g['reason']=='executable-binary-needs-independent-review' for g in scan.gaps))

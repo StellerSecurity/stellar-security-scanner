@@ -377,7 +377,9 @@ class Inspector:
             stub_end = position
             if raw[-4:] != b'GBMB':
                 raise Incomplete('missing-phar-checksum')
-            algorithm = {3: 'sha256', 4: 'sha512'}.get(struct.unpack_from('<I', raw, len(raw)-8)[0])
+            # This trailer checks PHAR framing only. Package provenance must
+            # still be verified separately; legacy hashes grant no trust.
+            algorithm = {1: 'md5', 2: 'sha1', 3: 'sha256', 4: 'sha512'}.get(struct.unpack_from('<I', raw, len(raw)-8)[0])
             if algorithm is None:
                 raise Incomplete('unsupported-phar-checksum')
             size = hashlib.new(algorithm).digest_size
