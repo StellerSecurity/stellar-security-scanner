@@ -1,6 +1,7 @@
 """Acquisition receipts authorize downloads, never binary or build-graph approval."""
 import builtins
 import tempfile
+import subprocess
 from types import SimpleNamespace
 import hashlib
 import sys
@@ -115,16 +116,42 @@ class MavenAcquisition(unittest.TestCase):
         def validate(*args, acquisition=None):
             self.assertIsNotNone(acquisition)
             self.assertIsNot(acquisition, a)
+            self.assertIsNot(acquisition.content_guard, content)
             proof = a.acquire_maven(self.plan, None, True)['provenance']
             record = dict(self.plan, archive_sha256=self.plan['sha256'])
             self.assertTrue(bridge.verified_package_origin(record, proof, acquisition))
         original_import = builtins.__import__
         def isolated_import(name, *args, **kwargs):
-            if name == 'package_acquisition':
+            if name in ('package_acquisition', 'content_guard'):
                 raise ModuleNotFoundError(name)
             return original_import(name, *args, **kwargs)
         with tempfile.TemporaryDirectory() as scratch, patch.object(bridge,'validate_report',side_effect=validate), patch('builtins.__import__',side_effect=isolated_import):
             bridge.run_package({'source_sha':'a'*40},root,pins,scratch,command=command)
+
+    def test_real_isolated_parent_loads_adapter_dependencies(self):
+        root = Path(__file__).resolve().parents[1] / 'scanner'
+        script = """
+import pathlib, sys, types, tempfile, hashlib
+root = pathlib.Path(sys.argv[1])
+bridge = types.ModuleType('isolated_bridge')
+exec(compile((root/'manifest_bridge.py').read_bytes(), str(root/'manifest_bridge.py'), 'exec'), bridge.__dict__)
+names = ('package_guard.py','package_acquisition.py','content_guard.py','source_guard_v2.py','malware_advisories.py')
+pins = {n:hashlib.sha256((root/n).read_bytes()).hexdigest() for n in names}
+def command(args, **kwargs):
+    pathlib.Path(args[args.index('--report')+1]).write_text('{"status":"passed"}')
+    return types.SimpleNamespace(returncode=0)
+def validate(*args, acquisition=None):
+    assert acquisition is not None
+    assert acquisition.content_guard.VERSION
+    assert 'content_guard' not in sys.modules
+    assert 'package_acquisition' not in sys.modules
+bridge.validate_report = validate
+with tempfile.TemporaryDirectory() as scratch:
+    bridge.run_package({'source_sha':'a'*40},root,pins,scratch,command=command)
+"""
+        result = subprocess.run([sys.executable, '-I', '-B', '-c', script, str(root)],
+                                capture_output=True, text=True, timeout=20)
+        self.assertEqual(0, result.returncode, result.stderr)
 
     def test_xml_entities_and_duplicate_coordinates_rejected(self):
         with self.assertRaises(a.AcquisitionError):
