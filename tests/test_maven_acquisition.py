@@ -9,6 +9,7 @@ import package_acquisition as a
 import package_guard as guard
 import manifest_bridge as bridge
 import malware_advisories as advisory
+import content_guard as content
 
 class MavenAcquisition(unittest.TestCase):
     def setUp(self):
@@ -81,6 +82,23 @@ class MavenAcquisition(unittest.TestCase):
         self.assertEqual(self.plan['name'], advisory.coordinates([row])[0]['name'])
         with self.assertRaises(advisory.AdvisoryError):
             advisory.coordinates([dict(row, public_registry_verified=False)])
+
+    def test_repeated_binary_gaps_do_not_stop_later_inspection(self):
+        scanner = guard.dependency_inspector(content, content.LIMITS)
+        for i in range(3000):
+            scanner.gap('classes/' + str(i), 'binary-class-needs-review')
+        scanner.gap('later/archive', 'archive-integrity-error')
+        report = scanner.report('a'*40, 'dependency-archives')
+        self.assertEqual('incomplete', report['status'])
+        bridge.validate_gap_summary(report)
+        with self.assertRaises(bridge.BridgeError):
+            bridge.validate_gap_summary(dict(report, status='passed'))
+        with self.assertRaises(bridge.BridgeError):
+            bridge.validate_gap_summary(dict(report, coverage_gap_total=0))
+        self.assertEqual(3001, report['coverage_gap_total'])
+        self.assertEqual(3000, report['coverage_gap_counts']['binary-class-needs-review'])
+        self.assertEqual(2980, report['omitted_gap_details'])
+        self.assertTrue(any(g['reason']=='archive-integrity-error' for g in report['gaps']))
 
     def test_xml_entities_and_duplicate_coordinates_rejected(self):
         with self.assertRaises(a.AcquisitionError):

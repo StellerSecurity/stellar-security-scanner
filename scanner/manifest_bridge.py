@@ -56,6 +56,22 @@ def sha256_id(value):
     return isinstance(value, str) and bool(re.fullmatch('[0-9a-f]{64}', value))
 
 
+def validate_gap_summary(report):
+    if 'coverage_gap_total' not in report:
+        return
+    counts, total, omitted = (report.get(k) for k in
+                              ('coverage_gap_counts', 'coverage_gap_total', 'omitted_gap_details'))
+    gaps = report.get('gaps')
+    if (not isinstance(counts, dict) or not isinstance(gaps, list)
+            or type(total) is not int or type(omitted) is not int or min(total, omitted) < 0
+            or any(not isinstance(k, str) or type(v) is not int or v < 1 for k,v in counts.items())
+            or sum(counts.values()) != total or total != len(gaps) + omitted
+            or any(not isinstance(g, dict) or g.get('reason') not in counts for g in gaps)
+            or any(sum(g.get('reason') == reason for g in gaps) > n for reason,n in counts.items())
+            or total and (report.get('status') == 'passed' or report.get('dependency_inventory_complete') is True)):
+        raise BridgeError('package-gap-summary-mismatch')
+
+
 def verified_package_origin(package, provenance):
     """Validate registry and separately reviewed Git proofs without conflating them."""
     if package['ecosystem'] == 'maven':
@@ -441,6 +457,7 @@ def validate_report(report, bundle, pins, manifest_sha):
     for name in ('findings', 'gaps', 'packages', 'exclusions'):
         if not isinstance(report.get(name), list):
             raise BridgeError('package-report-list-invalid')
+    validate_gap_summary(report)
     if report['status'] == 'passed' and any(
             isinstance(item, dict) and item.get('reason') == 'opaque-verified-dependency-binary-not-executed'
             for item in report['exclusions']):
