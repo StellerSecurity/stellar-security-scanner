@@ -592,6 +592,110 @@ def plist_metadata_text(data, limit):
         return None
 
 
+def java_properties_text(data, limit):
+    """Inspect raw text and all decoded keys/values, including overwritten keys.
+
+    java.util.Properties.load(InputStream) uses Latin-1. Readers/resource
+    bundles can use UTF-8, so inspect both interpretations when UTF-8 is valid.
+    Continuations and Unicode escapes are data decoding, never execution.
+    Unsupported controls, malformed escapes and excessive expansion stay gaps.
+    """
+    try:
+        if len(data) > limit:
+            return None
+        latin = data.decode('latin-1')
+        views = [latin]
+        try:
+            utf = data.decode('utf-8-sig')
+            if utf != latin:
+                views.append(utf)
+        except UnicodeError:
+            utf = None
+        if utf is not None and any(unicodedata.category(c) == 'Cc' and c not in '\t\n\r\f'
+                                   for c in utf):
+            return None
+        # A valid UTF-8 sequence can contain C1 bytes in its Latin-1 view.
+        # Both views are still inspected. Other binary/control data fails.
+        if any((b < 32 and b not in (9, 10, 12, 13)) or b == 127
+               or (128 <= b < 160 and utf is None) for b in data):
+            return None
+        out, total = [], 0
+
+        def add(value):
+            nonlocal total
+            total += len(value.encode('utf-8')) + 1
+            if total > limit:
+                raise ValueError('properties text limit')
+            out.append(value)
+
+        def unescape(value):
+            decoded, pos = [], 0
+            while pos < len(value):
+                char = value[pos]
+                pos += 1
+                if char == '\\':
+                    if pos == len(value):
+                        raise ValueError('dangling escape')
+                    char = value[pos]
+                    pos += 1
+                    if char == 'u':
+                        digits = value[pos:pos + 4]
+                        if len(digits) != 4 or not re.fullmatch('[0-9a-fA-F]{4}', digits):
+                            raise ValueError('invalid Unicode escape')
+                        char = chr(int(digits, 16))
+                        if unicodedata.category(char) == 'Cc' and char not in '\t\n\r\f':
+                            raise ValueError('escaped binary control')
+                        pos += 4
+                    else:
+                        char = {'t': '\t', 'n': '\n', 'r': '\r', 'f': '\f'}.get(char, char)
+                decoded.append(char)
+            # Combine valid Java UTF-16 surrogate pairs; reject lone surrogates.
+            text = ''.join(decoded).encode('utf-16be', 'surrogatepass').decode('utf-16be')
+            if any(ord(c) < 32 and c not in '\t\n\r\f' or ord(c) == 127 for c in text):
+                raise ValueError('nontext property')
+            return text
+
+        for text in views:
+            add(text)  # Includes every comment and original byte interpretation.
+            pending, continuing = [], False
+            lines = re.split(r'\r\n|\r|\n', text)
+            if len(lines) > 100000:
+                return None
+            for line in lines:
+                line = line.lstrip(' \t\f')
+                if not continuing and (not line or line[0] in '#!'):
+                    continue
+                slashes = len(line) - len(line.rstrip('\\'))
+                continuing = bool(slashes % 2)
+                pending.append(line[:-1] if continuing else line)
+                if continuing:
+                    continue
+                logical = ''.join(pending)
+                pending = []
+                # Split before unescaping: escaped spaces/separators are keys.
+                pos, escaped = 0, False
+                while pos < len(logical):
+                    char = logical[pos]
+                    if not escaped and char in '=:\t\f ':
+                        break
+                    escaped = char == '\\' and not escaped
+                    pos += 1
+                end = pos
+                while pos < len(logical) and logical[pos] in ' \t\f':
+                    pos += 1
+                if pos < len(logical) and logical[pos] in '=:':
+                    pos += 1
+                while pos < len(logical) and logical[pos] in ' \t\f':
+                    pos += 1
+                add(unescape(logical[:end]))
+                add(unescape(logical[pos:]))
+            if continuing:
+                return None
+        return '\n'.join(out)
+    except (ValueError, UnicodeError):
+        return None
+
+
 def decode_text(path, data):
     if data.startswith((b'\xff\xfe', b'\xfe\xff')):
         return data.decode('utf-16')
@@ -947,6 +1051,8 @@ class Inspector:
             resource_reader = groovy_dgm_text
         elif member.endswith('.plist') and data.startswith(b'bplist'):
             resource_reader = plist_metadata_text
+        elif member.lower().endswith('.properties'):
+            resource_reader = java_properties_text
         if resource_reader is not None:
             text = resource_reader(data, self.limits['text_bytes'])
             if text is None:

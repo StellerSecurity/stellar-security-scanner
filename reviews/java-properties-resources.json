@@ -1,0 +1,30 @@
+{
+  "scope": "All original text and decoded properties keys/values inspected; no JAR or executable content clearance",
+  "specification": "https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Properties.html#load(java.io.InputStream)",
+  "resources": [
+    {
+      "artifact": "bcprov-jdk18on:1.79",
+      "archive_sha256": "0d81ecc3124536b539bce9aa3fe9621b7f84c9cee371b635a5b31c78b79ab1da",
+      "resource": "org/bouncycastle/x509/CertPathReviewerMessages_de.properties",
+      "resource_bytes": 49608,
+      "resource_sha256": "1e5085ab80e415564b4fd7b40d73361c89a81bea6c6f2608b03eb900fd03c28f",
+      "decoded_views_sha256": "55b17fecf6bea1eaf2f9b027949106dbc7995ddcebb52ae80dfdd9da2c45acf3",
+      "files_scanned": 1,
+      "gaps": [],
+      "findings": [],
+      "exclusions": []
+    },
+    {
+      "artifact": "bcpkix-jdk18on:1.79",
+      "archive_sha256": "3639a24ddf9ba4b7eba0659b44770e91eba816421888e571f285aadefe532cd6",
+      "resource": "org/bouncycastle/pkix/CertPathReviewerMessages_de.properties",
+      "resource_bytes": 49608,
+      "resource_sha256": "1e5085ab80e415564b4fd7b40d73361c89a81bea6c6f2608b03eb900fd03c28f",
+      "decoded_views_sha256": "55b17fecf6bea1eaf2f9b027949106dbc7995ddcebb52ae80dfdd9da2c45acf3",
+      "files_scanned": 1,
+      "gaps": [],
+      "findings": [],
+      "exclusions": []
+    }
+  ]
+}
