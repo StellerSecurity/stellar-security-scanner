@@ -194,115 +194,303 @@ def gettext_catalog_data(path, data):
 
 
 def kotlin_module_text(data, limit):
-    """Decode name-only Kotlin module metadata; unknown schema remains a gap.
+    """Inspect Kotlin module metadata, including its typed annotation tables."""
+    return kotlin_metadata_text(data, limit, 'Module')
 
-    Framing and fields follow JetBrains/kotlin v2.2.20 ModuleMapping.kt and
-    core/metadata.jvm/src/jvm_module.proto. This parses data, never JVM code.
-    Nonempty annotation/name-resolver tables are deliberately unsupported.
+
+def kotlin_metadata_text(data, limit, root):
+    """Read known Kotlin metadata as data, never evaluate JVM or plugin code.
+
+    Schema: JetBrains/kotlin v2.2.20 metadata.proto, jvm_module.proto,
+    jvm_metadata.proto and builtins.proto. Unknown fields (including opaque
+    compiler-plugin payloads), bad references and excessive work fail closed.
+    This is format/string inspection, not a review of sibling executable code.
     """
-    if len(data) < 16 or len(data) > min(limit, 1024 * 1024):
+    if root not in ('Module', 'PackageFragment') or not 16 <= len(data) <= min(limit, 1024 * 1024):
         return None
-    count = int.from_bytes(data[:4], 'big')
-    if count != 3:
+    if int.from_bytes(data[:4], 'big') != 3:
         return None
     version = struct.unpack_from('>3I', data, 4)
-    # Kotlin BinaryVersion defines patch changes as format-compatible. AndroidX
-    # uses 1.9.9999; an arbitrary patch ceiling incorrectly rejects that data.
-    # Retain known major/minor schemas and the nonnegative JVM Int boundary.
-    if not ((version[0] == 1 and version[1] <= 9) or
-            (version[0] == 2 and version[1] <= 2)) or version[2] > 0x7fffffff:
+    if version[2] > 0x7fffffff:
         return None
     offset = 16
-    if version[:2] >= (1, 4):
-        if len(data) < 20 or int.from_bytes(data[16:20], 'big') not in (0, 1):
+    if root == 'Module':
+        if not ((version[0] == 1 and version[1] <= 9) or
+                (version[0] == 2 and version[1] <= 2)):
             return None
-        offset = 20
-    strings, packages, jvm_names = [], [], []
-    budget = 20000
+        if version[:2] >= (1, 4):
+            if len(data) < 20 or int.from_bytes(data[16:20], 'big') not in (0, 1):
+                return None
+            offset = 20
+    elif version[:2] != (1, 0):
+        return None
 
-    def integer(raw, pos):
+    # Type followed by occurrence: ! required, * repeated, ? optional.
+    # s/q are checked string/qualified-name references; i is nonnegative Int;
+    # n permits the protobuf int32 -1 sentinel; eN is a bounded enum.
+    schemas = {
+        'Module': {1:'PackageParts*', 2:'PackageParts*', 3:'text*', 4:'Strings?',
+                   5:'Names?', 6:'Annotation*', 16:'Class*'},
+        'PackageParts': {1:'text!', 2:'text*', 3:'i*', 4:'text*', 5:'text*', 6:'i*', 7:'i*'},
+        'Strings': {1:'text*'},
+        'Names': {1:'Name*'},
+        'Name': {1:'n?', 2:'s!', 3:'e2?'},
+        'Annotation': {1:'q!', 2:'AnnotationArgument*'},
+        'AnnotationArgument': {1:'s!', 2:'AnnotationValue!'},
+        'AnnotationValue': {1:'e12?', 2:'u64?', 3:'float?', 4:'double?', 5:'s?', 6:'q?',
+                            7:'s?', 8:'Annotation?', 9:'AnnotationValue*', 10:'i?', 11:'i?'},
+        'Type': {1:'i?', 2:'TypeArgument*', 3:'e1?', 4:'s?', 5:'Type?', 6:'q?',
+                 7:'i?', 8:'i?', 9:'s?', 10:'Type?', 11:'i?', 12:'q?', 13:'Type?',
+                 14:'i?', 100:'Annotation*', 101:'e1?', 150:'Annotation*'},
+        'TypeArgument': {1:'e3?', 2:'Type?', 3:'i?'},
+        'TypeParameter': {1:'i!', 2:'s!', 3:'e1?', 4:'e2?', 5:'Type*', 6:'i*',
+                          100:'Annotation*', 150:'Annotation*'},
+        'Class': {1:'i?', 2:'i*', 3:'q!', 4:'s?', 5:'TypeParameter*', 6:'Type*',
+                  7:'s*', 8:'Constructor*', 9:'Function*', 10:'Property*', 11:'TypeAlias*',
+                  13:'EnumEntry*', 16:'q*', 17:'s?', 18:'Type?', 19:'i?', 20:'Type*',
+                  21:'i*', 25:'Annotation*', 30:'Types?', 31:'i*', 32:'Versions?',
+                  101:'s?', 102:'Property*', 103:'s?', 104:'i?', 150:'Annotation*'},
+        'Package': {3:'Function*', 4:'Property*', 5:'TypeAlias*', 30:'Types?', 32:'Versions?',
+                    101:'s?', 102:'Property*', 151:'q?'},
+        'Types': {1:'Type*', 2:'n?'},
+        'Constructor': {1:'i?', 2:'ValueParameter*', 3:'Annotation*', 31:'i*',
+                        100:'Signature?', 150:'Annotation*'},
+        'Function': {1:'i?', 2:'s!', 3:'Type?', 4:'TypeParameter*', 5:'Type?',
+                     6:'ValueParameter*', 7:'i?', 8:'i?', 9:'i?', 10:'Type*', 11:'i*',
+                     12:'Annotation*', 13:'ValueParameter*', 30:'Types?', 31:'i*',
+                     32:'Contract?', 34:'Annotation*', 100:'Signature?', 101:'s?', 150:'Annotation*'},
+        'Property': {1:'i?', 2:'s!', 3:'Type?', 4:'TypeParameter*', 5:'Type?',
+                     6:'ValueParameter?', 7:'i?', 8:'i?', 9:'i?', 10:'i?', 11:'i?',
+                     12:'Type*', 13:'i*', 14:'Annotation*', 15:'Annotation*', 16:'Annotation*',
+                     17:'ValueParameter*', 31:'i*', 33:'Annotation*', 34:'Annotation*',
+                     35:'Annotation*', 100:'PropertySignature?', 101:'i?', 150:'Annotation*',
+                     151:'AnnotationValue?', 152:'Annotation*', 153:'Annotation*'},
+        'ValueParameter': {1:'i?', 2:'s!', 3:'Type?', 4:'Type?', 5:'i?', 6:'i?',
+                           7:'Annotation*', 8:'AnnotationValue?', 150:'Annotation*'},
+        'TypeAlias': {1:'i?', 2:'s!', 3:'TypeParameter*', 4:'Type?', 5:'i?', 6:'Type?',
+                      7:'i?', 8:'Annotation*', 31:'i*'},
+        'EnumEntry': {1:'s?', 2:'Annotation*', 150:'Annotation*'},
+        'Version': {1:'i?', 2:'i?', 3:'e2?', 4:'i?', 5:'s?', 6:'e2?'},
+        'Versions': {1:'Version*'},
+        'PackageFragment': {1:'Strings?', 2:'Names?', 3:'Package?', 4:'Class*'},
+        'Contract': {1:'Effect*'},
+        'Effect': {1:'e2?', 2:'Expression*', 3:'Expression?', 4:'e2?', 5:'e2?'},
+        'Expression': {1:'i?', 2:'i?', 3:'e2?', 4:'Type?', 5:'i?', 6:'Expression*', 7:'Expression*'},
+        'Signature': {1:'s?', 2:'s?'},
+        'PropertySignature': {1:'Signature?', 2:'Signature?', 3:'Signature?', 4:'Signature?', 5:'Signature?'},
+    }
+    budget = 20000 if root == 'Module' else 100000
+    strings, refs, nodes = [], [], []
+    output_bytes = 0
+
+    def charge():
+        nonlocal budget
+        budget -= 1
+        if budget < 0:
+            raise ValueError('metadata-work-limit')
+
+    def integer(raw, pos, maximum=0x7fffffff):
         value = 0
-        for shift in range(0, 35, 7):
+        for shift in range(0, 70, 7):
             if pos >= len(raw):
-                raise ValueError()
+                raise ValueError('truncated-varint')
             byte = raw[pos]; pos += 1
             value |= (byte & 127) << shift
             if byte < 128:
-                if value > 0x7fffffff or (shift and byte == 0):
-                    raise ValueError()
+                if value > maximum or (shift and byte == 0):
+                    raise ValueError('invalid-varint')
                 return value, pos
-        raise ValueError()
-
-    def fields(raw):
-        nonlocal budget
-        pos = 0
-        while pos < len(raw):
-            budget -= 1
-            if budget < 0:
-                raise ValueError()
-            tag, pos = integer(raw, pos)
-            number, wire = tag >> 3, tag & 7
-            if not number or wire not in (0, 2):
-                raise ValueError()
-            value, pos = integer(raw, pos)
-            if wire == 2:
-                end = pos + value
-                if end > len(raw):
-                    raise ValueError()
-                value, pos = raw[pos:end], end
-            yield number, wire, value
+        raise ValueError('invalid-varint')
 
     def string(raw):
+        nonlocal output_bytes
         value = raw.decode('utf-8', errors='strict')
+        if any((ord(c) < 32 and c not in '\r\n\t') or ord(c) == 127 for c in value):
+            raise ValueError('invalid-string')
+        output_bytes += len(raw) + 1
+        if output_bytes > limit:
+            raise ValueError('metadata-text-limit')
+        strings.append(value)
+        return value
+
+    def scalar(kind, value):
+        if kind == 'n' and value == 0xffffffffffffffff:
+            return -1
+        if kind != 'u64' and value > 0x7fffffff:
+            raise ValueError('invalid-int32')
+        if kind.startswith('e') and value > int(kind[1:]):
+            raise ValueError('unknown-enum')
+        if kind in ('s', 'q'):
+            refs.append((kind, value))
+        return value
+
+    def message(raw, name, depth=0):
+        if depth > 48:
+            raise ValueError('metadata-depth-limit')
+        schema, result, pos = schemas[name], {}, 0
+        while pos < len(raw):
+            charge()
+            tag, pos = integer(raw, pos)
+            key, wire = tag >> 3, tag & 7
+            if key not in schema:
+                raise ValueError('unknown-metadata-field')
+            kind, occurrence = schema[key][:-1], schema[key][-1]
+            if occurrence != '*' and key in result:
+                raise ValueError('duplicate-metadata-field')
+            numeric = kind in ('i', 'n', 's', 'q', 'u64') or kind.startswith('e')
+            if wire == 0 and numeric:
+                value, pos = integer(raw, pos, 0xffffffffffffffff)
+                values = [scalar(kind, value)]
+            elif wire == 2 and (numeric and occurrence == '*' or kind == 'text' or kind in schemas):
+                length, pos = integer(raw, pos)
+                end = pos + length
+                if end > len(raw):
+                    raise ValueError('truncated-metadata-field')
+                part, pos = raw[pos:end], end
+                if numeric:
+                    values, at = [], 0
+                    while at < len(part):
+                        charge()
+                        value, at = integer(part, at, 0xffffffffffffffff)
+                        values.append(scalar(kind, value))
+                elif kind == 'text':
+                    values = [string(part)]
+                else:
+                    values = [message(part, kind, depth + 1)]
+            elif (kind, wire) in (('float', 5), ('double', 1)):
+                length = 4 if kind == 'float' else 8
+                if pos + length > len(raw):
+                    raise ValueError('truncated-float')
+                values = [struct.unpack_from('<f' if length == 4 else '<d', raw, pos)[0]]
+                pos += length
+            else:
+                raise ValueError('invalid-metadata-wire-type')
+            result.setdefault(key, []).extend(values)
+        if any(spec.endswith('!') and len(result.get(key, [])) != 1 for key, spec in schema.items()):
+            raise ValueError('missing-required-metadata-field')
+        nodes.append((name, result))
+        return result
+
+    def one(row, key, default=None):
+        return row.get(key, [default])[0]
+
+    try:
+        parsed = message(data[offset:], root)
+        string_key, name_key = (4, 5) if root == 'Module' else (1, 2)
+        table = one(parsed, string_key, {}).get(1, [])
+        names = one(parsed, name_key, {}).get(1, [])
+        if any(index >= (len(table) if kind == 's' else len(names)) for kind, index in refs):
+            raise ValueError('metadata-reference-out-of-bounds')
+        # Resolve every qualified name with cycle/depth/output limits. Inspect
+        # both each raw string and the reconstructed name, not only table cells.
+        for index in range(len(names)):
+            chain, parts = set(), []
+            while index != -1:
+                charge()
+                if index < 0 or index >= len(names) or index in chain or len(chain) >= 48:
+                    raise ValueError('invalid-qualified-name-parent')
+                chain.add(index)
+                row = names[index]
+                parts.append(table[one(row, 2)])
+                index = one(row, 1, -1)
+            string('/'.join(reversed(parts)).encode('utf-8'))
+        for name, row in nodes:
+            if name == 'Types' and not -1 <= one(row, 2, -1) <= len(row.get(1, [])):
+                raise ValueError('invalid-first-nullable-index')
+            if name == 'PackageParts':
+                values = lambda key: row.get(key, [])
+                if (len(values(3)) > len(values(2)) or len(values(7)) > len(values(5)) or
+                        len(values(6)) > len(values(5)) or
+                        any(i > len(values(4)) for i in values(3) + values(7)) or
+                        any(i >= len(parsed.get(3, [])) for i in values(6)) or
+                        (values(5) and not values(6))):
+                    raise ValueError('invalid-package-part-index')
+        return '\n'.join(strings)
+    except (ValueError, UnicodeError):
+        return None
+
+
+def public_suffix_text(data, limit):
+    """OkHttp 5.1 BasePublicSuffixList: two big-endian sized UTF-8 lists."""
+    if not 8 <= len(data) <= min(limit, 1024 * 1024):
+        return None
+    position, strings = 0, []
+    try:
+        for _ in range(2):
+            if position + 4 > len(data):
+                return None
+            size = int.from_bytes(data[position:position + 4], 'big')
+            position += 4
+            if size > len(data) - position:
+                return None
+            text = data[position:position + size].decode('utf-8', 'strict')
+            position += size
+            if (text and not text.endswith('\n')) or any(ord(c) < 32 and c != '\n' or ord(c) == 127 for c in text):
+                return None
+            strings.append(text)
+        return '\n'.join(strings) if position == len(data) else None
+    except UnicodeError:
+        return None
+
+
+def groovy_dgm_text(data, limit):
+    """Read Groovy 3 GeneratedMetaMethod.DgmMethodRecord without loading classes.
+
+    The format stores UTF class/method names, class IDs, and parameter counts.
+    Every string is inspected, including unused entries; no deserialization,
+    reflection, or method invocation is performed.
+    """
+    if not 6 <= len(data) <= min(limit, 1024 * 1024):
+        return None
+    position, strings, types_seen, work = 0, [], set(), 0
+
+    def take(count):
+        nonlocal position
+        if position + count > len(data):
+            raise ValueError('truncated-dgm')
+        value = data[position:position + count]
+        position += count
+        return value
+
+    def number():
+        nonlocal work
+        work += 1
+        if work > 50000:
+            raise ValueError('dgm-work-limit')
+        value = int.from_bytes(take(4), 'big')
+        if value > 0x7fffffff:
+            raise ValueError('negative-dgm-value')
+        return value
+
+    def string():
+        raw = take(int.from_bytes(take(2), 'big'))
+        value = java_modified_utf8(raw)
         if any(ord(c) < 32 or ord(c) == 127 for c in value):
-            raise ValueError()
+            raise ValueError('invalid-dgm-name')
         strings.append(value)
         return value
 
     try:
-        for number, wire, value in fields(data[offset:]):
-            if wire != 2:
-                raise ValueError()
-            if number in (1, 2):
-                package = {k: [] for k in range(1, 8)}
-                for key, kind, part in fields(value):
-                    if key in (1, 2, 4, 5) and kind == 2:
-                        package[key].append(string(part))
-                    elif key in (3, 6, 7):
-                        if kind == 0:
-                            package[key].append(part)
-                        else:
-                            at = 0
-                            while at < len(part):
-                                budget -= 1
-                                if budget < 0:
-                                    raise ValueError()
-                                n, at = integer(part, at)
-                                package[key].append(n)
-                    else:
-                        raise ValueError()
-                if len(package[1]) != 1:
-                    raise ValueError()
-                packages.append(package)
-            elif number == 3:
-                jvm_names.append(string(value))
-            elif number in (4, 5) and not value:
-                pass  # The compiler emits empty resolver tables on name-only modules.
-            else:
-                raise ValueError()
-        for package in packages:
-            if (len(package[3]) > len(package[2]) or
-                    len(package[7]) > len(package[5]) or
-                    len(package[6]) > len(package[5]) or
-                    any(i > len(package[4]) for i in package[3] + package[7]) or
-                    any(i >= len(jvm_names) for i in package[6]) or
-                    (package[5] and not package[6])):
-                raise ValueError()
-        text = '\n'.join(strings)
-        if len(text.encode('utf-8')) > limit:
+        while string():
+            key = number()
+            if key in types_seen or len(types_seen) >= 10000:
+                return None
+            types_seen.add(key)
+        records = number()
+        if records > 10000:
             return None
-        return text
-    except (ValueError, UnicodeError):
+        for _ in range(records):
+            if not string() or not string() or number() not in types_seen:
+                return None
+            count = number()
+            if count > 255:
+                return None
+            for _ in range(count):
+                if number() not in types_seen:
+                    return None
+        text = '\n'.join(strings)
+        return text if position == len(data) and len(text.encode('utf-8')) <= limit else None
+    except (ValueError, Incomplete):
         return None
 
 
@@ -430,6 +618,18 @@ def reviewed_native_code(path, data):
             and digest(data) == '8fdff52a7430dba14fb97239c7fe414710991f16da269374e0936a1385f3a318')
 
 
+def java_modified_utf8(raw):
+    """Decode Java DataInput/JVM strings without interpreting their contents."""
+    if b'\0' in raw or any(b >= 0xf0 for b in raw):
+        raise Incomplete('invalid-jvm-modified-utf8')
+    try:
+        value = raw.replace(b'\xc0\x80', b'\0').decode('utf-8', 'surrogatepass')
+        value = value.encode('utf-16-le', 'surrogatepass').decode('utf-16-le', 'surrogatepass')
+        return re.sub(r'[\ud800-\udfff]', lambda m: '\\u%04x' % ord(m[0]), value)
+    except UnicodeError:
+        raise Incomplete('invalid-jvm-modified-utf8')
+
+
 def jvm_constant_text(data, ceiling):
     """Extract bounded JVM constants as evidence, NOT a bytecode verification.
 
@@ -459,17 +659,7 @@ def jvm_constant_text(data, ceiling):
             raw = take(int.from_bytes(take(2), 'big'))
             # JVM modified UTF-8 encodes NUL as C0 80 and supplementary
             # characters as UTF-16 surrogate pairs, never four-byte UTF-8.
-            if b'\0' in raw or any(b >= 0xf0 for b in raw):
-                raise Incomplete('invalid-jvm-modified-utf8')
-            try:
-                value = raw.replace(b'\xc0\x80', b'\0').decode('utf-8', 'surrogatepass')
-                value = value.encode('utf-16-le', 'surrogatepass').decode('utf-16-le', 'surrogatepass')
-                # Java strings may contain standalone UTF-16 units (e.g. lexer
-                # tables). Preserve those units as escapes in textual evidence.
-                value = re.sub(r'[\ud800-\udfff]', lambda m: '\\u%04x' % ord(m[0]), value)
-            except UnicodeError:
-                raise Incomplete('invalid-jvm-modified-utf8')
-            strings.append(value)
+            strings.append(java_modified_utf8(raw))
         elif tag in widths:
             take(widths[tag])
             if tag in (5, 6):
@@ -611,10 +801,29 @@ class Inspector:
         if len(data) > self.limits['text_bytes']:
             self.gap(path, 'text-size-limit')
             return
-        if path.lower().endswith('.kotlin_module'):
-            text = kotlin_module_text(data, self.limits['text_bytes'])
+        if path.lower().endswith(('.kotlin_module', '.kotlin_builtins', '.kotlin_metadata')):
+            is_module = path.lower().endswith('.kotlin_module')
+            text = kotlin_metadata_text(data, self.limits['text_bytes'],
+                                        'Module' if is_module else 'PackageFragment')
             if text is None:
-                self.gap(path, 'unsupported-or-invalid-kotlin-module')
+                self.gap(path, 'unsupported-or-invalid-kotlin-module' if is_module
+                         else 'unsupported-or-invalid-kotlin-package-fragment')
+            else:
+                self.inspect_text(path, text)
+                normalized = ''.join(c for c in text if unicodedata.category(c) != 'Cf')
+                if normalized != text:
+                    self.inspect_text(path, normalized, counted=False)
+            return
+        resource_reader = None
+        member = path.rsplit('!', 1)[-1]
+        if member == 'assets/PublicSuffixDatabase.list':
+            resource_reader = public_suffix_text
+        elif member == 'META-INF/dgminfo':
+            resource_reader = groovy_dgm_text
+        if resource_reader is not None:
+            text = resource_reader(data, self.limits['text_bytes'])
+            if text is None:
+                self.gap(path, 'unsupported-or-invalid-typed-resource')
             else:
                 self.inspect_text(path, text)
                 normalized = ''.join(c for c in text if unicodedata.category(c) != 'Cf')
