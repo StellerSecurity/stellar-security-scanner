@@ -811,11 +811,12 @@ class _NoRedirect(urllib.request.HTTPRedirectHandler):
 
 
 def public_fetch(url, max_bytes):
-    """HTTPS GET with one bound GitHub redirect or fixed Maven Central fallback.
+    """HTTPS GET with one bound GitHub redirect or fixed Maven Central fallbacks.
 
     A Maven error never supplies the next URL. Sonatype documents the two
     canonical TLS endpoints at https://central.sonatype.org/faq/ssl/.
-    Both paths still refer to the same independently pinned artifact bytes.
+    Google's mirror is documented at https://docs.cloud.google.com/docs/buildpacks/java.
+    All paths refer to the same independently pinned artifact bytes.
     """
     kind = _endpoint(url)
     if type(max_bytes) is not int or not 0 < max_bytes <= LIMITS['archive_bytes']:
@@ -823,7 +824,10 @@ def public_fetch(url, max_bytes):
     opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), _NoRedirect(),
                urllib.request.HTTPSHandler(context=ssl.create_default_context()))
     start, current = time.monotonic(), url
-    for attempt in range(2):
+    central = (kind == 'reviewed-maven-artifact'
+               and urllib.parse.urlsplit(url).netloc == 'repo.maven.apache.org')
+    mirrors = ('https://repo1.maven.org', 'https://maven-central.storage-download.googleapis.com')
+    for attempt in range(3 if central else 2):
         # GitHub's zipball REST endpoint returns a redirect but still expects
         # its API media type. octet-stream is only for the archive host itself.
         accept = ('application/vnd.github+json' if urllib.parse.urlsplit(current).hostname == 'api.github.com'
@@ -837,10 +841,9 @@ def public_fetch(url, max_bytes):
             location = exc.headers.get('Location') if exc.headers is not None else None
             code = exc.code
             exc.close()
-            if (not attempt and kind == 'reviewed-maven-artifact'
-                    and urllib.parse.urlsplit(url).netloc == 'repo.maven.apache.org'
+            if (central and attempt < len(mirrors)
                     and code in (301, 302, 303, 307, 308, 429, 500, 502, 503, 504)):
-                current = 'https://repo1.maven.org' + urllib.parse.urlsplit(url).path
+                current = mirrors[attempt] + urllib.parse.urlsplit(url).path
                 continue
             if attempt or code not in (301, 302, 303, 307, 308) or kind != 'composer-archive' or not location:
                 # Fixed numeric status only: never expose URL, headers or body.

@@ -15,6 +15,7 @@ class MavenTransportTests(unittest.TestCase):
         self.receipt=a.MAVEN_PUBLIC_ORIGINS[self.identity]
         self.url=self.receipt['url']
         self.mirror=self.url.replace('https://repo.maven.apache.org/','https://repo1.maven.org/')
+        self.google=self.url.replace('https://repo.maven.apache.org/','https://maven-central.storage-download.googleapis.com/')
 
     def response(self,url,data=b'fixture'):
         class Reply(io.BytesIO):
@@ -45,11 +46,25 @@ class MavenTransportTests(unittest.TestCase):
                 with self.assertRaises(a.AcquisitionError):a.public_fetch(self.url,4096)
                 self.assertEqual(op.return_value.open.call_count,1)
 
-    def test_mirror_cannot_redirect_again(self):
+    def test_second_redirect_uses_only_fixed_google_mirror(self):
         with patch.object(a.urllib.request,'build_opener') as op:
-            op.return_value.open.side_effect=[self.error(),self.error(url=self.mirror)]
+            op.return_value.open.side_effect=[self.error(),self.error(url=self.mirror),self.response(self.google)]
+            self.assertEqual(a.public_fetch(self.url,4096),b'fixture')
+            self.assertEqual([x.args[0].full_url for x in op.return_value.open.call_args_list],
+                             [self.url,self.mirror,self.google])
+
+    def test_all_mirrors_exhausted_never_follow_remote_location(self):
+        with patch.object(a.urllib.request,'build_opener') as op:
+            op.return_value.open.side_effect=[self.error(),self.error(url=self.mirror),self.error(url=self.google)]
             with self.assertRaises(a.AcquisitionError):a.public_fetch(self.url,4096)
-            self.assertEqual(op.return_value.open.call_count,2)
+            self.assertEqual(op.return_value.open.call_count,3)
+
+    def test_google_fallback_still_requires_original_hash(self):
+        with patch.object(a.urllib.request,'build_opener') as op:
+            op.return_value.open.side_effect=[self.error(),self.error(url=self.mirror),self.response(self.google)]
+            plan=a._maven_plan(*self.identity.split(':'),[self.receipt['sha256']])
+            with self.assertRaisesRegex(a.AcquisitionError,'integrity-mismatch'):
+                a.acquire(plan,fetch=a.public_fetch)
 
     def test_other_maven_hosts_do_not_gain_redirect_permission(self):
         google=next(v['url'] for v in a.MAVEN_PUBLIC_ORIGINS.values() if v['url'].startswith('https://dl.google.com/'))
@@ -59,9 +74,10 @@ class MavenTransportTests(unittest.TestCase):
             self.assertEqual(op.return_value.open.call_count,1)
 
     def test_mirror_is_not_a_new_arbitrary_public_endpoint(self):
-        with patch.object(a.urllib.request,'build_opener') as op:
-            with self.assertRaises(a.AcquisitionError):a.public_fetch(self.mirror,4096)
-            op.assert_not_called()
+        for url in (self.mirror,self.google):
+            with patch.object(a.urllib.request,'build_opener') as op:
+                with self.assertRaises(a.AcquisitionError):a.public_fetch(url,4096)
+                op.assert_not_called()
 
     def test_fallback_bytes_still_must_match_independent_pin(self):
         for valid in (True,False):
