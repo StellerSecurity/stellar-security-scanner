@@ -86,3 +86,50 @@ class GradleInventoryTests(unittest.TestCase):
             i,m,p=self.fixture(root)
             i['configurations'][0]['artifacts'][0]['componentKind']='trusted'
             with self.assertRaises(g.Invalid):self.scan(i,m,root)
+
+
+class GapSamplingTests(unittest.TestCase):
+    def test_repeated_classes_do_not_hide_later_diagnostic(self):
+        scanner=g.InventoryInspector()
+        for n in range(2000): scanner.gap(str(n), 'executable-binary-needs-independent-review')
+        scanner.gap('last.jar', 'invalid-or-unsupported-archive')
+        self.assertEqual(2000, scanner.gap_counts['executable-binary-needs-independent-review'])
+        self.assertEqual(1980,scanner.omitted_gap_details)
+        self.assertEqual(21,len(scanner.gaps))
+        self.assertEqual('invalid-or-unsupported-archive',scanner.gaps[-1]['reason'])
+        self.assertEqual('incomplete',scanner.report('a'*40,'test')['status'])
+
+class LocalArtifactsTests(unittest.TestCase):
+    fixture = GradleInventoryTests.fixture
+    def local(self, root, i, data=b'reverse shell'):
+        p=Path(root)/'app'/'libs'/'local.js'
+        p.parent.mkdir(parents=True);p.write_bytes(data)
+        i['configurations'][0]['localFiles']=[{'file':'app/libs/local.js','bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()}]
+        return p
+
+    def test_local_payload_is_inspected_without_granting_origin_trust(self):
+        with tempfile.TemporaryDirectory() as root:
+            i,m,p=self.fixture(root);self.local(root,i)
+            scanner=content_guard.Inspector(engine=engine())
+            r=g.inspect(i,m,root,scanner,project_root=root)
+            self.assertEqual('blocked',r['status'])
+            self.assertEqual(1,len(r['local_artifacts']))
+            self.assertIn('local-artifact-requires-separate-verification',{x['reason'] for x in r['gaps']})
+
+    def test_local_mutation_traversal_and_symlink_fail(self):
+        with tempfile.TemporaryDirectory() as root:
+            i,m,p=self.fixture(root);f=self.local(root,i)
+            f.write_bytes(b'tampered')
+            with self.assertRaises(g.Invalid):g.inspect(i,m,root,project_root=root)
+            row=i['configurations'][0]['localFiles'][0]
+            row['file']='../outside'
+            with self.assertRaises(g.Invalid):g.inspect(i,m,root,project_root=root)
+            row['file']='app/libs/local.js';f.unlink();f.symlink_to(p)
+            with self.assertRaises(OSError):g.inspect(i,m,root,project_root=root)
+
+    def test_local_duplicate_conflict_rejected(self):
+        with tempfile.TemporaryDirectory() as root:
+            i,m,p=self.fixture(root);self.local(root,i,b'ordinary')
+            rows=i['configurations'][0]['localFiles']
+            rows.append({**rows[0],'sha256':'a'*64})
+            with self.assertRaises(g.Invalid):g.inspect(i,m,root,project_root=root)

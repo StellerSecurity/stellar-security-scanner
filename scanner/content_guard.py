@@ -316,6 +316,61 @@ def reviewed_native_code(path, data):
             and digest(data) == '8fdff52a7430dba14fb97239c7fe414710991f16da269374e0936a1385f3a318')
 
 
+def jvm_constant_text(data, ceiling):
+    """Extract bounded JVM constants as evidence, NOT a bytecode verification.
+
+    JVMS 21 section 4.4: all constant tags, including double-slot constants and
+    modified UTF-8. Method bodies/attributes are not validated here; callers
+    MUST retain the independent binary-review gap even when this succeeds.
+    """
+    if not 10 <= len(data) <= ceiling or data[:4] != b'\xca\xfe\xba\xbe':
+        raise Incomplete('invalid-jvm-constant-pool')
+    position, entries, strings = 10, struct.unpack_from('>H', data, 8)[0], []
+    if entries < 1:
+        raise Incomplete('invalid-jvm-constant-pool')
+    def take(size):
+        nonlocal position
+        end = position + size
+        if end > len(data):
+            raise Incomplete('truncated-jvm-constant-pool')
+        result = data[position:end]
+        position = end
+        return result
+    index = 1
+    widths = {3:4, 4:4, 5:8, 6:8, 7:2, 8:2, 9:4, 10:4, 11:4,
+              12:4, 15:3, 16:2, 17:4, 18:4, 19:2, 20:2}
+    while index < entries:
+        tag = take(1)[0]
+        if tag == 1:
+            raw = take(int.from_bytes(take(2), 'big'))
+            # JVM modified UTF-8 encodes NUL as C0 80 and supplementary
+            # characters as UTF-16 surrogate pairs, never four-byte UTF-8.
+            if b'\0' in raw or any(b >= 0xf0 for b in raw):
+                raise Incomplete('invalid-jvm-modified-utf8')
+            try:
+                value = raw.replace(b'\xc0\x80', b'\0').decode('utf-8', 'surrogatepass')
+                value = value.encode('utf-16-le', 'surrogatepass').decode('utf-16-le', 'surrogatepass')
+                # Java strings may contain standalone UTF-16 units (e.g. lexer
+                # tables). Preserve those units as escapes in textual evidence.
+                value = re.sub(r'[\ud800-\udfff]', lambda m: '\\u%04x' % ord(m[0]), value)
+            except UnicodeError:
+                raise Incomplete('invalid-jvm-modified-utf8')
+            strings.append(value)
+        elif tag in widths:
+            take(widths[tag])
+            if tag in (5, 6):
+                index += 1
+                if index >= entries:
+                    raise Incomplete('invalid-jvm-double-slot-constant')
+        else:
+            raise Incomplete('unknown-jvm-constant-tag')
+        index += 1
+    text = '\n'.join(strings)
+    if len(text.encode('utf-8')) > ceiling:
+        raise Incomplete('jvm-constant-text-limit')
+    return text
+
+
 class Inspector:
     def __init__(self, engine=None, limits=None):
         self.engine = engine or load_engine()
@@ -397,6 +452,14 @@ class Inspector:
             self.archive(path, data, depth + 1)
             return
         if executable(data) or EXECUTABLE_SUFFIX.search(path):
+            if (data.startswith(b'\xca\xfe\xba\xbe') and
+                    (path.lower().endswith('.class') or len(data) >= 8 and 45 <= int.from_bytes(data[6:8], 'big') <= 70)):
+                try:
+                    # Constants can contain embedded scripts or downloader
+                    # indicators. Inspect them without executing/loading Java.
+                    self.inspect_text(path, jvm_constant_text(data, self.limits['text_bytes']), counted=False)
+                except Incomplete as exc:
+                    self.gap(path, str(exc))
             if reviewed_native_code(path, data):
                 self.files_scanned += 1
                 self.exclusions.append({'path': path,
@@ -694,11 +757,15 @@ class Inspector:
             return
         seen = {}
         content_digests = {}
+        # JVM entries are case-sensitive names, not an extracted portable
+        # filesystem tree. Inspect BOTH A.class and a.class. Generic archives
+        # retain their cross-platform ambiguity checks.
+        java_container = bool(re.search(r'\.(?:jar|aar)$', path, re.I))
         def member_name(name, directory=False, mode=0):
             self.archive_members_seen += 1
             self.check_budget()
             normalized = valid_path(name, allow_dot=True)
-            canonical = unicodedata.normalize('NFC', normalized).casefold()
+            canonical = normalized if java_container else unicodedata.normalize('NFC', normalized).casefold()
             kind = 'directory' if directory else 'file'
             identity = (kind, normalized, mode)
             if canonical in seen and seen[canonical] != identity:
@@ -758,6 +825,13 @@ class Inspector:
                         self.check_budget()
                         mode = info.external_attr >> 16
                         name = member_name(info.filename, info.is_dir(), mode)
+                        if (java_container and info.is_dir() and info.file_size == 0
+                                and info.external_attr == 0xffff0010 and not info.flag_bits & 1):
+                            # Older Maven Archiver emits all-one UNIX mode bits
+                            # for empty directory entries. No bytes are excluded
+                            # and no entry is extracted or executed.
+                            self.exclusions.append({'path':name, 'reason':'empty-maven-directory-metadata'})
+                            continue
                         if info.flag_bits & 1 or (stat.S_IFMT(mode) not in (0, stat.S_IFREG, stat.S_IFDIR)):
                             raise Incomplete('encrypted-or-special-archive-member')
                         if info.compress_type not in (zipfile.ZIP_STORED, zipfile.ZIP_DEFLATED):
@@ -935,7 +1009,7 @@ class Inspector:
                 'omitted_warning_findings': self.omitted_warning_findings,
                 'omitted_blocking_findings': self.omitted_blocking_findings,
                 'limits': self.limits,
-                'scope': 'Static text/lifecycle patterns and recorded exact-byte native reviews; opaque assets receive string checks only; sensitive files excluded. No code execution or full binary malware analysis.',
+                'scope': 'Static text/lifecycle patterns, JVM constant strings and recorded exact-byte native reviews; JVM code still requires independent review; opaque assets receive string checks only; sensitive files excluded. No code execution or full binary malware analysis.',
                 'installed_or_executed_packages': False, 'network_requests': 0}
 
 
