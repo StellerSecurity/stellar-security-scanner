@@ -151,6 +151,47 @@ def x509_certificate_data(path, data):
         return False
 
 
+def gettext_catalog_data(path, data):
+    """Read revision-zero GNU MO strings without evaluating plural expressions."""
+    if PurePosixPath(path).suffix.lower() != '.mo' or not 28 <= len(data) <= LIMITS['text_bytes']:
+        return None
+    endian = {b'\xde\x12\x04\x95': '<', b'\x95\x04\x12\xde': '>'}.get(data[:4])
+    if endian is None:
+        return None
+    revision, count, originals, translations, hash_count, hashes = struct.unpack_from(endian + '6I', data, 4)
+    if revision != 0 or count > 100000 or hash_count > 200000:
+        return None
+    covered = bytearray(len(data))
+    covered[:28] = b'\x01' * 28
+    boundaries = [28]
+    for offset, length in ((originals, count * 8), (translations, count * 8), (hashes, hash_count * 4)):
+        if not length:
+            continue
+        if offset < 28 or offset + length > len(data) or any(covered[offset:offset + length]):
+            return None
+        covered[offset:offset + length] = b'\x01' * length
+        boundaries.append(offset + length)
+    if hash_count and any(struct.unpack_from(endian + 'I', data, hashes + i * 4)[0] > count for i in range(hash_count)):
+        return None
+    strings, total = [], 0
+    for table in (originals, translations):
+        for i in range(count):
+            length, offset = struct.unpack_from(endian + '2I', data, table + i * 8)
+            end = offset + length
+            total += length
+            if offset < max(boundaries) or end >= len(data) or data[end] != 0 or total > LIMITS['text_bytes']:
+                return None
+            covered[offset:end + 1] = b'\x01' * (length + 1)
+            strings.append(data[offset:end])
+    # Reject appended/non-table payload; zero alignment padding is data only.
+    if any(value and not covered[i] for i, value in enumerate(data)):
+        return None
+    try:
+        return b'\n'.join(strings).decode('utf-8').replace('\x00', '\n')
+    except UnicodeError:
+        return None
+
+
 def decode_text(path, data):
     if data.startswith((b'\xff\xfe', b'\xfe\xff')):
         return data.decode('utf-16')
@@ -357,6 +398,10 @@ class Inspector:
             return
         if data.startswith((b'PK\x03\x04', b'PK\x05\x06', b'\x1f\x8b')) or ARCHIVE_SUFFIX.search(path):
             self.archive(path, data, depth + 1)
+            return
+        catalog_text = gettext_catalog_data(path, data)
+        if catalog_text is not None:
+            self.inspect_text(path, catalog_text)
             return
         if x509_certificate_data(path, data):
             self.exclusions.append({'path': path, 'reason': 'parsed-x509-certificate-data-strings-inspected'})
