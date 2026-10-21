@@ -16,6 +16,7 @@ from pathlib import PurePosixPath
 import re
 import ssl
 import stat
+import tarfile
 import time
 import unicodedata
 import urllib.error
@@ -183,6 +184,88 @@ def _npm_row(name, row):
     if bindings:
         plan['optional_peer_bindings'] = bindings
     return plan
+
+
+def _bundled_identity(path, row):
+    if (not isinstance(row, dict) or row.get('inBundle') is not True
+            or row.get('link') or row.get('resolved') or row.get('integrity')):
+        _fail('invalid-bundled-package-entry')
+    name = _name(path.rsplit('node_modules/', 1)[-1], 'npm')
+    if row.get('name', name) != name:
+        _fail('bundled-package-name-mismatch')
+    version = row.get('version')
+    if not isinstance(version, str) or len(version) > 128 or not NPM_VERSION.fullmatch(version):
+        _fail('unresolved-package-version')
+    return {'path': path, 'name': name, 'version': version}
+
+
+def verify_bundled_packages(raw, bindings, fetch):
+    """Bind contained manifests to lock entries; the caller still scans all bytes.
+
+    Never extract or execute packages. Parent archive SRI must be verified first.
+    Public registry identity is checked separately for advisory lookup, not used
+    to claim that bundled bytes equal a separately published child tarball.
+    """
+    if not isinstance(bindings, list) or len(bindings) > LIMITS['packages']:
+        _fail('invalid-bundled-package-bindings')
+    expected = {}
+    for entry in bindings:
+        if not isinstance(entry, dict) or set(entry) != {'path', 'name', 'version'}:
+            _fail('invalid-bundled-package-bindings')
+        path = entry['path']
+        if (not isinstance(path, str) or not path.startswith('node_modules/')
+                or '\\' in path or any(x in ('', '.', '..') for x in path.split('/'))):
+            _fail('invalid-bundled-package-path')
+        checked = _bundled_identity(path, dict(entry, inBundle=True))
+        if checked != entry or path in expected:
+            _fail('invalid-bundled-package-bindings')
+        expected[path] = entry
+    inspector = content_guard.Inspector()
+    found, seen = {}, set()
+    try:
+        with tarfile.open(fileobj=inspector.tar_stream(raw), mode='r|') as archive:
+            for member in archive:
+                inspector.archive_members_seen += 1
+                inspector.check_budget()
+                name = content_guard.valid_path(member.name, allow_dot=True)
+                canonical = unicodedata.normalize('NFC', name).casefold()
+                if canonical in seen:
+                    _fail('duplicate-bundled-archive-member')
+                seen.add(canonical)
+                if member.isdir():
+                    continue
+                if not member.isfile() or member.issparse():
+                    _fail('linked-or-special-bundled-member')
+                if not name.startswith('package/'):
+                    _fail('noncanonical-npm-archive-root')
+                relative = name[len('package/'):]
+                if relative.endswith('/package.json'):
+                    directory = relative[:-len('/package.json')]
+                    if directory.startswith('node_modules/') and directory not in expected:
+                        _fail('unlisted-bundled-package')
+                    if directory in expected:
+                        if member.size > LIMITS['metadata_bytes']:
+                            _fail('bundled-manifest-size-limit')
+                        stream = archive.extractfile(member)
+                        with stream:
+                            manifest = _json(stream.read(LIMITS['metadata_bytes'] + 1), LIMITS['metadata_bytes'])
+                        entry = expected[directory]
+                        if any(manifest.get(k) != entry[k] for k in ('name', 'version')):
+                            _fail('bundled-manifest-identity-mismatch')
+                        found[directory] = entry
+    except (tarfile.TarError, content_guard.Incomplete, OSError, EOFError, ValueError) as exc:
+        if isinstance(exc, AcquisitionError):
+            raise
+        _fail('invalid-or-unbounded-bundled-archive')
+    if set(found) != set(expected):
+        _fail('bundled-manifest-missing')
+    for entry in found.values():
+        url = 'https://registry.npmjs.org/' + urllib.parse.quote(entry['name'], safe='@') + '/' + entry['version']
+        _endpoint(url)
+        metadata = _json(fetch(url, LIMITS['metadata_bytes']), LIMITS['metadata_bytes'])
+        if any(metadata.get(k) != entry[k] for k in ('name', 'version')):
+            _fail('bundled-registry-identity-mismatch')
+    return list(found.values())
 
 
 def _composer_row(row):
@@ -379,6 +462,7 @@ def plan_packages(lockpath, raw, *, composer_manifest=None):
             if version in (2, 3):
                 if not isinstance(lock.get('packages'), dict):
                     _fail('invalid-npm-packages-map')
+                bundled = {}
                 for path, row in lock['packages'].items():
                     if path == '':
                         continue
@@ -390,7 +474,36 @@ def plan_packages(lockpath, raw, *, composer_manifest=None):
                             or not path.startswith('node_modules/') or '/node_modules/' not in '/' + path):
                         gap('workspace-or-noncanonical-package-path')
                         continue
-                    add(_npm_row, path.rsplit('node_modules/', 1)[-1], row)
+                    if isinstance(row, dict) and row.get('inBundle') is True:
+                        try:
+                            entry = _bundled_identity(path, row)
+                            ancestor = path
+                            while '/node_modules/' in ancestor:
+                                ancestor = ancestor.rsplit('/node_modules/', 1)[0]
+                                parent = lock['packages'].get(ancestor)
+                                if isinstance(parent, dict) and parent.get('inBundle') is not True:
+                                    plan = _npm_row(ancestor.rsplit('node_modules/', 1)[-1], parent)
+                                    entry['path'] = path[len(ancestor) + 1:]
+                                    bundled.setdefault(ancestor, (plan, []))[1].append(entry)
+                                    break
+                            else:
+                                _fail('bundled-parent-missing')
+                        except AcquisitionError as exc:
+                            gap(str(exc))
+                    else:
+                        add(_npm_row, path.rsplit('node_modules/', 1)[-1], row)
+                for plan, entries in bundled.values():
+                    for existing in packages:
+                        if {k: v for k, v in existing.items() if k != 'bundled_packages'} == plan:
+                            merged = {row['path']: row for row in existing.get('bundled_packages', [])}
+                            for entry in entries:
+                                if entry['path'] in merged and merged[entry['path']] != entry:
+                                    _fail('conflicting-bundled-package-binding')
+                                merged[entry['path']] = entry
+                            existing['bundled_packages'] = list(merged.values())
+                            break
+                    else:
+                        gap('bundled-parent-plan-missing')
             else:
                 stack = [(lock.get('dependencies', {}), 0)]
                 while stack:
@@ -826,6 +939,7 @@ def acquire(package, *, fetch=None, metadata_only=False):
         algorithm = _verify_sri(raw, validated['integrity'])
         if dist.get('integrity') is not None:
             _verify_sri(raw, dist['integrity'])
+        bundled = verify_bundled_packages(raw, package['bundled_packages'], fetch) if 'bundled_packages' in package else []
         integrity_verified = True
     else:
         algorithm = 'sha1' if validated['integrity'] else None
@@ -840,4 +954,5 @@ def acquire(package, *, fetch=None, metadata_only=False):
                 'metadata_sha256': hashlib.sha256(metadata_raw).hexdigest(), 'name': validated['name'],
                 'version': validated['version'], 'reference': validated['reference'],
                 'checksum_algorithm': algorithm, 'registry_identity_verified': True,
+                **({'bundled_packages': bundled} if ecosystem == 'npm' else {}),
                 **({'archive_binding': binding} if ecosystem == 'composer' else {})}}
