@@ -193,6 +193,116 @@ def gettext_catalog_data(path, data):
         return None
 
 
+def kotlin_module_text(data, limit):
+    """Decode name-only Kotlin module metadata; unknown schema remains a gap.
+
+    Framing and fields follow JetBrains/kotlin v2.2.20 ModuleMapping.kt and
+    core/metadata.jvm/src/jvm_module.proto. This parses data, never JVM code.
+    Nonempty annotation/name-resolver tables are deliberately unsupported.
+    """
+    if len(data) < 16 or len(data) > min(limit, 1024 * 1024):
+        return None
+    count = int.from_bytes(data[:4], 'big')
+    if count != 3:
+        return None
+    version = struct.unpack_from('>3I', data, 4)
+    if not ((version[0] == 1 and version[1] <= 9) or
+            (version[0] == 2 and version[1] <= 2)) or version[2] > 100:
+        return None
+    offset = 16
+    if version[:2] >= (1, 4):
+        if len(data) < 20 or int.from_bytes(data[16:20], 'big') not in (0, 1):
+            return None
+        offset = 20
+    strings, packages, jvm_names = [], [], []
+    budget = 20000
+
+    def integer(raw, pos):
+        value = 0
+        for shift in range(0, 35, 7):
+            if pos >= len(raw):
+                raise ValueError()
+            byte = raw[pos]; pos += 1
+            value |= (byte & 127) << shift
+            if byte < 128:
+                if value > 0x7fffffff or (shift and byte == 0):
+                    raise ValueError()
+                return value, pos
+        raise ValueError()
+
+    def fields(raw):
+        nonlocal budget
+        pos = 0
+        while pos < len(raw):
+            budget -= 1
+            if budget < 0:
+                raise ValueError()
+            tag, pos = integer(raw, pos)
+            number, wire = tag >> 3, tag & 7
+            if not number or wire not in (0, 2):
+                raise ValueError()
+            value, pos = integer(raw, pos)
+            if wire == 2:
+                end = pos + value
+                if end > len(raw):
+                    raise ValueError()
+                value, pos = raw[pos:end], end
+            yield number, wire, value
+
+    def string(raw):
+        value = raw.decode('utf-8', errors='strict')
+        if any(ord(c) < 32 or ord(c) == 127 for c in value):
+            raise ValueError()
+        strings.append(value)
+        return value
+
+    try:
+        for number, wire, value in fields(data[offset:]):
+            if wire != 2:
+                raise ValueError()
+            if number in (1, 2):
+                package = {k: [] for k in range(1, 8)}
+                for key, kind, part in fields(value):
+                    if key in (1, 2, 4, 5) and kind == 2:
+                        package[key].append(string(part))
+                    elif key in (3, 6, 7):
+                        if kind == 0:
+                            package[key].append(part)
+                        else:
+                            at = 0
+                            while at < len(part):
+                                budget -= 1
+                                if budget < 0:
+                                    raise ValueError()
+                                n, at = integer(part, at)
+                                package[key].append(n)
+                    else:
+                        raise ValueError()
+                if len(package[1]) != 1:
+                    raise ValueError()
+                packages.append(package)
+            elif number == 3:
+                jvm_names.append(string(value))
+            elif number in (4, 5) and not value:
+                pass  # The compiler emits empty resolver tables on name-only modules.
+            else:
+                raise ValueError()
+        for package in packages:
+            if (len(package[3]) > len(package[2]) or
+                    len(package[7]) > len(package[5]) or
+                    len(package[6]) > len(package[5]) or
+                    any(i > len(package[4]) for i in package[3] + package[7]) or
+                    any(i >= len(jvm_names) for i in package[6]) or
+                    (package[5] and not package[6])):
+                raise ValueError()
+        text = '\n'.join(strings)
+        if len(text.encode('utf-8')) > limit:
+            return None
+        return text
+    except (ValueError, UnicodeError):
+        return None
+
+
 def decode_text(path, data):
     if data.startswith((b'\xff\xfe', b'\xfe\xff')):
         return data.decode('utf-16')
@@ -497,6 +607,16 @@ class Inspector:
             return
         if len(data) > self.limits['text_bytes']:
             self.gap(path, 'text-size-limit')
+            return
+        if path.lower().endswith('.kotlin_module'):
+            text = kotlin_module_text(data, self.limits['text_bytes'])
+            if text is None:
+                self.gap(path, 'unsupported-or-invalid-kotlin-module')
+            else:
+                self.inspect_text(path, text)
+                normalized = ''.join(c for c in text if unicodedata.category(c) != 'Cf')
+                if normalized != text:
+                    self.inspect_text(path, normalized, counted=False)
             return
         if b'\x00' in data or any(b >= 128 for b in data):
             table = php_charset_table(path, data)
