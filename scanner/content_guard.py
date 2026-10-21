@@ -630,6 +630,25 @@ def java_modified_utf8(raw):
         raise Incomplete('invalid-jvm-modified-utf8')
 
 
+def reviewed_jvm_declaration(data):
+    """Six individually reviewed javax.inject:1 declarations, not a JAR exemption.
+
+    reviews/javax-inject-1-declarations.json records all fields, methods and
+    attributes. These exact files contain annotation/interface declarations,
+    no Code attributes, native methods, initializers or dynamic constants.
+    Changed classes and other archive members retain normal binary review.
+    """
+    reviewed = {
+        (450, '87895971be929a6978e1f8f1970a14fa3c9acd5fef33f8b728cc44daea380102'),
+        (418, '0607fbadc7b04e1c03384e368911c8aaa37340ba620603694a7dc263eb73fb02'),
+        (226, '6af2bf5f918f02ea77ec1ca598522dcb87a35fd65fff74422423fb9967c12d1f'),
+        (433, 'bbcbbc9aab41f3f240d666f568f506419d352bd0b16751403fac05db9ae1daaa'),
+        (425, '39d3ee48b6fcda9a03c38c351dca61b403a08d688cf2cdaf1ab1b649ab1d3978'),
+        (359, 'bf6716b541e624a5a8e6619cca4f82cc5074640ca9c1f195a1c740ad01c364bf'),
+    }
+    return len(data) <= 450 and (len(data), digest(data)) in reviewed
+
+
 def jvm_constant_text(data, ceiling):
     """Extract bounded JVM constants as evidence, NOT a bytecode verification.
 
@@ -764,7 +783,12 @@ class Inspector:
                     self.inspect_text(path, jvm_constant_text(data, self.limits['text_bytes']), counted=False)
                 except Incomplete as exc:
                     self.gap(path, str(exc))
-            if reviewed_native_code(path, data):
+            if reviewed_jvm_declaration(data):
+                self.files_scanned += 1
+                self.exclusions.append({'path': path,
+                    'reason': 'exact-jvm-declaration-review:javax-inject-1',
+                    'sha256': digest(data)})
+            elif reviewed_native_code(path, data):
                 self.files_scanned += 1
                 self.exclusions.append({'path': path,
                     'reason': 'exact-native-code-review:symfony-hiddeninput-20120325',
