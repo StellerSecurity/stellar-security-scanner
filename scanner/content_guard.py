@@ -10,6 +10,7 @@ import os
 from pathlib import Path, PurePosixPath
 import re
 import stat
+import ssl
 import struct
 import tarfile
 import time
@@ -117,6 +118,37 @@ def static_asset(path, data):
     if ext == '.icns' and len(data) >= 8 and data[:4] == b'icns':
         return 8 <= int.from_bytes(data[4:8], 'big') <= len(data)
     return ext in ('.webp', '.wav') and data[:4] == b'RIFF' and data[8:12] in (b'WEBP', b'WAVE')
+
+
+def x509_certificate_data(path, data):
+    """Recognize one bounded DER certificate, not a trusted signing identity.
+
+    The context is throwaway and never used for a connection. OpenSSL validates
+    X.509 structure; exact DER framing rejects appended data and concatenation.
+    This does not assert valid issuance, expiry, revocation or a trusted issuer.
+    """
+    if PurePosixPath(path).suffix.lower() not in ('.cer', '.crt', '.der'):
+        return False
+    if not 4 <= len(data) <= 64 * 1024 or data[0] != 0x30:
+        return False
+    length = data[1]
+    offset = 2
+    if length & 0x80:
+        count = length & 0x7f
+        if not 1 <= count <= 3 or len(data) < 2 + count or data[2] == 0:
+            return False
+        offset += count
+        length = int.from_bytes(data[2:offset], 'big')
+        if length < 128:
+            return False
+    if offset + length != len(data):
+        return False
+    try:
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        context.load_verify_locations(cadata=data)
+        return context.cert_store_stats()['x509'] == 1
+    except (ssl.SSLError, ValueError):
+        return False
 
 
 def decode_text(path, data):
@@ -325,6 +357,10 @@ class Inspector:
             return
         if data.startswith((b'PK\x03\x04', b'PK\x05\x06', b'\x1f\x8b')) or ARCHIVE_SUFFIX.search(path):
             self.archive(path, data, depth + 1)
+            return
+        if x509_certificate_data(path, data):
+            self.exclusions.append({'path': path, 'reason': 'parsed-x509-certificate-data-strings-inspected'})
+            self.inspect_text(path, data.decode('utf-8', errors='ignore'), counted=False)
             return
         if static_asset(path, data):
             self.exclusions.append({'path': path, 'reason': 'opaque-asset-strings-only'})
