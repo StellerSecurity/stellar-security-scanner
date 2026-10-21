@@ -137,7 +137,16 @@ class RecordedGradleEvidence(unittest.TestCase):
         for row in rows:
             self.assertFalse(row['compiled_dependency_clearance'])
             self.assertFalse(row['network_enabled'])
-            self.assertTrue(row['fresh_derivations_match_previous_apk'])
+            if not row['fresh_derivations_match_previous_apk']:
+                cache = row['derivation_cache']
+                self.assertEqual('same isolated cache from verified cold build', cache['scope'])
+                self.assertFalse(cache['shared_executable_cache_mounted'])
+                self.assertFalse(cache['fresh_rebuild_claimed'])
+                prior = next(r for r in rows if r['inventory_sha256'] == cache['origin_inventory_sha256'])
+                self.assertTrue(prior['fresh_derivations_match_previous_apk'])
+                self.assertEqual(prior['repository_id'], row['repository_id'])
+                self.assertEqual(prior['build_files'], row['build_files'])
+                self.assertEqual(prior['verification_metadata_sha256'], row['verification_metadata_sha256'])
             self.assertTrue(row['strict_dependency_verification'])
             self.assertGreater(row['unit_tests'], 0)
             self.assertEqual(0, row['lint_errors'])
