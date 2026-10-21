@@ -12,6 +12,15 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class PackageWorkflowPayloadTests(unittest.TestCase):
+    def test_source_payload_length_hash_and_bytes_match(self):
+        workflow = (ROOT / '.github/workflows/source-check.yml').read_text()
+        encoded = re.search(r"encoded = '([^']+)'", workflow)[1]
+        raw = zlib.decompress(base64.b64decode(encoded, validate=True))
+        self.assertEqual(raw, (ROOT / 'scanner/source_guard_v2.py').read_bytes())
+        self.assertIn('validate=True), ' + str(len(raw)+1) + ')', workflow)
+        self.assertIn('len(source) != ' + str(len(raw)), workflow)
+        self.assertIn(hashlib.sha256(raw).hexdigest(), workflow)
+
     def test_embedded_modules_and_limits_match_readable_source(self):
         workflow = (ROOT / '.github/workflows/commit-check.yml').read_text()
         chunks = re.findall(r'          data = \(\n(.*?)          \)\n', workflow, re.S)
