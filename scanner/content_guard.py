@@ -20,7 +20,7 @@ import zipfile
 import zlib
 
 VERSION = '1.0.1'
-ENGINE_SHA256 = '85a206f0741e0b1a3976f6cc636e68ce8e964e87ab4684453022e0d8cb350b9e'
+ENGINE_SHA256 = '065e9b91bda86fa63ee2e5c9ae3a5754e5a1d49c914670cab24f3598f1a65481'
 LIMITS = {'archive_bytes': 256 * 1024 * 1024, 'text_bytes': 16 * 1024 * 1024,
           'expanded_bytes': 1024 * 1024 * 1024, 'members': 100000,
           'archive_depth': 3, 'findings': 1000, 'seconds': 180,
