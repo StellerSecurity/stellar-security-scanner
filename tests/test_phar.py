@@ -60,6 +60,12 @@ class PharTests(unittest.TestCase):
         raw = fixture()[:-72].replace(b'<?php __HALT',b'<?php /* reverse shell */ __HALT',1)
         self.assertTrue(any(f['malware'] for f in self.inspect(resign(raw)).findings))
 
+    def test_stub_generator_source_is_scanned_as_source(self):
+        source = b'<?php $stub = "__HALT_COMPILER();"; /* reverse shell */'
+        scan = self.inspect(source, name='src/StubGenerator.php')
+        self.assertEqual(scan.gaps, [])
+        self.assertTrue(any(f['malware'] for f in scan.findings))
+
     def test_bad_hash_crc_truncation_trailing_bytes_and_metadata_fail(self):
         raw = fixture()
         broken = bytearray(raw); broken[20] ^= 1

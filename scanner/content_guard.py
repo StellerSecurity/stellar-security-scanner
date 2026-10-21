@@ -159,6 +159,78 @@ def executable(data):
                b'\xfe\xed\xfa\xce', b'\xfe\xed\xfa\xcf'))
 
 
+def php_charset_table(path, data):
+    """Parse the complete literal-only PHP charset-table grammar as data.
+
+    The tables contain raw NUL/legacy charset bytes inside single-quoted strings.
+    No PHP execution, interpolation, expressions, calls or arbitrary tail code
+    are accepted. Preserve ASCII strings and escape all other bytes for scanning.
+    """
+    if (not re.search(r'/symfony/polyfill-iconv/Resources/charset/from\.[a-z0-9-]+\.php$', path)
+            or len(data) > 1024 * 1024):
+        return None
+    header = re.match(br'<\?php\s+(?:namespace [A-Za-z_][A-Za-z0-9_\\]*;\s*)?static \$data\s*=\s*array\(', data)
+    if header is None:
+        return None
+    offset = header.end()
+    values = []
+    def whitespace():
+        nonlocal offset
+        while offset < len(data) and data[offset] in b' \t\n\r':
+            offset += 1
+    def literal():
+        nonlocal offset
+        whitespace()
+        if offset >= len(data):
+            raise ValueError()
+        if data[offset] != 39:
+            number = re.match(br'(?:0|[1-9][0-9]{0,9})(?![0-9])', data[offset:offset+11])
+            if number is None:
+                raise ValueError()
+            offset += number.end()
+            return number.group().decode('ascii')
+        offset += 1
+        raw = bytearray()
+        while offset < len(data):
+            byte = data[offset]
+            offset += 1
+            if byte == 39:
+                return "'" + ''.join(chr(b) if 32 <= b < 127 and b not in (39,92)
+                                     else '\\x%02x' % b for b in raw) + "'"
+            if byte == 92:
+                if offset >= len(data) or data[offset] not in (39,92):
+                    raise ValueError()
+                byte = data[offset]
+                offset += 1
+            raw.append(byte)
+            if len(raw) > 32:
+                raise ValueError()
+        raise ValueError()
+    try:
+        while len(values) < 65536:
+            key = literal()
+            whitespace()
+            if data[offset:offset+2] != b'=>':
+                return None
+            offset += 2
+            value = literal()
+            values.append(key + ' => ' + value)
+            whitespace()
+            if data[offset:offset+1] == b',':
+                offset += 1
+                continue
+            if data[offset:offset+2] != b');':
+                return None
+            offset += 2
+            tail = br'\s*\$result\s*=&\s*\$data;\s*unset\(\$data\);\s*return \$result;\s*'
+            if not re.fullmatch(tail, data[offset:]):
+                return None
+            return header.group().decode('ascii') + ', '.join(values) + ');\n$result =& $data; unset($data); return $result;'
+    except ValueError:
+        return None
+    return None
+
+
 class Inspector:
     def __init__(self, engine=None, limits=None):
         self.engine = engine or load_engine()
@@ -236,10 +308,10 @@ class Inspector:
         if executable(data) or EXECUTABLE_SUFFIX.search(path):
             self.gap(path, 'executable-binary-needs-independent-review')
             return
-        # Composer also names plain PHP proxy scripts '*.phar'. Inspect those
-        # as source; native PHARs carry a halt stub and/or signature framing.
-        # Malformed archives still reach the strict parser or binary checks.
-        if b'__HALT_COMPILER();' in data[:65536] or data.endswith(b'GBMB'):
+        # Source generators can mention __HALT_COMPILER() in a string, and
+        # Composer names PHP proxy scripts '*.phar'. Require binary framing
+        # or the checksum trailer; malformed archives still fail binary checks.
+        if (b'__HALT_COMPILER();' in data[:65536] and b'\x00' in data) or data.endswith(b'GBMB'):
             self.phar(path, data, depth + 1)
             return
         if data[:2] in (b'\x1a\x01', b'\x1e\x02'):
@@ -257,6 +329,11 @@ class Inspector:
         if len(data) > self.limits['text_bytes']:
             self.gap(path, 'text-size-limit')
             return
+        if b'\x00' in data or any(b >= 128 for b in data):
+            table = php_charset_table(path, data)
+            if table is not None:
+                self.inspect_text(path, table)
+                return
         try:
             text = decode_text(path, data)
         except UnicodeError:
