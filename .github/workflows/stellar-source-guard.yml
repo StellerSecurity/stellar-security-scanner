@@ -18,4 +18,4 @@ concurrency:
 jobs:
   scan:
     name: Source scan
-    uses: StellerSecurity/stellar-security-scanner/.github/workflows/source-check.yml@70c351ba38e9bb8eee3fe5441ab71b3905b986c7
+    uses: StellerSecurity/stellar-security-scanner/.github/workflows/source-check.yml@main
