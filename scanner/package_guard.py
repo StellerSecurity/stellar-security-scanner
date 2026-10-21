@@ -67,7 +67,11 @@ def stable(info):
 
 
 def recognized(name):
-    return name in LOCKS | MANIFESTS | UNSUPPORTED or bool(re.search(r"\.(?:csproj|fsproj|vbproj|nuspec)$", name, re.I)) or bool(re.fullmatch(r"requirements[^/]*\.(?:txt|in)", name))
+    return repository_archive(name) or name in LOCKS | MANIFESTS | UNSUPPORTED or bool(re.search(r"\.(?:csproj|fsproj|vbproj|nuspec)$", name, re.I)) or bool(re.fullmatch(r"requirements[^/]*\.(?:txt|in)", name))
+
+
+def repository_archive(name):
+    return bool(re.search(r"\.(?:jar|aar)$", name, re.I))
 
 
 def discover(root, check_budget, limits=None):
@@ -408,6 +412,7 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
     scanner_limits["expanded_bytes"] = limits["expanded_bytes"]
     scanner = dependency_inspector(content, scanner_limits)
     records, manifests, plans, downloaded_bytes, requests = [], {}, {}, 0, 0
+    repository_artifacts = []
     bundle_validated = False
     public_packages = []
     advisory = None
@@ -469,7 +474,27 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
             check_budget()
             name = path.rsplit("/", 1)[-1]
             prefix = path[:-len(name)]
-            if name in LOCKS:
+            if repository_archive(name):
+                record = {"path": path, "sha256": sha256(raw), "bytes": len(raw),
+                          "blob_sha": hashlib.sha1(b"blob " + str(len(raw)).encode() + b"\0" + raw).hexdigest(),
+                          "status": "incomplete", "upstream_identity_verified": False,
+                          "installed_or_executed": False, "files_scanned": 0,
+                          "blocking_findings": 0, "coverage_gaps": 0}
+                repository_artifacts.append(record)
+                before_gaps, before_files = scanner.coverage_gap_total, scanner.files_scanned
+                before_blockers = scanner.finding_counts['error'] + scanner.finding_counts['review']
+                # Git binding proves which bytes were committed, not their
+                # upstream origin or safety. Local archives never become public
+                # registry coordinates and are never uploaded for inspection.
+                gap(path, "repository-artifact-upstream-identity-unverified")
+                scanner.content("repository/" + path, raw)
+                if scanner.files_scanned == before_files:
+                    gap(path, "dependency-package-has-no-inspected-text")
+                blockers = scanner.finding_counts['error'] + scanner.finding_counts['review'] - before_blockers
+                record.update(status="blocked" if blockers else "incomplete",
+                              files_scanned=scanner.files_scanned - before_files,
+                              blocking_findings=blockers, coverage_gaps=scanner.coverage_gap_total - before_gaps)
+            elif name in LOCKS:
                 if name == "yarn.lock":
                     gap(path, "yarn-manifest-graph-binding-needs-review")
                 elif name not in ("composer.lock", "verification-metadata.xml"):
@@ -607,7 +632,7 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
     except (Incomplete, content.Incomplete, OSError, ValueError, TypeError, KeyError, RecursionError) as exc:
         reason = str(exc) if isinstance(exc, (Incomplete, content.Incomplete)) else "dependency-inspection-failed"
         gap("dependencies", reason)
-    empty_dependency_inventory = not plans and not records and not scanner.gaps
+    empty_dependency_inventory = not plans and not records and not repository_artifacts and not scanner.gaps
     result = scanner.report(source_sha, "dependency-archives")
     if empty_dependency_inventory:
         # No declared packages is a complete empty dependency inventory, not a
@@ -623,7 +648,8 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
                   malware_advisory_result=advisory,
                   input={"kind": "dependency-lock-manifest", "sha256": sha256(json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode()),
                          "digest_scope": "inspected-dependency-manifests"},
-                  packages=records, dependency_manifest_count=len(manifests), dependency_manifests=manifest,
+                  packages=records, repository_artifacts=repository_artifacts,
+                  dependency_manifest_count=len(manifests), dependency_manifests=manifest,
                   dependency_inventory_complete=not result["gaps"],
                   downloads_as_data_only=True, installed_or_executed_packages=False,
                   network_requests=requests, downloaded_bytes=downloaded_bytes,
