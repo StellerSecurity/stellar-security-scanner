@@ -16,7 +16,7 @@
     "scanner/legacy_worker.py": "52c73fa0dc67b5cd42c54a3f258423210192627f724d324a8c129089d67cee67",
     "scanner/malware_advisories.py": "e5b69b6a60e71a107cf0c07ae760a8f652fae4dbab12a1059147abbf7778f8ab",
     "scanner/manifest_bridge.py": "3280eba18365efbfd7592791d713982ba7fa51c375c208d43729a6255ba5acc4",
-    "scanner/package_acquisition.py": "a215aad8b9392e10b34311946cad4bf512973c7e04bfcc2189388e8f8c6a899a",
+    "scanner/package_acquisition.py": "deefc76056a30955e6c26e3f6417a48aabe2cd3cc9066a0877a6bdd98cbeba66",
     "scanner/package_guard.py": "041e1346f8be8d7f3f50b3661ccbe785a75201a3db4c9eb62c4a5f177afb8f4b",
     "scanner/pushover_notify.py": "3ca5e64270e80c5f14135a2bccfec2f0db3cbaa6b981f909abe7e6b330f8e80c",
     "scanner/source_guard.py": "11e078fea6906227514ef553bd77e00e69e746028ee805e99d7696ba244c90fe",
@@ -29,7 +29,7 @@
     "legacy_worker.py": "52c73fa0dc67b5cd42c54a3f258423210192627f724d324a8c129089d67cee67",
     "malware_advisories.py": "e5b69b6a60e71a107cf0c07ae760a8f652fae4dbab12a1059147abbf7778f8ab",
     "manifest_bridge.py": "3280eba18365efbfd7592791d713982ba7fa51c375c208d43729a6255ba5acc4",
-    "package_acquisition.py": "a215aad8b9392e10b34311946cad4bf512973c7e04bfcc2189388e8f8c6a899a",
+    "package_acquisition.py": "deefc76056a30955e6c26e3f6417a48aabe2cd3cc9066a0877a6bdd98cbeba66",
     "package_guard.py": "041e1346f8be8d7f3f50b3661ccbe785a75201a3db4c9eb62c4a5f177afb8f4b",
     "pushover_notify.py": "3ca5e64270e80c5f14135a2bccfec2f0db3cbaa6b981f909abe7e6b330f8e80c",
     "source_guard_v2.py": "065e9b91bda86fa63ee2e5c9ae3a5754e5a1d49c914670cab24f3598f1a65481"
@@ -50,9 +50,9 @@
   "source_worker_version": "1.1.0",
   "source_workflow_sha256": "ca377351a0043654b8eb3cff792ac2e339f421e932ccb9b70a19de151de3efc0",
   "workflow_path": ".github/workflows/commit-check.yml",
-  "workflow_sha256": "c99bb23ea5a8bc67b21af01f55114ebe5552698b33bc5668601e27b7a22906fa",
+  "workflow_sha256": "861ae4ee74aac013787cdcb7ca9245712651edc9734702a048ecaf24c4601a53",
   "workflow_sha256_by_path": {
-    ".github/workflows/commit-check.yml": "c99bb23ea5a8bc67b21af01f55114ebe5552698b33bc5668601e27b7a22906fa",
+    ".github/workflows/commit-check.yml": "861ae4ee74aac013787cdcb7ca9245712651edc9734702a048ecaf24c4601a53",
     ".github/workflows/push-notify.yml": "977a13212f2ee9645935238422cc3fd0ac83a8b29abc7b3ecc0786fa0b940597",
     ".github/workflows/scan-notify.yml": "1af2e1d9211590991832927f9ba0d0490caa61ecf5241299e20134d4d2fac31d",
     ".github/workflows/source-check.yml": "cc9ef3caf36261c878cf531e22b7cadba9448d148b79b4e556275563eb25a854"
