@@ -23,6 +23,10 @@ class BundledTests(unittest.TestCase):
                     info.type = tarfile.SYMTYPE
                     info.linkname = '/tmp/evil'
                 t.addfile(info, io.BytesIO(raw))
+            scope = b'{"type":"module"}'
+            scope_info = tarfile.TarInfo('package/node_modules/child/dist/esm/package.json')
+            scope_info.size = len(scope)
+            t.addfile(scope_info, io.BytesIO(scope))
         return out.getvalue()
     def fetch(self, url, limit):
         return b'{"name":"child","version":"1.0.0"}'
