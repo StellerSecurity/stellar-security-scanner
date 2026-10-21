@@ -89,15 +89,26 @@ def pins(raw):
 
 class InventoryInspector(content_guard.Inspector):
     def __init__(self):
-        super().__init__()
+        # A resolved Android build includes compiler/plugins as well as runtime
+        # code. Keep finite aggregate limits, sized for those combined graphs.
+        super().__init__(limits={**content_guard.LIMITS, 'members': 250000,
+                                 'seconds': 900})
         self.gap_counts = Counter()
+        self.gap_samples = Counter()
+        self.omitted_gap_details = 0
     def gap(self, path, reason):
         self.gap_counts[reason] += 1
-        if len(self.gaps) < self.limits['findings']:
+        # Repeated class gaps must not hide later archive or integrity errors.
+        # Keep exact totals and bounded samples per reason; never grant a pass
+        # because detail retention is full.
+        if self.gap_samples[reason] < 20 and len(self.gaps) < self.limits['findings']:
             self.gaps.append({'path': path, 'reason': reason})
+            self.gap_samples[reason] += 1
+        else:
+            self.omitted_gap_details += 1
 
 
-def inspect(inventory, metadata, cache, scanner=None):
+def inspect(inventory, metadata, cache, scanner=None, project_root=None):
     scanner = scanner or InventoryInspector()
     allowed = pins(metadata)
     if (not isinstance(inventory, dict) or inventory.get('schema') != 1
@@ -105,18 +116,45 @@ def inspect(inventory, metadata, cache, scanner=None):
             or not inventory['configurations'] or inventory.get('gaps') != []):
         raise Invalid('incomplete-resolved-inventory')
     scanner.gap('gradle', 'resolved-inventory-build-graph-binding-required')
-    seen, records = {}, []
+    seen, records, locals_seen, local_records = {}, [], {}, []
     def finish(stopped=False):
         report = scanner.report('0' * 40, 'resolved-gradle-inventory')
         report.update(artifacts=records, inventory_bound_to_source=False,
+                      local_artifacts=local_records,
                       stopped_before_inventory_end=stopped,
-                      gap_counts=dict(getattr(scanner, 'gap_counts', {})))
+                      gap_counts=dict(getattr(scanner, 'gap_counts', {})),
+                      omitted_gap_details=getattr(scanner, 'omitted_gap_details', 0))
         return report
     for config in inventory['configurations']:
         if not isinstance(config, dict) or not isinstance(config.get('artifacts'), list) or not isinstance(config.get('localFiles'), list):
             raise Invalid('invalid-configuration-inventory')
         for local in config['localFiles']:
             scanner.gap('gradle/local', 'local-artifact-requires-separate-verification')
+            if project_root is not None:
+                if not isinstance(local, dict) or not isinstance(local.get('file'), str):
+                    raise Invalid('invalid-local-artifact')
+                parts = local['file'].split('/')
+                for part in parts:
+                    token(part)
+                expected, size = local.get('sha256'), local.get('bytes')
+                if (not isinstance(expected, str) or not SHA.fullmatch(expected)
+                        or type(size) is not int or not 0 <= size <= scanner.limits['archive_bytes']):
+                    raise Invalid('invalid-local-artifact')
+                identity = (expected, size)
+                if local['file'] in locals_seen:
+                    if locals_seen[local['file']] != identity:
+                        raise Invalid('conflicting-local-artifact')
+                    continue
+                raw = read_file(project_root, parts, scanner.limits['archive_bytes'])
+                if len(raw) != size or hashlib.sha256(raw).hexdigest() != expected:
+                    raise Invalid('missing-or-tampered-local-artifact')
+                locals_seen[local['file']] = identity
+                try:
+                    scanner.content('gradle/local/' + local['file'], raw)
+                except content_guard.Incomplete as exc:
+                    scanner.gap('gradle/local', str(exc))
+                    return finish(True)
+                local_records.append({'file':local['file'], 'sha256':expected, 'bytes':size})
         for row in config['artifacts']:
             if not isinstance(row, dict):
                 raise Invalid('invalid-artifact-inventory')
@@ -193,12 +231,14 @@ def main():
     parser.add_argument('--inventory', required=True)
     parser.add_argument('--verification-metadata', required=True)
     parser.add_argument('--cache', required=True)
+    parser.add_argument('--project-root', help='Optionally inspect local dependency bytes; does not establish graph or origin trust')
     parser.add_argument('--output', required=True)
     args = parser.parse_args()
     raw = Path(args.inventory).read_bytes()
     if len(raw) > CAP:
         raise Invalid('inventory-size-limit')
-    report = inspect(json.loads(raw), Path(args.verification_metadata).read_bytes(), args.cache)
+    report = inspect(json.loads(raw), Path(args.verification_metadata).read_bytes(), args.cache,
+                     project_root=args.project_root)
     Path(args.output).write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps({'status': report['status'], 'artifacts': len(report['artifacts']), 'files_scanned': report['files_scanned']}))
     raise SystemExit(1 if report['status'] == 'blocked' else 2 if report['status'] == 'incomplete' else 0)
