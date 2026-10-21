@@ -46,6 +46,28 @@ class ContentFormatsTests(unittest.TestCase):
         scanner = self.inspect('example.txt.gz', gzip.compress(b'reverse shell'))
         self.assertTrue(any(f['malware'] for f in scanner.findings))
 
+    def test_gzip_magic_without_suffix_is_inspected(self):
+        scanner = self.inspect('lowmc.bin.properties', gzip.compress(b'reverse shell'))
+        self.assertTrue(any(f['malware'] for f in scanner.findings))
+        self.assertEqual(scanner.files_scanned, 1)
+        self.assertFalse(scanner.gaps)
+
+    def test_disguised_gzip_tar_is_walked(self):
+        import io, tarfile
+        buffer = io.BytesIO()
+        with tarfile.open(fileobj=buffer, mode='w') as archive:
+            payload = b'reverse shell'
+            info = tarfile.TarInfo('inner.txt')
+            info.size = len(payload)
+            archive.addfile(info, io.BytesIO(payload))
+        scanner = self.inspect('opaque.resource', gzip.compress(buffer.getvalue()))
+        self.assertTrue(any(f['malware'] for f in scanner.findings))
+        self.assertFalse(scanner.gaps)
+
+    def test_suffixless_gzip_keeps_binary_review_gap(self):
+        scanner = self.inspect('opaque.resource', gzip.compress(b'\x7fELF' + b'\x00' * 200))
+        self.assertTrue(any(g['reason'] == 'executable-binary-needs-independent-review' for g in scanner.gaps))
+
     def test_invalid_or_concatenated_gzip_does_not_pass(self):
         raw = gzip.compress(b'body {}')
         for value in (raw[:-1], raw + b'junk', raw + gzip.compress(b'reverse shell')):

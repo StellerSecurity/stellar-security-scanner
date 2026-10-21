@@ -800,8 +800,8 @@ class Inspector:
             content_digests[name] = value_digest
             self.content(name, value, depth)
         try:
-            if (raw.startswith(b'\x1f\x8b') and path.lower().endswith('.gz')
-                    and not path.lower().endswith('.tar.gz')):
+            if (raw.startswith(b'\x1f\x8b')
+                    and not path.lower().endswith(('.tar.gz', '.tgz'))):
                 # A standalone gzip stream is a compressed file, not a tarball.
                 # Bound expansion before scanning the decoded bytes recursively.
                 ceiling = min(self.limits['text_bytes'], self.limits['expanded_bytes'],
@@ -812,9 +812,14 @@ class Inspector:
                     raise Incomplete('gzip-expansion-limit')
                 if not inflater.eof or inflater.unused_data:
                     raise Incomplete('gzip-trailing-or-incomplete-stream')
-                self.archive_stream_bytes += len(decoded)
                 self.check_budget()
-                self.content(path[:-3], decoded, depth + 1)
+                decoded_path = path[:-3] if path.lower().endswith('.gz') else path + '!gzip-content'
+                if decoded[257:262] == b'ustar':
+                    self.archive(decoded_path + '.tar', decoded, depth + 1)
+                else:
+                    self.archive_stream_bytes += len(decoded)
+                    self.check_budget()
+                    self.content(decoded_path, decoded, depth + 1)
                 return
             if raw.startswith((b'PK\x03\x04', b'PK\x05\x06')):
                 self.preflight_zip(raw)
