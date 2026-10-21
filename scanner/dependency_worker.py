@@ -112,6 +112,9 @@ def diagnostic_document(ctx, report, report_sha, manifest_sha, pins):
         if package.get('malware_advisories'):
             package_for('package-' + str(index + 1))
             named['package-' + str(index + 1)]['malware_advisories'] = [safe_diagnostic(x) for x in package['malware_advisories'][:100]]
+    # Keep actionable findings ahead of warnings in both capped reports.
+    clean_findings.sort(key=lambda row: (not row['malware'],
+        {'error': 0, 'review': 1, 'warning': 2, 'info': 3}.get(row['severity'], 4)))
     document = dict(ctx, schema=1, dependency_worker_version=VERSION, scanner_version=SCANNER_VERSION,
         package_report_sha256=report_sha, manifest_bundle_sha256=manifest_sha, module_sha256=pins,
         totals={'findings': len(findings), 'gaps': len(gaps), 'packages': len(packages), 'named_packages': len(named)},
@@ -152,7 +155,12 @@ def diagnostic_document(ctx, report, report_sha, manifest_sha, pins):
     preview['named_packages'] = [x for x in document['named_packages'] if x['id'] in preview_ids]
     preview['preview_only'] = True
     preview['full_diagnostics_sha256'] = digest(canonical(document))
-    while len(canonical(preview)) > DIAGNOSTICS_PREVIEW_LIMIT:
+    while True:
+        preview['preview_omitted'] = {field: document['totals'][field] - len(preview[field])
+            for field in ('findings', 'gaps', 'named_packages')}
+        preview['preview_truncated'] = any(preview['preview_omitted'].values())
+        if len(canonical(preview)) <= DIAGNOSTICS_PREVIEW_LIMIT:
+            break
         for field in ('named_packages', 'gaps', 'findings'):
             if preview[field]:
                 preview[field] = preview[field][:-1]
