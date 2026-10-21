@@ -465,6 +465,45 @@ def dependency_file(path):
     return base in ('package.json', 'package-lock.json', 'npm-shrinkwrap.json', 'composer.json', 'composer.lock', 'Cargo.lock', 'Gemfile.lock', 'yarn.lock', 'pnpm-lock.yaml', 'poetry.lock', 'uv.lock', 'packages.lock.json', 'project.assets.json', 'packages.config', 'Directory.Packages.props', 'Package.resolved', 'go.mod', 'go.sum') or base.endswith(('.csproj', '.fsproj', '.gradle', '.gradle.kts', '.versions.toml')) or bool(re.fullmatch(r'(?:requirements|constraints)[^/]*\.txt', base))
 
 
+def trusted_guard_addition(api, repo, event, previous, candidate):
+    """Only copy an existing default-branch guard into a branch missing it.
+
+    The repository API supplies the trusted branch and commit. PR-controlled
+    branch metadata cannot nominate another source. Replacements and removals
+    always retain the maintainer-review finding.
+    """
+    if previous is not None or not isinstance(candidate, dict):
+        return False
+    if candidate.get('type') != 'blob' or candidate.get('mode') != '100644':
+        return False
+    base_ref = event.get('pull_request', {}).get('base', {}).get('ref')
+    if not isinstance(base_ref, str) or not base_ref:
+        return False
+    metadata = api.gh('repos/' + repo)
+    default = metadata.get('default_branch')
+    if metadata.get('full_name') != repo or not isinstance(default, str) or not default:
+        raise RuntimeError('Trusted default branch unavailable')
+    if base_ref == default:
+        return False
+    ref = api.gh('repos/' + repo + '/git/ref/heads/' + urllib.parse.quote(default, safe=''))
+    obj = ref.get('object', {})
+    trusted_sha = obj.get('sha', '')
+    if (ref.get('ref') != 'refs/heads/' + default or obj.get('type') != 'commit'
+            or not isinstance(trusted_sha, str) or not re.fullmatch(r'[0-9a-f]{40}', trusted_sha)
+            or trusted_sha == '0' * 40):
+        raise RuntimeError('Trusted default commit unavailable')
+    tree = api.gh('repos/' + repo + '/git/trees/' + trusted_sha + '?recursive=1')
+    if tree.get('truncated'):
+        raise RuntimeError('Trusted default tree is truncated')
+    matches = [e for e in tree['tree'] if e.get('path') == WORKFLOW_PATH]
+    if len(matches) != 1:
+        return False
+    trusted = matches[0]
+    return (trusted.get('type') == 'blob' and trusted.get('mode') == '100644'
+            and re.fullmatch(r'[0-9a-f]{40}', str(trusted.get('sha', ''))) is not None
+            and trusted.get('sha') == candidate.get('sha'))
+
+
 def run(api, repo, sha, event):
     findings, deps, scanned = [], set(), 0
     tree = api.gh('repos/' + repo + '/git/trees/' + sha + '?recursive=1')
@@ -500,7 +539,8 @@ def run(api, repo, sha, event):
     if event.get('pull_request'):
         if before is None:
             raise RuntimeError('Missing PR baseline')
-        if previous.get(WORKFLOW_PATH, {}).get('sha') != entries.get(WORKFLOW_PATH, {}).get('sha'):
+        if WORKFLOW_PATH in changed and not trusted_guard_addition(
+                api, repo, event, previous.get(WORKFLOW_PATH), entries.get(WORKFLOW_PATH)):
             findings.append({'path': WORKFLOW_PATH, 'line': 1, 'level': 'error', 'rule': 'guard-policy-change-requires-maintainer-review'})
     # Compare only relevant old files, while the entire selected candidate is scanned above.
     old_rules, old_deps = set(), set()

@@ -14,7 +14,7 @@ COMMIT_WORKFLOW = '.github/workflows/stellar-commit-guard.yml'
 JOB_NAME = 'Repository commit guard execution'
 SCAN_STEP = 'Read exact commit and inspect source and lifecycle scripts'
 RESULT_PREFIX = 'STELLAR_COMMIT_GUARD_RESULT='
-SCANNER_DIGEST = 'd44f5fcf1f70c2239cb60352b43d29691dab865fb25ea9eaf6f7f9afa80375b4'
+SCANNER_DIGEST = '11e078fea6906227514ef553bd77e00e69e746028ee805e99d7696ba244c90fe'
 NOTIFIER_DIGEST = '3ca5e64270e80c5f14135a2bccfec2f0db3cbaa6b981f909abe7e6b330f8e80c'
 ORGANIZATIONS = frozenset(('StellerSecurity', 'Stellar-seo-websites', 'StellarMail', 'StellarSecurity-Packages'))
 HASH40 = re.compile(r'[0-9a-f]{40}')

@@ -11,28 +11,28 @@
   "exported_module_sha256": {
     "scanner/advisory_refresh.py": "0859c0da7c5022284319430fcaa690494d56b6400b3ec1fe1ef8d99190c682e1",
     "scanner/cargo_metadata.py": "d3f064963e694a649a4efcd4fe5c7c45cf94ee939725d57596989dd2fb03688e",
-    "scanner/content_guard.py": "be9117eead71c2f53f5f8d7bf4ecb22b2d40f69331bf9978756f1a49611d0584",
+    "scanner/content_guard.py": "6e539bb6ec5af016d2123e8378795e20a62221fe9eb69336fd8a1664c9e7bc62",
     "scanner/dependency_worker.py": "58ce88050757c7f027b237530393724b5178b04932439aa9f07d7b7ae4840b7f",
-    "scanner/legacy_worker.py": "5ceaa6f017f8a3570f88094f2ef46ced7d914e7e3e5b927f6cbccbf8dbb7be9e",
+    "scanner/legacy_worker.py": "52c73fa0dc67b5cd42c54a3f258423210192627f724d324a8c129089d67cee67",
     "scanner/malware_advisories.py": "8033c0db6c306e9b92914fc3fba7fa68477f5f72b4735207ae5007d11f753546",
     "scanner/manifest_bridge.py": "e1ec02d5b80871fe73b79363cce983e94fc93f61b3c81ec93d227556519ee872",
     "scanner/package_acquisition.py": "bb2a66191cade214606610cb5d9957e4fdb9e025c2cdee807b9def23391e3aec",
     "scanner/package_guard.py": "cbb8a49cad965a66f98fcf4dd4726c12043c1a34cd34a5605fea4c245ebac462",
     "scanner/pushover_notify.py": "3ca5e64270e80c5f14135a2bccfec2f0db3cbaa6b981f909abe7e6b330f8e80c",
-    "scanner/source_guard.py": "d44f5fcf1f70c2239cb60352b43d29691dab865fb25ea9eaf6f7f9afa80375b4",
-    "scanner/source_guard_v2.py": "85a206f0741e0b1a3976f6cc636e68ce8e964e87ab4684453022e0d8cb350b9e",
+    "scanner/source_guard.py": "11e078fea6906227514ef553bd77e00e69e746028ee805e99d7696ba244c90fe",
+    "scanner/source_guard_v2.py": "065e9b91bda86fa63ee2e5c9ae3a5754e5a1d49c914670cab24f3598f1a65481",
     "scanner/source_scan_notify.py": "794162e9a049cb344690e392a59bc18f32580d2c0e94787722e0ecc298d1fc6b"
   },
   "module_sha256": {
-    "content_guard.py": "be9117eead71c2f53f5f8d7bf4ecb22b2d40f69331bf9978756f1a49611d0584",
+    "content_guard.py": "6e539bb6ec5af016d2123e8378795e20a62221fe9eb69336fd8a1664c9e7bc62",
     "dependency_worker.py": "58ce88050757c7f027b237530393724b5178b04932439aa9f07d7b7ae4840b7f",
-    "legacy_worker.py": "5ceaa6f017f8a3570f88094f2ef46ced7d914e7e3e5b927f6cbccbf8dbb7be9e",
+    "legacy_worker.py": "52c73fa0dc67b5cd42c54a3f258423210192627f724d324a8c129089d67cee67",
     "malware_advisories.py": "8033c0db6c306e9b92914fc3fba7fa68477f5f72b4735207ae5007d11f753546",
     "manifest_bridge.py": "e1ec02d5b80871fe73b79363cce983e94fc93f61b3c81ec93d227556519ee872",
     "package_acquisition.py": "bb2a66191cade214606610cb5d9957e4fdb9e025c2cdee807b9def23391e3aec",
     "package_guard.py": "cbb8a49cad965a66f98fcf4dd4726c12043c1a34cd34a5605fea4c245ebac462",
     "pushover_notify.py": "3ca5e64270e80c5f14135a2bccfec2f0db3cbaa6b981f909abe7e6b330f8e80c",
-    "source_guard_v2.py": "85a206f0741e0b1a3976f6cc636e68ce8e964e87ab4684453022e0d8cb350b9e"
+    "source_guard_v2.py": "065e9b91bda86fa63ee2e5c9ae3a5754e5a1d49c914670cab24f3598f1a65481"
   },
   "notifier_sha256": "3ca5e64270e80c5f14135a2bccfec2f0db3cbaa6b981f909abe7e6b330f8e80c",
   "proof_schema": 1,
@@ -50,11 +50,11 @@
   "source_worker_version": "1.1.0",
   "source_workflow_sha256": "ca377351a0043654b8eb3cff792ac2e339f421e932ccb9b70a19de151de3efc0",
   "workflow_path": ".github/workflows/commit-check.yml",
-  "workflow_sha256": "fed16b47fe16c2a2c2d703f40ceab404aca0a10e348cfa5cd726ee8d0fb0dfd9",
+  "workflow_sha256": "48bdf7f40dfd13979b837dca3b12e07de57cd807e6b6aae13a96b592b99d774d",
   "workflow_sha256_by_path": {
-    ".github/workflows/commit-check.yml": "fed16b47fe16c2a2c2d703f40ceab404aca0a10e348cfa5cd726ee8d0fb0dfd9",
+    ".github/workflows/commit-check.yml": "48bdf7f40dfd13979b837dca3b12e07de57cd807e6b6aae13a96b592b99d774d",
     ".github/workflows/push-notify.yml": "977a13212f2ee9645935238422cc3fd0ac83a8b29abc7b3ecc0786fa0b940597",
     ".github/workflows/scan-notify.yml": "1af2e1d9211590991832927f9ba0d0490caa61ecf5241299e20134d4d2fac31d",
-    ".github/workflows/source-check.yml": "10b2f7470231da5bf264ff4522b8ee808ae8c404ecc926aac35b3b30763cf59c"
+    ".github/workflows/source-check.yml": "cc9ef3caf36261c878cf531e22b7cadba9448d148b79b4e556275563eb25a854"
   }
 }
