@@ -643,6 +643,7 @@ def main():
     choice.add_argument("--directory", "--root", dest="directory", type=Path)
     choice.add_argument("--manifest-bundle", type=Path)
     parser.add_argument("--public-metadata", type=Path)
+    parser.add_argument("--advisory-descriptor", type=int)
     parser.add_argument("--source-sha", required=True)
     parser.add_argument("--report", type=Path, required=True)
     parser.add_argument("--content-scanner-sha256", required=True)
@@ -694,7 +695,14 @@ def main():
                         raise Incomplete("public-metadata-size-limit")
                     return value
                 return acquisition.public_fetch(url, maximum)
-        result = inspect(args.directory, args.source_sha, acquisition, content, fetch=cached_fetch, manifests_input=supplied, advisories=advisories)
+        advisory_request = None
+        if args.advisory_descriptor is not None:
+            if args.advisory_descriptor < 3:
+                raise Incomplete("invalid-advisory-broker-descriptor")
+            def advisory_request(method, url, data, maximum):
+                return advisories.broker_request(args.advisory_descriptor, method, url, data, maximum)
+        result = inspect(args.directory, args.source_sha, acquisition, content, fetch=cached_fetch,
+                         manifests_input=supplied, advisories=advisories, advisory_request=advisory_request)
         if supplied is not None:
             result["manifest_bundle_sha256"] = sha256(raw)
     except (Incomplete, OSError, ValueError):
