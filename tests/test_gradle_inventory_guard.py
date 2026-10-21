@@ -59,3 +59,30 @@ class GradleInventoryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as root:
             i,m,p=self.fixture(root);i['configurations'][0]['artifacts'][0]['file']='../secret'
             with self.assertRaises(g.Invalid):self.scan(i,m,root)
+
+    def test_project_output_is_not_misreported_as_missing_maven_pin(self):
+        with tempfile.TemporaryDirectory() as root:
+            i,m,p=self.fixture(root)
+            i['configurations'][0]['artifacts'].append({
+                'componentKind':'project','group':'Stellar Antivirus',
+                'name':'app','version':'unspecified','file':'classes.jar'})
+            report=self.scan(i,m,root)
+            reasons={r['reason'] for r in report['gaps']}
+            self.assertIn('project-output-requires-source-bound-build-review',reasons)
+            self.assertNotIn('artifact-not-in-verification-metadata',reasons)
+            self.assertEqual(1,report['files_scanned'])
+            self.assertEqual('incomplete',report['status'])
+
+    def test_forged_project_label_never_grants_clearance(self):
+        with tempfile.TemporaryDirectory() as root:
+            i,m,p=self.fixture(root,b'reverse shell')
+            i['configurations'][0]['artifacts'][0]['componentKind']='project'
+            report=self.scan(i,m,root)
+            self.assertNotEqual('passed',report['status'])
+            self.assertFalse(report['inventory_bound_to_source'])
+
+    def test_unknown_component_kind_rejected(self):
+        with tempfile.TemporaryDirectory() as root:
+            i,m,p=self.fixture(root)
+            i['configurations'][0]['artifacts'][0]['componentKind']='trusted'
+            with self.assertRaises(g.Invalid):self.scan(i,m,root)
