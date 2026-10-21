@@ -78,3 +78,29 @@ class DiagnosticPreviewTests(unittest.TestCase):
         document, preview=d.diagnostic_document({},report,'a'*64,'b'*64,{})
         self.assertEqual(0,document['coverage_summary']['observed_total'])
         self.assertIn('Observed coverage gaps: 0.',d.summary_text({},preview))
+
+    def test_build_review_scope_survives_preview_without_clearing_gaps(self):
+        report = self.report()
+        report['gaps'] = [{'path':'sdk.class', 'reason':'executable-binary-needs-independent-review'}]
+        report['gradle_release_review'] = {'scope':'release tasks; other variants are not attested',
+            'tree_sha':'a'*40, 'reviewed_commit':'b'*40, 'inventory_sha256':'c'*64,
+            'apk_sha256':'d'*64, 'compiled_dependency_clearance':False,
+            'private_runner_path':'/private/local/path'}
+        document, preview = d.diagnostic_document({}, report, 'a'*64, 'b'*64, {})
+        self.assertEqual(document['gradle_release_review'], preview['gradle_release_review'])
+        self.assertFalse(preview['gradle_release_review']['compiled_dependency_clearance'])
+        self.assertEqual(1, preview['totals']['gaps'])
+        self.assertNotIn('private_runner_path', d.canonical(document).decode())
+        self.assertIn('does not clear compiled dependencies', d.summary_text({}, preview))
+        report['gradle_release_review']['compiled_dependency_clearance'] = True
+        with self.assertRaises(d.WorkerError):
+            d.diagnostic_document({}, report, 'a'*64, 'b'*64, {})
+
+    def test_malformed_build_evidence_is_not_published(self):
+        import package_acquisition
+        for field in ('tree_sha', 'reviewed_commit', 'inventory_sha256', 'apk_sha256'):
+            report = self.report()
+            report['gradle_release_review'] = dict(package_acquisition.GRADLE_RELEASE_REVIEWS[0],
+                                                  **{field:'https://invalid.example/token=secret'})
+            with self.assertRaises(d.WorkerError):
+                d.diagnostic_document({}, report, 'a'*64, 'b'*64, {})

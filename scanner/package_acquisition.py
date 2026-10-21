@@ -560,6 +560,81 @@ def _maven_plan(group, name, version, filename, hashes):
             'file':filename, 'sha256':receipt['sha256'], 'url':receipt['url']}
 
 
+# Exact release-build observations reviewed independently of the scanned repo.
+# A changed Git tree requires new evidence. This records dependency graph scope,
+# never a clearance of any compiled dependency or another build variant.
+GRADLE_RELEASE_REVIEWS = ({'repository': 'StellerSecurity/Stellar.Android.AntivirusApp',
+  'repository_id': 717465599,
+  'tree_sha': '7f04c181118ad019d441c6e922578d7b9cbdcd1e',
+  'reviewed_commit': 'cb9ba966c02aa5a09f3ce6accdfa6b1c6a9511b5',
+  'source_file_count': 317,
+  'source_bound': True,
+  'scope': 'assembleRelease, testReleaseUnitTest and lintRelease; other variants are not attested',
+  'tasks': [':app:assembleRelease', ':app:testReleaseUnitTest', ':app:lintRelease'],
+  'inventory_sha256': '6d379f2eedffbfc379947b42817b35b03c7b1f24ddb8010540083ef633f8fa7f',
+  'init_sha256': 'f944745653f314bbd5d0bc64f8a755f94fe1010cf21a54e094847a211145c6aa',
+  'runner_sha256': '8b70a33bc6b1aa0929d55655bbffe1c822e4e97e432daab13d6963e21cc3e137',
+  'verification_metadata_sha256': '23031034ae53c7f98b2db8b73c397d1ba9a3c03d6508ed748155f28d26708e06',
+  'build_files': {'build.gradle': '989f25ca232bd8a62fea908a4fe3d8c41b783d652e33edfac4e6c728bbc0402b',
+                  'app/build.gradle': '817262c3227e1bc4b145bf5458c2470eb2b88b940665c2c80051874fda457153'},
+  'resolved_configurations': 25,
+  'unit_tests': 49,
+  'lint_errors': 0,
+  'apk_sha256': 'e9c0699be9fe7c49faa75fc91dc4db97fc64c5ca6acebc58a3cac0f292ef9929',
+  'fresh_derivations_match_previous_apk': True,
+  'network_enabled': False,
+  'strict_dependency_verification': True,
+  'compiled_dependency_clearance': False},
+ {'repository': 'StellerSecurity/Steller.Phone.ProtectApp',
+  'repository_id': 677841399,
+  'tree_sha': 'a972e197e005bec786aeb477c5776d46952fd53e',
+  'reviewed_commit': '4042d3f72fefe807c5af4b78a9e5db04ac69f00d',
+  'source_file_count': 651,
+  'source_bound': True,
+  'scope': 'assembleRelease, testReleaseUnitTest and lintRelease; other variants are not attested',
+  'tasks': [':app:assembleRelease', ':app:testReleaseUnitTest', ':app:lintRelease'],
+  'inventory_sha256': 'cd98f04b5e670d3500af37253c350d9544648a59f903e6217b3d57134783c0f4',
+  'init_sha256': 'f944745653f314bbd5d0bc64f8a755f94fe1010cf21a54e094847a211145c6aa',
+  'runner_sha256': '8b70a33bc6b1aa0929d55655bbffe1c822e4e97e432daab13d6963e21cc3e137',
+  'verification_metadata_sha256': 'de3cdf51304b691001d9064e8c1e943d99eb702b602c2feb48a2b1c2c999ac11',
+  'build_files': {'build.gradle': 'ba9d411705348e78c1b8660c3559ad3fb44b4f0fe98b67ea09b0c05c12a230f4',
+                  'app/build.gradle': '58d57ec0645201ac8a98462d2e368c101c845ec556dbc618aa8d928c64e34430'},
+  'resolved_configurations': 32,
+  'unit_tests': 295,
+  'lint_errors': 0,
+  'apk_sha256': 'c4d44f02b6d370655343d8eafc6f1e3e68be1dfd5cac0e4bbc50e4c7e8926df6',
+  'fresh_derivations_match_previous_apk': True,
+  'network_enabled': False,
+  'strict_dependency_verification': True,
+  'compiled_dependency_clearance': False})
+
+
+def reviewed_gradle_release(bundle, manifests):
+    """Match a reviewed release graph only after immutable tree collection.
+
+    The parent independently recomputes this match before accepting the child
+    report. Repo-provided inventory/receipt files are never trusted as approval.
+    """
+    if not isinstance(bundle, dict) or bundle.get('complete') is not True or bundle.get('gaps') != []:
+        return None
+    for review in GRADLE_RELEASE_REVIEWS:
+        if (bundle.get('repository') != review['repository']
+                or type(bundle.get('repository_id')) is not int
+                or bundle['repository_id'] != review['repository_id']
+                or bundle.get('tree_sha') != review['tree_sha']):
+            continue
+        expected = dict(review['build_files'])
+        expected['gradle/verification-metadata.xml'] = review['verification_metadata_sha256']
+        build_files = {path for path in manifests if path.rsplit('/', 1)[-1] in ('build.gradle', 'build.gradle.kts')}
+        if build_files != set(review['build_files']):
+            return None
+        if any(not isinstance(manifests.get(path), bytes)
+               or hashlib.sha256(manifests[path]).hexdigest() != pin for path, pin in expected.items()):
+            return None
+        return json.loads(json.dumps(review))
+    return None
+
+
 def plan_gradle_verification(raw):
     if not isinstance(raw, bytes) or len(raw) > LIMITS['lock_bytes'] or b'<!' in raw:
         _fail('invalid-gradle-verification-xml')
