@@ -173,6 +173,21 @@ class ScanMatchingTests(OfflineTestCase):
                 other.update(id=458, name=name, details_url=RUN_URL.replace("123", "124") + "/job/458")
                 self.reject_scan(checks + [other])
 
+    def test_exact_run_attempt_binding_disambiguates_overlap(self):
+        checks = checks_fixture()
+        checks[1]['external_id'] = 'stellar-source:123:2:' + SHA
+        other = copy.deepcopy(checks[0])
+        other.update(id=458, details_url=RUN_URL.replace('123','124') + '/job/458')
+        counts, _ = self.scan(checks + [other])
+        self.assertEqual(0, counts['blocking'])
+
+    def test_wrong_attempt_run_or_commit_binding_is_rejected(self):
+        for binding in ('stellar-source:123:1:'+SHA, 'stellar-source:124:2:'+SHA,
+                        'stellar-source:123:2:'+'b'*40, ''):
+            checks = checks_fixture()
+            checks[1]['external_id'] = binding
+            self.reject_scan(checks)
+
     def test_unfinished_overlapping_job_is_rejected(self):
         checks = checks_fixture()
         other = copy.deepcopy(checks[0])

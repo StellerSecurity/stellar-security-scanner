@@ -617,9 +617,13 @@ def main():
     sha = event.get('pull_request', {}).get('head', {}).get('sha') or os.environ['GITHUB_SHA']
     if not re.fullmatch(r'[0-9a-f]{40}', sha):
         raise RuntimeError('Invalid target commit')
+    run_id, attempt = os.environ['GITHUB_RUN_ID'], os.environ.get('GITHUB_RUN_ATTEMPT', '1')
+    if not re.fullmatch(r'[1-9][0-9]{0,19}', run_id) or not re.fullmatch(r'[1-9][0-9]{0,19}', attempt):
+        raise RuntimeError('Invalid workflow run identity')
+    report_id = 'stellar-source:' + run_id + ':' + attempt + ':' + sha
     details_url = 'https://github.com/' + repo + '/actions/runs/' + os.environ['GITHUB_RUN_ID']
     api.gh('repos/' + repo + '/statuses/' + sha, {'state': 'pending', 'context': CHECK_NAME, 'description': 'Static source and dependency review in progress', 'target_url': details_url})
-    check = api.gh('repos/' + repo + '/check-runs', {'name': CHECK_NAME, 'head_sha': sha, 'status': 'in_progress', 'details_url': details_url})
+    check = api.gh('repos/' + repo + '/check-runs', {'name': CHECK_NAME, 'head_sha': sha, 'status': 'in_progress', 'details_url': details_url, 'external_id': report_id})
     try:
         summary, errors = run(api, repo, sha, event)
     except Exception as exc:

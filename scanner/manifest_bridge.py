@@ -13,6 +13,7 @@ import stat
 import subprocess
 import sys
 import time
+import types
 import urllib.request
 
 VERSION = '1.0.0-proposal'
@@ -72,10 +73,11 @@ def validate_gap_summary(report):
         raise BridgeError('package-gap-summary-mismatch')
 
 
-def verified_package_origin(package, provenance):
+def verified_package_origin(package, provenance, acquisition=None):
     """Validate registry and separately reviewed Git proofs without conflating them."""
     if package['ecosystem'] == 'maven':
-        import package_acquisition as acquisition
+        if acquisition is None:
+            return False
         try:
             name = package['name'].split(':')
             if len(name) != 2:
@@ -403,10 +405,15 @@ def run_package(bundle, root, pins, scratch, command=subprocess.run, public_meta
     expected = {'package_guard.py', 'package_acquisition.py', 'content_guard.py', 'source_guard_v2.py', 'malware_advisories.py'}
     if set(pins) != expected:
         raise BridgeError('package-module-set-mismatch')
+    acquisition = None
     for name in expected:
         raw = (Path(root) / name).read_bytes()
         if digest(raw) != pins[name]:
             raise BridgeError('package-module-integrity-mismatch')
+        if name == 'package_acquisition.py':
+            acquisition = types.ModuleType('verified_package_acquisition')
+            acquisition.__file__ = str(Path(root) / name)
+            exec(compile(raw, acquisition.__file__, 'exec', dont_inherit=True), acquisition.__dict__)
     manifest_path, report_path = Path(scratch) / 'manifest-bundle.json', Path(scratch) / 'package-result.json'
     raw = json.dumps(bundle, sort_keys=True, separators=(',', ':')).encode()
     with manifest_path.open('xb') as stream:
@@ -431,13 +438,13 @@ def run_package(bundle, root, pins, scratch, command=subprocess.run, public_meta
             raise BridgeError('package-report-size-limit')
         report_raw = stream.read(16 * 1024 * 1024 + 1)
     report = strict_json(report_raw)
-    validate_report(report, bundle, pins, digest(raw))
+    validate_report(report, bundle, pins, digest(raw), acquisition=acquisition)
     if result.returncode != {'passed': 0, 'blocked': 1, 'incomplete': 2}[report['status']]:
         raise BridgeError('package-exit-status-mismatch')
     return report, digest(report_raw), digest(raw)
 
 
-def validate_report(report, bundle, pins, manifest_sha):
+def validate_report(report, bundle, pins, manifest_sha, acquisition=None):
     if not isinstance(report, dict) or report.get('schema') != 1:
         raise BridgeError('invalid-package-report')
     bindings = {'source_sha': bundle['source_sha'], 'repository': bundle['repository'],
@@ -500,7 +507,7 @@ def validate_report(report, bundle, pins, manifest_sha):
             provenance = package.get('provenance')
             if (not sha256_id(package.get('archive_sha256'))
                     or package.get('integrity_verified') is not True or not isinstance(provenance, dict)
-                    or not verified_package_origin(package, provenance)
+                    or not verified_package_origin(package, provenance, acquisition)
                     or provenance.get('name') != package['name'] or provenance.get('version') != package['version']
                     or not sha256_id(provenance.get('metadata_sha256'))
                     or type(package.get('files_scanned')) is not int or package['files_scanned'] <= 0

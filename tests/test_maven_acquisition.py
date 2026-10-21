@@ -1,4 +1,7 @@
 """Acquisition receipts authorize downloads, never binary or build-graph approval."""
+import builtins
+import tempfile
+from types import SimpleNamespace
 import hashlib
 import sys
 import unittest
@@ -73,8 +76,9 @@ class MavenAcquisition(unittest.TestCase):
         proof = a.acquire_maven(self.plan, None, True)['provenance']
         self.assertTrue(guard.verified_origin(self.plan, proof, a))
         record = dict(self.plan, archive_sha256=self.plan['sha256'])
-        self.assertTrue(bridge.verified_package_origin(record, proof))
-        self.assertFalse(bridge.verified_package_origin(dict(record, archive_sha256='0'*64), proof))
+        self.assertTrue(bridge.verified_package_origin(record, proof, a))
+        self.assertFalse(bridge.verified_package_origin(record, proof))
+        self.assertFalse(bridge.verified_package_origin(dict(record, archive_sha256='0'*64), proof, a))
 
     def test_advisories_accept_only_verified_maven_coordinates(self):
         row = {'ecosystem':'maven', 'name':self.plan['name'], 'version':self.plan['version'],
@@ -99,6 +103,28 @@ class MavenAcquisition(unittest.TestCase):
         self.assertEqual(3000, report['coverage_gap_counts']['binary-class-needs-review'])
         self.assertEqual(2980, report['omitted_gap_details'])
         self.assertTrue(any(g['reason']=='archive-integrity-error' for g in report['gaps']))
+
+    def test_parent_loads_pinned_adapter_without_import_path(self):
+        root = Path(__file__).resolve().parents[1] / 'scanner'
+        names = ('package_guard.py','package_acquisition.py','content_guard.py',
+                 'source_guard_v2.py','malware_advisories.py')
+        pins = {name:bridge.digest((root/name).read_bytes()) for name in names}
+        def command(args, **kwargs):
+            Path(args[args.index('--report')+1]).write_text('{"status":"passed"}')
+            return SimpleNamespace(returncode=0)
+        def validate(*args, acquisition=None):
+            self.assertIsNotNone(acquisition)
+            self.assertIsNot(acquisition, a)
+            proof = a.acquire_maven(self.plan, None, True)['provenance']
+            record = dict(self.plan, archive_sha256=self.plan['sha256'])
+            self.assertTrue(bridge.verified_package_origin(record, proof, acquisition))
+        original_import = builtins.__import__
+        def isolated_import(name, *args, **kwargs):
+            if name == 'package_acquisition':
+                raise ModuleNotFoundError(name)
+            return original_import(name, *args, **kwargs)
+        with tempfile.TemporaryDirectory() as scratch, patch.object(bridge,'validate_report',side_effect=validate), patch('builtins.__import__',side_effect=isolated_import):
+            bridge.run_package({'source_sha':'a'*40},root,pins,scratch,command=command)
 
     def test_xml_entities_and_duplicate_coordinates_rejected(self):
         with self.assertRaises(a.AcquisitionError):
