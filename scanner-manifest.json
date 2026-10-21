@@ -11,7 +11,7 @@
   "exported_module_sha256": {
     "scanner/advisory_refresh.py": "0859c0da7c5022284319430fcaa690494d56b6400b3ec1fe1ef8d99190c682e1",
     "scanner/cargo_metadata.py": "d3f064963e694a649a4efcd4fe5c7c45cf94ee939725d57596989dd2fb03688e",
-    "scanner/content_guard.py": "2f786edd36f53e2139626c4e9c238f443ee4c875722cffbe1d758c628fb453d8",
+    "scanner/content_guard.py": "5bbf28c7fdbf4cfe40870bdafa005ea413d29c72d201f2ab2469f9d607ce7394",
     "scanner/dependency_worker.py": "bb73a158f91023a8768ac78fcedc123bf9aa691bffe65dd39126985381f87941",
     "scanner/legacy_worker.py": "52c73fa0dc67b5cd42c54a3f258423210192627f724d324a8c129089d67cee67",
     "scanner/malware_advisories.py": "e5b69b6a60e71a107cf0c07ae760a8f652fae4dbab12a1059147abbf7778f8ab",
@@ -24,7 +24,7 @@
     "scanner/source_scan_notify.py": "794162e9a049cb344690e392a59bc18f32580d2c0e94787722e0ecc298d1fc6b"
   },
   "module_sha256": {
-    "content_guard.py": "2f786edd36f53e2139626c4e9c238f443ee4c875722cffbe1d758c628fb453d8",
+    "content_guard.py": "5bbf28c7fdbf4cfe40870bdafa005ea413d29c72d201f2ab2469f9d607ce7394",
     "dependency_worker.py": "bb73a158f91023a8768ac78fcedc123bf9aa691bffe65dd39126985381f87941",
     "legacy_worker.py": "52c73fa0dc67b5cd42c54a3f258423210192627f724d324a8c129089d67cee67",
     "malware_advisories.py": "e5b69b6a60e71a107cf0c07ae760a8f652fae4dbab12a1059147abbf7778f8ab",
@@ -50,9 +50,9 @@
   "source_worker_version": "1.1.0",
   "source_workflow_sha256": "ca377351a0043654b8eb3cff792ac2e339f421e932ccb9b70a19de151de3efc0",
   "workflow_path": ".github/workflows/commit-check.yml",
-  "workflow_sha256": "3c6451edc5bd86a646a84f1afcb921f5a21bbc6b96a843f8bc5019b59514ccdf",
+  "workflow_sha256": "1786f5337450b2bacd3029116a01f98525a61985e399daae352fc687a4ca4055",
   "workflow_sha256_by_path": {
-    ".github/workflows/commit-check.yml": "3c6451edc5bd86a646a84f1afcb921f5a21bbc6b96a843f8bc5019b59514ccdf",
+    ".github/workflows/commit-check.yml": "1786f5337450b2bacd3029116a01f98525a61985e399daae352fc687a4ca4055",
     ".github/workflows/push-notify.yml": "977a13212f2ee9645935238422cc3fd0ac83a8b29abc7b3ecc0786fa0b940597",
     ".github/workflows/scan-notify.yml": "1af2e1d9211590991832927f9ba0d0490caa61ecf5241299e20134d4d2fac31d",
     ".github/workflows/source-check.yml": "cc9ef3caf36261c878cf531e22b7cadba9448d148b79b4e556275563eb25a854"
