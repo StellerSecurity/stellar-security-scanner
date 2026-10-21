@@ -309,7 +309,7 @@ def verified_tree(tree, expected, limits):
 
 
 def recognized(name):
-    return name in MANIFEST_NAMES or bool(re.search(r'\.(?:csproj|fsproj|vbproj|nuspec)$', name, re.I)) or bool(re.fullmatch(r'requirements[^/]*\.(?:txt|in)', name))
+    return name in MANIFEST_NAMES or bool(re.search(r'\.(?:csproj|fsproj|vbproj|nuspec|jar|aar)$', name, re.I)) or bool(re.fullmatch(r'requirements[^/]*\.(?:txt|in)', name))
 
 
 def collect(ctx, reader, limits=None):
@@ -482,6 +482,28 @@ def validate_report(report, bundle, pins, manifest_sha, acquisition=None):
     expected = [{'path': x['path'], 'sha256': digest(base64.b64decode(x['content_base64'], validate=True))} for x in bundle['files']]
     if report.get('dependency_manifests') != expected or report.get('dependency_manifest_count') != len(expected):
         raise BridgeError('package-manifest-inventory-mismatch')
+    expected_archives = []
+    for item in bundle['files']:
+        if re.search(r'\.(?:jar|aar)$', item['path'], re.I):
+            raw = base64.b64decode(item['content_base64'], validate=True)
+            expected_archives.append({'path': item['path'], 'sha256': digest(raw),
+                                      'bytes': len(raw), 'blob_sha': object_hash('blob', raw)})
+    artifacts = report.get('repository_artifacts', [])
+    if not isinstance(artifacts, list) or len(artifacts) != len(expected_archives):
+        raise BridgeError('repository-artifact-inventory-mismatch')
+    for artifact, expected_archive in zip(artifacts, expected_archives):
+        if (not isinstance(artifact, dict)
+                or any(artifact.get(k) != v for k, v in expected_archive.items())
+                or type(artifact.get('bytes')) is not int):
+            raise BridgeError('repository-artifact-identity-mismatch')
+        if (artifact.get('status') not in ('blocked', 'incomplete')
+                or artifact.get('upstream_identity_verified') is not False
+                or artifact.get('installed_or_executed') is not False
+                or any(type(artifact.get(k)) is not int or artifact[k] < 0
+                       for k in ('files_scanned', 'coverage_gaps', 'blocking_findings'))):
+            raise BridgeError('repository-artifact-state-invalid')
+        if artifact['blocking_findings'] and artifact['status'] != 'blocked':
+            raise BridgeError('repository-artifact-state-invalid')
     if (report.get('status') not in ('passed', 'blocked', 'incomplete')
             or report.get('installed_or_executed_packages') is not False or report.get('downloads_as_data_only') is not True
             or type(report.get('dependency_inventory_complete')) is not bool):
@@ -561,7 +583,7 @@ def validate_report(report, bundle, pins, manifest_sha, acquisition=None):
         raise BridgeError('malware-advisory-finding-mismatch')
     if report['status'] == 'passed' and (advisory is None or not advisory['complete'] or advisory['gaps'] or malicious):
         raise BridgeError('passed-advisory-evidence-incomplete')
-    incomplete = bool(bundle['gaps'] or report['gaps'] or not report['dependency_inventory_complete']
+    incomplete = bool(bundle['gaps'] or report['gaps'] or artifacts or not report['dependency_inventory_complete']
                       or any(p['status'] == 'incomplete' for p in report['packages']))
     blocking = (any(f['severity'] in ('error', 'review') or f['malware'] for f in report['findings'])
                 or bool(counts and (counts.get('error', 0) or counts.get('review', 0))))
