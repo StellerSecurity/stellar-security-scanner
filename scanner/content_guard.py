@@ -159,6 +159,78 @@ def executable(data):
                b'\xfe\xed\xfa\xce', b'\xfe\xed\xfa\xcf'))
 
 
+def php_charset_table(path, data):
+    """Parse the complete literal-only PHP charset-table grammar as data.
+
+    The tables contain raw NUL/legacy charset bytes inside single-quoted strings.
+    No PHP execution, interpolation, expressions, calls or arbitrary tail code
+    are accepted. Preserve ASCII strings and escape all other bytes for scanning.
+    """
+    if (not re.search(r'/symfony/polyfill-iconv/Resources/charset/from\.[a-z0-9-]+\.php$', path)
+            or len(data) > 1024 * 1024):
+        return None
+    header = re.match(br'<\?php\s+(?:namespace [A-Za-z_][A-Za-z0-9_\\]*;\s*)?static \$data\s*=\s*array\(', data)
+    if header is None:
+        return None
+    offset = header.end()
+    values = []
+    def whitespace():
+        nonlocal offset
+        while offset < len(data) and data[offset] in b' \t\n\r':
+            offset += 1
+    def literal():
+        nonlocal offset
+        whitespace()
+        if offset >= len(data):
+            raise ValueError()
+        if data[offset] != 39:
+            number = re.match(br'(?:0|[1-9][0-9]{0,9})(?![0-9])', data[offset:offset+11])
+            if number is None:
+                raise ValueError()
+            offset += number.end()
+            return number.group().decode('ascii')
+        offset += 1
+        raw = bytearray()
+        while offset < len(data):
+            byte = data[offset]
+            offset += 1
+            if byte == 39:
+                return "'" + ''.join(chr(b) if 32 <= b < 127 and b not in (39,92)
+                                     else '\\x%02x' % b for b in raw) + "'"
+            if byte == 92:
+                if offset >= len(data) or data[offset] not in (39,92):
+                    raise ValueError()
+                byte = data[offset]
+                offset += 1
+            raw.append(byte)
+            if len(raw) > 32:
+                raise ValueError()
+        raise ValueError()
+    try:
+        while len(values) < 65536:
+            key = literal()
+            whitespace()
+            if data[offset:offset+2] != b'=>':
+                return None
+            offset += 2
+            value = literal()
+            values.append(key + ' => ' + value)
+            whitespace()
+            if data[offset:offset+1] == b',':
+                offset += 1
+                continue
+            if data[offset:offset+2] != b');':
+                return None
+            offset += 2
+            tail = br'\s*\$result\s*=&\s*\$data;\s*unset\(\$data\);\s*return \$result;\s*'
+            if not re.fullmatch(tail, data[offset:]):
+                return None
+            return header.group().decode('ascii') + ', '.join(values) + ');\n$result =& $data; unset($data); return $result;'
+    except ValueError:
+        return None
+    return None
+
+
 class Inspector:
     def __init__(self, engine=None, limits=None):
         self.engine = engine or load_engine()
@@ -233,8 +305,20 @@ class Inspector:
         self.members_seen += 1
         self.check_budget()
         self.manifest.append({'path': path, 'bytes': len(data), 'sha256': digest(data)})
+        # JAR/AAR are containers: inspect every member instead of hiding their
+        # resources/source/native payloads behind one opaque archive gap. Class
+        # and native bytecode still require independent content review.
+        if re.search(r'\.(?:jar|aar)$', path, re.I) and data.startswith((b'PK\x03\x04', b'PK\x05\x06')):
+            self.archive(path, data, depth + 1)
+            return
         if executable(data) or EXECUTABLE_SUFFIX.search(path):
             self.gap(path, 'executable-binary-needs-independent-review')
+            return
+        # Source generators can mention __HALT_COMPILER() in a string, and
+        # Composer names PHP proxy scripts '*.phar'. Require binary framing
+        # or the checksum trailer; malformed archives still fail binary checks.
+        if (b'__HALT_COMPILER();' in data[:65536] and b'\x00' in data) or data.endswith(b'GBMB'):
+            self.phar(path, data, depth + 1)
             return
         if data[:2] in (b'\x1a\x01', b'\x1e\x02'):
             self.terminfo(path, data)
@@ -251,6 +335,11 @@ class Inspector:
         if len(data) > self.limits['text_bytes']:
             self.gap(path, 'text-size-limit')
             return
+        if b'\x00' in data or any(b >= 128 for b in data):
+            table = php_charset_table(path, data)
+            if table is not None:
+                self.inspect_text(path, table)
+                return
         try:
             text = decode_text(path, data)
         except UnicodeError:
@@ -263,6 +352,133 @@ class Inspector:
             self.gap(path, 'nontext-content')
             return
         self.inspect_text(path, text)
+
+    def phar(self, path, raw, depth):
+        """Inspect a native PHAR as bytes, never PHP or serialized objects.
+
+        Format: php.net/manual/en/phar.fileformat.php. The archive checksum is
+        framing/integrity only; package acquisition separately verifies origin.
+        Unsupported metadata/signatures remain explicit coverage gaps.
+        """
+        try:
+            if depth > self.limits['archive_depth']:
+                raise Incomplete('archive-depth-limit')
+            if not 32 <= len(raw) <= self.limits['archive_bytes']:
+                raise Incomplete('invalid-phar-size')
+            token = b'__HALT_COMPILER();'
+            halt = raw.find(token, 0, 65536)
+            if halt < 0 or b'<?php' not in raw[:halt]:
+                raise Incomplete('invalid-phar-stub')
+            position = halt + len(token)
+            # The PHP reader accepts one space before ?> and one newline after.
+            ending = re.match(br' ?\?>(?:\r\n|\n)?', raw[position:position+5])
+            if ending:
+                position += ending.end()
+            stub_end = position
+            if raw[-4:] != b'GBMB':
+                raise Incomplete('missing-phar-checksum')
+            algorithm = {3: 'sha256', 4: 'sha512'}.get(struct.unpack_from('<I', raw, len(raw)-8)[0])
+            if algorithm is None:
+                raise Incomplete('unsupported-phar-checksum')
+            size = hashlib.new(algorithm).digest_size
+            data_end = len(raw) - size - 8
+            if hashlib.new(algorithm, raw[:data_end]).digest() != raw[data_end:-8]:
+                raise Incomplete('phar-checksum-mismatch')
+            bound = data_end
+            def take(count):
+                nonlocal position
+                if count < 0 or position + count > bound:
+                    raise Incomplete('truncated-phar')
+                value = raw[position:position+count]
+                position += count
+                return value
+            def integer():
+                return struct.unpack('<I', take(4))[0]
+            manifest_size = integer()
+            if not 18 <= manifest_size <= 1024*1024:
+                raise Incomplete('phar-manifest-size-limit')
+            manifest_end = position + manifest_size
+            if manifest_end > data_end:
+                raise Incomplete('truncated-phar-manifest')
+            bound = manifest_end
+            count = integer()
+            if not 1 <= count <= self.limits['members'] - self.members_seen:
+                raise Incomplete('member-limit')
+            if struct.unpack('>H', take(2))[0] not in (0x1000, 0x1100, 0x1110):
+                raise Incomplete('unsupported-phar-version')
+            flags = integer()
+            if flags & ~0x13000 or not flags & 0x10000:
+                raise Incomplete('unsupported-phar-flags')
+            alias = take(integer())
+            if len(alias) > 1024 or b'\x00' in alias:
+                raise Incomplete('invalid-phar-alias')
+            if integer():
+                raise Incomplete('phar-serialized-metadata-needs-review')
+            entries = []
+            seen = {}
+            total = 0
+            for unused in range(count):
+                self.check_budget()
+                self.archive_members_seen += 1
+                name = take(integer()).decode('utf-8')
+                normalized = valid_path(name)
+                canonical = unicodedata.normalize('NFC', normalized).casefold()
+                directory = name.endswith('/')
+                if canonical in seen:
+                    raise Incomplete('duplicate-archive-member')
+                parents = canonical.split('/')
+                if any(seen.get('/'.join(parents[:n])) is False for n in range(1, len(parents))):
+                    raise Incomplete('archive-file-directory-conflict')
+                if not directory and any(n.startswith(canonical + '/') for n in seen):
+                    raise Incomplete('archive-file-directory-conflict')
+                seen[canonical] = directory
+                expanded, timestamp, packed, crc, mode, metadata = struct.unpack('<6I', take(24))
+                if metadata:
+                    raise Incomplete('phar-serialized-metadata-needs-review')
+                compression = mode & 0x3000
+                if mode & ~0x31ff or compression == 0x3000:
+                    raise Incomplete('unsupported-phar-member-flags')
+                if directory and (expanded or packed or crc or compression):
+                    raise Incomplete('invalid-phar-directory')
+                if expanded > self.limits['archive_bytes'] or packed > self.limits['archive_bytes']:
+                    raise Incomplete('member-size-limit')
+                if expanded > max(8*1024*1024, packed*self.limits['compression_ratio']):
+                    raise Incomplete('compression-ratio-limit')
+                total += expanded
+                if total + self.bytes_seen > self.limits['expanded_bytes']:
+                    raise Incomplete('expanded-size-limit')
+                entries.append((normalized, expanded, packed, crc, compression, directory))
+            # PHP-generated manifests may end with a single NUL padding byte.
+            if take(bound-position) not in (b'', b'\0'):
+                raise Incomplete('phar-trailing-manifest-data')
+            if position + sum(e[2] for e in entries) != data_end:
+                raise Incomplete('phar-data-length-mismatch')
+            self.inspect_text(path + '!stub.php', raw[:stub_end].decode('utf-8'))
+            if alias:
+                self.inspect_text(path + '!alias.txt', alias.decode('utf-8'))
+            bound = data_end
+            for name, expanded, packed, crc, compression, directory in entries:
+                self.check_budget()
+                encoded = take(packed)
+                if directory:
+                    continue
+                if compression == 0x1000:
+                    inflater = zlib.decompressobj(-15)
+                    value = inflater.decompress(encoded, expanded+1)
+                    if inflater.unconsumed_tail or inflater.unused_data or not inflater.eof:
+                        raise Incomplete('phar-compressed-stream-mismatch')
+                elif compression == 0x2000:
+                    inflater = bz2.BZ2Decompressor()
+                    value = inflater.decompress(encoded, max_length=expanded+1)
+                    if not inflater.eof or inflater.unused_data:
+                        raise Incomplete('phar-compressed-stream-mismatch')
+                else:
+                    value = encoded
+                if len(value) != expanded or zlib.crc32(value) != crc:
+                    raise Incomplete('phar-member-integrity-mismatch')
+                self.content(path + '!' + name, value, depth)
+        except (Incomplete, UnicodeError, struct.error, ValueError, OSError, EOFError, zlib.error) as exc:
+            self.gap(path, str(exc) if isinstance(exc, Incomplete) else 'invalid-phar')
 
     def terminfo(self, path, raw):
         """Validate ncurses term(5) framing; inspect strings without terminal IO.

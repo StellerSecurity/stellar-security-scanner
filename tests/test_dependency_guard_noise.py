@@ -47,14 +47,13 @@ class DependencyGuardNoiseTests(unittest.TestCase):
         self.assertEqual(report['status'], 'blocked')
         self.assertTrue(any(f['malware'] for f in report['findings']))
 
-    def test_integrity_verified_dependency_binaries_are_reported_as_exclusions(self):
+    def test_dependency_binary_is_incomplete_even_with_verified_integrity(self):
         scanner = self.scanner()
-        before = len(scanner.gaps)
         scanner.content('package-1!package/bin/tool.exe', b'MZ' + b'\0' * 20)
-        converted = guard.convert_integrity_verified_binary_gaps(scanner, before)
-        self.assertEqual(converted, 1)
-        self.assertEqual(scanner.gaps, [])
-        self.assertEqual(scanner.exclusions[0]['reason'], 'opaque-verified-dependency-binary-not-executed')
+        self.assertEqual(scanner.report('a' * 40, 'test')['status'], 'incomplete')
+        self.assertEqual(scanner.gaps[0]['reason'], 'executable-binary-needs-independent-review')
+        self.assertEqual(scanner.exclusions, [])
+        self.assertFalse(hasattr(guard, 'convert_integrity_verified_binary_gaps'))
 
     def test_unverified_dependency_binaries_remain_gaps(self):
         scanner = self.scanner()

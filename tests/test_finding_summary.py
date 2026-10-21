@@ -60,5 +60,10 @@ class FindingSummaryTests(unittest.TestCase):
                 'package_contents_sent':False,'ordinary_vulnerability_alerts_included':False})
         with self.assertRaisesRegex(bridge.BridgeError,'contradicts-evidence'): self.validate()
 
+    def test_old_binary_exclusion_cannot_be_published_as_passed(self):
+        self.report.update(status='passed', exclusions=[{'path':'package/tool.exe',
+            'reason':'opaque-verified-dependency-binary-not-executed'}])
+        with self.assertRaisesRegex(bridge.BridgeError,'uninspected-executable'): self.validate()
+
 
 if __name__=='__main__': unittest.main()
