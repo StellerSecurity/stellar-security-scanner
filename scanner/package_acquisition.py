@@ -241,7 +241,9 @@ def verify_bundled_packages(raw, bindings, fetch):
                 relative = name[len('package/'):]
                 if relative.endswith('/package.json'):
                     directory = relative[:-len('/package.json')]
-                    if directory.startswith('node_modules/') and directory not in expected:
+                    is_package_root = (directory.startswith('node_modules/')
+                        and NPM_NAME.fullmatch(directory.rsplit('node_modules/', 1)[-1]))
+                    if is_package_root and directory not in expected:
                         _fail('unlisted-bundled-package')
                     if directory in expected:
                         if member.size > LIMITS['metadata_bytes']:
