@@ -15,6 +15,33 @@ class ContentFormatsTests(unittest.TestCase):
         scanner.content(path,raw)
         return scanner
 
+    def test_valid_xml_bidi_resources_are_inspected_not_skipped(self):
+        raw = ('<resources><string name="hello">' + '\u200e\u200f' * 200 + 'Hello</string></resources>').encode()
+        scanner = self.inspect('classes.aar!res/values-en-rXC/values-en-rXC.xml', raw)
+        self.assertEqual(scanner.gaps, [])
+        self.assertEqual(scanner.files_scanned, 1)
+        self.assertEqual(scanner.exclusions, [])
+
+    def test_xml_bidi_marks_and_character_references_cannot_hide_payloads(self):
+        for payload in ('reverse shell', 're\u200everse sh\u200fell', 'rever&#115;e shell'):
+            for body in ('<r>' + payload + '</r>', '<r value="' + payload + '"/>'):
+                scanner = self.inspect('resource.xml', ('<root>' + '\u200f' * 150 + body + '</root>').encode())
+                self.assertEqual(scanner.gaps, [])
+                self.assertTrue(any(f['malware'] for f in scanner.findings), payload)
+
+    def test_malformed_xml_dtd_binary_and_non_xml_are_not_cleared(self):
+        for raw in ('<root>' + '\u200f' * 150,
+                    '<!DOCTYPE root [<!ENTITY e "reverse shell">]><root>' + '\u200f' * 150 + '&e;</root>',
+                    '<root>' + '\u200f' * 150 + '\x01</root>'):
+            self.assertTrue(self.inspect('resource.xml', raw.encode()).gaps)
+        self.assertTrue(self.inspect('code.js', ('\u200f' * 150 + 'hello').encode()).gaps)
+        self.assertTrue(self.inspect('renamed.xml', b'\x7fELF' + b'\0' * 200).gaps)
+
+    def test_formatted_xml_still_enforces_node_budget(self):
+        scanner = content.Inspector(engine=engine(), limits={**content.LIMITS, 'members': 5})
+        scanner.content('resource.xml', ('<root>' + '\u200f' * 150 + '<x/>' * 6 + '</root>').encode())
+        self.assertTrue(scanner.gaps)
+
     def test_legacy_html_is_decoded_strictly_and_all_text_inspected(self):
         for encoding,codec,text in [('windows-1252','cp1252','\u00f8'),('EUC-JP','euc_jp','\u65e5\u672c'),('iso-8859-1','iso-8859-1','\u00e9')]:
             data=('<meta charset="'+encoding+'">'+text+' reverse shell').encode(codec)
