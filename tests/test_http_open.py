@@ -15,6 +15,15 @@ class HttpOpenTests(unittest.TestCase):
         source = "const xhr = new XMLHttpRequest(); xhr.open('GET', url); fetch(url); // cookies"
         self.assertNotIn('credential-access-and-network-review', self.rules(source))
 
+    def test_cookie_helpers_and_unresolved_http_open_are_not_file_evidence(self):
+        source = "const cookies = document.cookie.split(';'); request.open(_config.method.toUpperCase(), url); fetch(url);"
+        self.assertNotIn('credential-access-and-network-review', self.rules(source))
+
+    def test_cookie_database_paths_still_require_review(self):
+        for path in ('Cookies', 'cookies.sqlite', '/profile/Network/Cookies', r'C:\\profile\\Cookies'):
+            source = "fs.readFileSync('" + path + "'); fetch(url);"
+            self.assertIn('credential-access-and-network-review', self.rules(source))
+
     def test_actual_file_read_still_requires_review(self):
         source = "const xhr = new XMLHttpRequest(); xhr.open('GET', url); fetch(url); fs.readFileSync('Cookies');"
         self.assertIn('credential-access-and-network-review', self.rules(source))
@@ -25,16 +34,16 @@ class HttpOpenTests(unittest.TestCase):
 
     def test_string_and_comment_cannot_supply_constructor_binding(self):
         for declaration in ("'const xhr = new XMLHttpRequest();';", "/* const xhr = new XMLHttpRequest(); */", "// const xhr = new XMLHttpRequest();\n"):
-            source = declaration + "xhr.open('GET', url); fetch(url); // Cookies"
+            source = declaration + "xhr.open('GET', url); fetch(url); // 'Cookies'"
             self.assertIn('credential-access-and-network-review', self.rules(source))
 
     def test_template_syntax_is_conservatively_reviewed(self):
-        source = "const x = `${payload}`; const xhr = new XMLHttpRequest(); xhr.open('GET', url); fetch(url); // Cookies"
+        source = "const x = `${payload}`; const xhr = new XMLHttpRequest(); xhr.open('GET', url); fetch(url); // 'Cookies'"
         self.assertIn('credential-access-and-network-review', self.rules(source))
 
     def test_alias_or_other_receiver_use_keeps_review(self):
         for operation in ('configure(xhr);', 'const other = xhr;', 'xhr.open = reader;', 'xhr[method] = reader;'):
-            source = "const xhr = new XMLHttpRequest(); " + operation + "xhr.open('GET', url); fetch(url); // Cookies"
+            source = "const xhr = new XMLHttpRequest(); " + operation + "xhr.open('GET', url); fetch(url); // 'Cookies'"
             self.assertIn('credential-access-and-network-review', self.rules(source))
 
     def test_strong_execution_detection_remains(self):
@@ -44,11 +53,11 @@ class HttpOpenTests(unittest.TestCase):
         self.assertIn('remote-response-evaluation', self.rules(source))
 
     def test_regex_literal_cannot_supply_constructor_binding(self):
-        source = "const pattern = /const xhr = new XMLHttpRequest();/; xhr.open(config.method, url); fetch(url); // Cookies"
+        source = "const pattern = /const xhr = new XMLHttpRequest();/; xhr.open(config.method, url); fetch(url); // 'Cookies'"
         self.assertIn('credential-access-and-network-review', self.rules(source))
 
     def test_overridden_constructor_keeps_review(self):
-        source = "XMLHttpRequest = FileReader; const xhr = new XMLHttpRequest(); xhr.open(config.method, url); fetch(url); // Cookies"
+        source = "XMLHttpRequest = FileReader; const xhr = new XMLHttpRequest(); xhr.open(config.method, url); fetch(url); // 'Cookies'"
         self.assertIn('credential-access-and-network-review', self.rules(source))
 
     def test_unknown_open_still_requires_review(self):
@@ -68,11 +77,11 @@ class HttpOpenTests(unittest.TestCase):
         self.assertIn('credential-access-and-network-review', self.rules(source))
 
     def test_no_http_method_literal_keeps_review(self):
-        source = "const xhr = new XMLHttpRequest(); xhr.open(method, url); fetch(url); // Cookies"
+        source = "const xhr = new XMLHttpRequest(); xhr.open(method, url); fetch(url); // 'Cookies'"
         self.assertIn('credential-access-and-network-review', self.rules(source))
 
     def test_redeclaration_still_requires_review(self):
-        source = "var xhr = new XMLHttpRequest(); function f(xhr) { xhr.open('GET', url); } fetch(url); // Cookies"
+        source = "var xhr = new XMLHttpRequest(); function f(xhr) { xhr.open('GET', url); } fetch(url); // 'Cookies'"
         self.assertIn('credential-access-and-network-review', self.rules(source))
 
 

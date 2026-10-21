@@ -173,7 +173,9 @@ def behavior_rules(path, text):
     network = re.search(r'\b(?:fetch|https?\.\w+|requests\.\w+|urlopen|WebClient|HttpClient|axios\.\w+|curl|wget)\b', text)
     process = re.search(r'\b(?:child_process|execSync|spawnSync|subprocess|ProcessBuilder|Process\.Start|shell_exec|os\.system|Command::new|Runtime\.getRuntime)\b', text)
     dynamic = re.search(r'\b(?:eval|Function)\s*\(|\bvm\.runIn(?:New|This)Context\s*\(', text)
-    secrets = re.search(r'Login Data|Local State|Cookies(?:\.sqlite)?|logins\.json|key4\.db|\.ssh[\\/]|\.aws[\\/]|\.azure[\\/]|\.gnupg[\\/]|Chrome[/\\].*User Data|wallet\.dat|keychain-db', text, re.I)
+    # Cookie helper identifiers are not evidence of a browser database file.
+    # Require a quoted basename/path; other credential path indicators remain.
+    secrets = re.search(r"""Login Data|Local State|['"](?:[^'"\r\n]{0,512}[/\\])?Cookies(?:\.sqlite)?['"]|logins\.json|key4\.db|\.ssh[\\/]|\.aws[\\/]|\.azure[\\/]|\.gnupg[\\/]|Chrome[/\\].*User Data|wallet\.dat|keychain-db""", text, re.I)
     read_calls = list(re.finditer(r'\b(?P<api>readFile(?:Sync)?|read_bytes|read_text|open|ReadAllBytes|ReadAllText|sqlite3|readdir(?:Sync)?)\s*\(', text))
     http_opens = http_open_positions(text) if any(m['api'] == 'open' for m in read_calls) else set()
     reads = next((m for m in read_calls if m['api'] != 'open' or m.start() not in http_opens), None)
