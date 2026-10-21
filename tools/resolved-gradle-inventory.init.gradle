@@ -1,0 +1,63 @@
+import groovy.json.JsonOutput
+import java.security.MessageDigest
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
+
+def sha256 = { File f ->
+    def digest = MessageDigest.getInstance('SHA-256')
+    f.withInputStream { stream ->
+        byte[] buffer = new byte[65536]
+        int n
+        while ((n = stream.read(buffer)) > 0) digest.update(buffer, 0, n)
+    }
+    digest.digest().encodeHex().toString()
+}
+gradle.projectsEvaluated {
+    rootProject.tasks.register('stellarDependencyInventory') {
+        doLast {
+            def rows = []
+            def gaps = []
+            rootProject.allprojects.each { project ->
+                def configs = []
+                ['releaseRuntimeClasspath', 'releaseCompileClasspath', 'releaseUnitTestRuntimeClasspath'].each { name ->
+                    def config = project.configurations.findByName(name)
+                    if (config != null && config.canBeResolved) configs << config
+                }
+                def build = project.buildscript.configurations.findByName('classpath')
+                if (build != null && build.canBeResolved) configs << build
+                configs.each { config ->
+                    try {
+                        def resolved = config.resolvedConfiguration
+                        resolved.rethrowFailure()
+                        def artifacts = resolved.resolvedArtifacts.collect { artifact ->
+                            def id = artifact.moduleVersion.id
+                            [group:id.group, name:id.name, version:id.version,
+                             componentKind:artifact.id.componentIdentifier instanceof ProjectComponentIdentifier ? 'project' : 'module',
+                             file:artifact.file.name, classifier:artifact.classifier,
+                             extension:artifact.extension, bytes:artifact.file.length(), sha256:sha256(artifact.file)]
+                        }
+                        def artifactFiles = resolved.resolvedArtifacts.collect { it.file.canonicalPath } as Set
+                        def localFiles = config.files.findAll { !artifactFiles.contains(it.canonicalPath) }.collect { f ->
+                            [file:rootProject.relativePath(f), bytes:f.length(), sha256:sha256(f), local:true]
+                        }
+                        def components = config.incoming.resolutionResult.allComponents.collect { c ->
+                            [component:c.id.displayName, dependencies:c.dependencies.collect { d ->
+                                [requested:d.requested.displayName,
+                                 selected:d.hasProperty('selected') ? d.selected.id.displayName : null]
+                            }]
+                        }
+                        rows << [project:project.path, configuration:config.name,
+                                 components:components, artifacts:artifacts, localFiles:localFiles]
+                    } catch (Exception e) {
+                        gaps << [project:project.path, configuration:config.name, error:e.class.simpleName]
+                    }
+                }
+            }
+            def target = new File(System.getenv('STELLAR_INVENTORY_OUTPUT'))
+            target.text = JsonOutput.prettyPrint(JsonOutput.toJson([schema:1, configurations:rows, gaps:gaps,
+                scope:'release runtime, compile, unit-test and buildscript classpaths',
+                malware_review_complete:false]))+'\n'
+            println('STELLAR_INVENTORY configurations='+rows.size()+' gaps='+gaps.size())
+            if (gaps) throw new GradleException('Dependency inventory incomplete; inspect the report')
+        }
+    }
+}
