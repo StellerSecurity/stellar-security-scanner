@@ -4,6 +4,7 @@ This is an unpublished first-party proposal. It never checks out repository code
 """
 import argparse
 import base64
+import builtins
 import hashlib
 import json
 import os
@@ -405,15 +406,27 @@ def run_package(bundle, root, pins, scratch, command=subprocess.run, public_meta
     expected = {'package_guard.py', 'package_acquisition.py', 'content_guard.py', 'source_guard_v2.py', 'malware_advisories.py'}
     if set(pins) != expected:
         raise BridgeError('package-module-set-mismatch')
-    acquisition = None
+    verified = {}
     for name in expected:
         raw = (Path(root) / name).read_bytes()
         if digest(raw) != pins[name]:
             raise BridgeError('package-module-integrity-mismatch')
-        if name == 'package_acquisition.py':
-            acquisition = types.ModuleType('verified_package_acquisition')
-            acquisition.__file__ = str(Path(root) / name)
-            exec(compile(raw, acquisition.__file__, 'exec', dont_inherit=True), acquisition.__dict__)
+        verified[name] = raw
+    # The parent runs with -I: neither sibling imports nor ambient modules are
+    # trusted. Load both reviewed modules from the bytes verified above and
+    # resolve the adapter's sole first-party import explicitly.
+    content = types.ModuleType('verified_content_guard')
+    content.__file__ = str(Path(root) / 'content_guard.py')
+    exec(compile(verified['content_guard.py'], content.__file__, 'exec', dont_inherit=True), content.__dict__)
+    original_import = builtins.__import__
+    def verified_import(name, globals=None, locals=None, fromlist=(), level=0):
+        if name == 'content_guard' and level == 0:
+            return content
+        return original_import(name, globals, locals, fromlist, level)
+    acquisition = types.ModuleType('verified_package_acquisition')
+    acquisition.__file__ = str(Path(root) / 'package_acquisition.py')
+    acquisition.__dict__['__builtins__'] = dict(vars(builtins), __import__=verified_import)
+    exec(compile(verified['package_acquisition.py'], acquisition.__file__, 'exec', dont_inherit=True), acquisition.__dict__)
     manifest_path, report_path = Path(scratch) / 'manifest-bundle.json', Path(scratch) / 'package-result.json'
     raw = json.dumps(bundle, sort_keys=True, separators=(',', ':')).encode()
     with manifest_path.open('xb') as stream:
