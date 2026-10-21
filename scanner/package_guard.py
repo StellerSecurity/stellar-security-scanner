@@ -712,7 +712,9 @@ def main():
         json.dump(result, stream, sort_keys=True, ensure_ascii=True)
         stream.write("\n")
     print(json.dumps({"status": result["status"], "source_sha": result["source_sha"],
-                      "packages": len(result["packages"]), "coverage_gaps": len(result["gaps"])}))
+                      "packages": len(result["packages"]),
+                      "coverage_gaps": result["coverage_gap_total"],
+                      "retained_gap_examples": len(result["gaps"])}))
     return {"passed": 0, "blocked": 1, "incomplete": 2}[result["status"]]
 
 
