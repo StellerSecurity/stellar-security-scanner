@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "date": "2026-10-27",
+  "scope": "Finding-specific static review of four exact source members. Original findings remain warnings. No package-wide exemption, installation/execution authorization, advisory override, or binary/coverage approval. Every other member and rule is inspected normally.",
+  "evidence": "Exact local source bytes of the lockfile-pinned packages, whose official registry archive integrity was verified in StellarVPN.Website.UI dependency check 122206770563. Official npm metadata, OSV and GitHub Advisory lookups on 2026-10-27 returned no advisories for these four coordinates; that is not proof of package safety.",
+  "reviews": [
+    {
+      "id": "angular-cli-21.2.28-package-metadata",
+      "package": "@angular/cli",
+      "version": "21.2.28",
+      "member": "package/src/utilities/package-metadata.js",
+      "bytes": 9958,
+      "sha256": "41e99e14a82e5776f7dd6ca59eb3abe0a2457b7c5ba4014aa3b8584b2fe1f70b",
+      "archive_sha256": "2f4dd3865ce8fc052ea0a72a434a31bf13a3e650ec10dec31dd1d344683f7730",
+      "rule": "environment-collection-and-network-review",
+      "reason": "Object.entries(process.env) at line 109 filters npm_config_ / yarn_ configuration keys. The network regex's fetch matches are npm-registry-fetch in comments at lines 102-103. Registry I/O is delegated to pacote metadata functions. This helper intentionally reads npm/yarn configuration and may use registry credentials; this review does not deny those capabilities or authorize arbitrary registry use.",
+      "upstream": "https://github.com/angular/angular-cli",
+      "publisher": "google-wombot"
+    },
+    {
+      "id": "terser-5.46.0-dom-properties",
+      "package": "terser",
+      "version": "5.46.0",
+      "member": "package/dist/bundle.min.js",
+      "bytes": 1064271,
+      "sha256": "8fde32619bf7b72adb76cedef64fb534e8d217dfbe5449404effaab9cc0a4f39",
+      "archive_sha256": "dc69077799155f73db8a8edb9a7ab552740178f8c5e11984e1c5616874567fac",
+      "rule": "credential-access-and-network-review",
+      "reason": "The sole credential match is the cookies string in the DOM property-name list (line 27425). Both network matches are inert: fetch in a parser comment (2742) and the fetch DOM property string (28085). fs.readdirSync/readFileSync are CLI input/glob helpers (33602/33624), not a demonstrated credential-to-network dataflow. This review covers that false correlation only, not minifier correctness or execution safety.",
+      "upstream": "https://github.com/terser/terser",
+      "publisher": "fabiosantoscode"
+    },
+    {
+      "id": "terser-5.51.2-dom-properties",
+      "package": "terser",
+      "version": "5.51.2",
+      "member": "package/dist/bundle.min.js",
+      "bytes": 1104314,
+      "sha256": "379f8758191b03c07745486e785cbf4bed6a7ae368aa40a5a819556743f3ad1c",
+      "archive_sha256": "e861b3a42eef7477ba7df38483fd0b802b4954637d396ca04316f26e30996d89",
+      "rule": "credential-access-and-network-review",
+      "reason": "The sole credential match is cookies in the DOM property list (28676). Network matches are fetch in a parser comment (2906) and the fetch DOM property string (29341). Input/glob readers occur at 34881/34903. The same false correlation was checked independently in this version; its bytes are not interchangeable with 5.46.0.",
+      "upstream": "https://github.com/terser/terser",
+      "publisher": "fabiosantoscode"
+    },
+    {
+      "id": "vite-7.3.7-env-configuration",
+      "package": "vite",
+      "version": "7.3.7",
+      "member": "package/dist/node/chunks/config.js",
+      "bytes": 1342444,
+      "sha256": "2e71344450b7c25a7fe0848d5ee474fb7342614d900ab9168588986150cbb9f9",
+      "archive_sha256": "61819c1c5e0b526a012b39b5d4dfb9d10875ced139554f9105a8999990ce7b08",
+      "rule": "environment-collection-and-network-review",
+      "reason": "The four environment regex hits are DEBUG_ option-name filtering (1209), explicitly prefix-filtered environment selection (9417), and JSON.stringify(process.env.NODE_ENV || ...) (27698/32341). The latter serialize a selected mode, not process.env as a whole. Network code includes dev-server/WebSocket support and module-preload/WASM fetch helpers (23943/27730); co-occurrence is not evidence that environment data is uploaded to those helpers. Environment exposure depends on trusted Vite configuration. No blanket approval of Vite networking, plugins, subprocesses, or all source was inferred.",
+      "upstream": "https://github.com/vitejs/vite",
+      "publisher": "GitHub Actions"
+    }
+  ],
+  "limitations": [
+    "Static finding review, not a comprehensive malware audit or reproducible-build attestation.",
+    "The existing native-code, archive-limit, unsupported-format and unavailable-package gaps remain unresolved and must not turn into passed coverage.",
+    "Any changed byte, member path, additional finding, decoded/lifecycle payload, known malware or advisory requires its normal independent review."
+  ]
+}
