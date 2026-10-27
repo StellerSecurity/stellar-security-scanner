@@ -36,6 +36,44 @@ NON_RUNTIME_REVIEW_SUFFIX = re.compile(
     re.I,
 )
 
+# Finding-specific static reviews, NOT package exemptions or execution approval.
+# Keep the original finding visible. Changed bytes/paths and every other rule
+# retain normal severity. Evidence: reviews/npm-capability-correlations.json.
+SOURCE_CAPABILITY_REVIEWS = (
+    ('package/src/utilities/package-metadata.js', 9958,
+     '41e99e14a82e5776f7dd6ca59eb3abe0a2457b7c5ba4014aa3b8584b2fe1f70b',
+     'environment-collection-and-network-review', 'angular-cli-21.2.28-package-metadata'),
+    ('package/dist/bundle.min.js', 1064271,
+     '8fde32619bf7b72adb76cedef64fb534e8d217dfbe5449404effaab9cc0a4f39',
+     'credential-access-and-network-review', 'terser-5.46.0-dom-properties'),
+    ('package/dist/bundle.min.js', 1104314,
+     '379f8758191b03c07745486e785cbf4bed6a7ae368aa40a5a819556743f3ad1c',
+     'credential-access-and-network-review', 'terser-5.51.2-dom-properties'),
+    ('package/dist/node/chunks/config.js', 1342444,
+     '2e71344450b7c25a7fe0848d5ee474fb7342614d900ab9168588986150cbb9f9',
+     'environment-collection-and-network-review', 'vite-7.3.7-env-configuration'),
+)
+
+
+def reviewed_source_capability(path, raw, rule):
+    """Recognize only an exact reviewed member and its exact original rule.
+
+    Hash the original bytes, not normalized/decoded snippets. Never infer trust
+    from a package name, version, registry signature, or adjacent reviewed file.
+    The scanner still processes the entire source and all sibling members.
+    """
+    if not isinstance(raw, bytes):
+        return None
+    member = path.rsplit('!', 1)[-1]
+    candidates = [r for r in SOURCE_CAPABILITY_REVIEWS
+                  if r[0] == member and r[1] == len(raw) and r[3] == rule]
+    if candidates:
+        actual = digest(raw)
+        for _, _, expected, _, review_id in candidates:
+            if actual == expected:
+                return review_id
+    return None
+
 
 def runtime_review_path(path):
     """Return true when capability correlations should block package review.
@@ -1100,7 +1138,7 @@ class Inspector:
         if len(text) and sum(c.isprintable() or c in '\r\n\t' for c in text) / len(text) < .90:
             self.gap(path, 'nontext-content')
             return
-        self.inspect_text(path, text)
+        self.inspect_text(path, text, source_bytes=data)
 
     def phar(self, path, raw, depth):
         """Inspect a native PHAR as bytes, never PHP or serialized objects.
@@ -1304,7 +1342,7 @@ class Inspector:
         except (Incomplete, struct.error) as exc:
             self.gap(path, str(exc) if isinstance(exc, Incomplete) else 'invalid-terminfo')
 
-    def inspect_text(self, path, text, counted=True):
+    def inspect_text(self, path, text, counted=True, source_bytes=None):
         if len(text.encode('utf-8')) > self.limits['text_bytes']:
             self.gap(path, 'text-size-limit')
             return
@@ -1323,10 +1361,17 @@ class Inspector:
             self.gap(path, 'invalid-dependency-manifest')
         rules = {r['rule'] for r in rows}
         known_loader = {'known-loader-marker', 'obfuscated-code'} <= rules
+        original_source = source_bytes if isinstance(source_bytes, bytes) and source_bytes == text.encode('utf-8') else None
         for row in rows:
             rule = row['rule']
             plain = re.sub(r'^(?:decoded-content:|lifecycle:[^:]+:)+', '', rule)
             suspected = plain in SUSPICION_RULES and runtime_review_path(path)
+            review = reviewed_source_capability(path, original_source, rule) if suspected and row['level'] == 'warning' else None
+            if review:
+                # A reviewed correlation stays in findings as a warning. This
+                # never downgrades errors, decoded/lifecycle findings or malware.
+                suspected = False
+                self.finding(path, 'exact-source-capability-review:' + review, 'warning')
             severity = 'review' if suspected else row['level']
             # Capability correlations require manual review; co-occurrence does
             # not prove spyware or establish data flow to a network sink.
@@ -1601,7 +1646,7 @@ class Inspector:
                 'omitted_warning_findings': self.omitted_warning_findings,
                 'omitted_blocking_findings': self.omitted_blocking_findings,
                 'limits': self.limits,
-                'scope': 'Static text/lifecycle patterns, JVM constant strings and recorded exact-byte native reviews; JVM code still requires independent review; opaque assets receive string checks only; sensitive files excluded. No code execution or full binary malware analysis.',
+                'scope': 'Static text/lifecycle patterns, JVM constant strings, recorded exact-byte native reviews and finding-specific exact-byte source reviews; JVM code still requires independent review; opaque assets receive string checks only; sensitive files excluded. No code execution or full binary malware analysis.',
                 'installed_or_executed_packages': False, 'network_requests': 0}
 
 
