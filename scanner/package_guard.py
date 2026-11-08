@@ -27,11 +27,11 @@ LIMITS = {"files": 200000, "depth": 128, "lock_bytes": 16 * 1024 * 1024,
           "requests": 20000, "seconds": 900, "gaps": 1000,
           "manifest_bytes": 64 * 1024 * 1024, "manifest_files": 1000,
           "manifest_bundle_bytes": 96 * 1024 * 1024}
-LOCKS = {"package-lock.json", "npm-shrinkwrap.json", "composer.lock", "yarn.lock", "verification-metadata.xml"}
-MANIFESTS = {"package.json", "composer.json"}
+LOCKS = {"package-lock.json", "npm-shrinkwrap.json", "composer.lock", "yarn.lock", "verification-metadata.xml", "Cargo.lock"}
+MANIFESTS = {"package.json", "composer.json", "Cargo.toml"}
 UNSUPPORTED = {"yarn.lock", "pnpm-lock.yaml", "bun.lock", "bun.lockb", "poetry.lock", "uv.lock",
                "Pipfile", "Pipfile.lock", "pyproject.toml", "requirements.txt", "requirements.in",
-               "Cargo.toml", "Cargo.lock", "go.mod", "go.sum", "Gemfile", "Gemfile.lock",
+               "go.mod", "go.sum", "Gemfile", "Gemfile.lock",
                "build.gradle", "build.gradle.kts", "gradle.lockfile", "pom.xml", "packages.config",
                "packages.lock.json", "Package.swift", "Package.resolved", "Podfile", "Podfile.lock",
                "pubspec.yaml", "pubspec.lock", "mix.exs", "mix.lock", "build.sbt", ".gitmodules"}
@@ -66,8 +66,20 @@ def stable(info):
     return (info.st_dev, info.st_ino, info.st_mode, info.st_size, info.st_mtime_ns, info.st_ctime_ns)
 
 
+def local_cargo_source(context, path):
+    # A bounded source-only corpus, not a general vendor exclusion or trust rule.
+    return (isinstance(context, dict)
+            and context.get('repository') == 'StellerSecurity/Stellar.UI.Desktop.VPNapp'
+            and context.get('repository_id') == 1111447739
+            and path.casefold().startswith('vendor/glib-0.18.5/'))
+
+
+def cargo_config_path(path):
+    return re.search(r'(?:^|/)\.cargo/config(?:\.toml)?$', path, re.I) is not None
+
+
 def recognized(name):
-    return repository_archive(name) or name in LOCKS | MANIFESTS | UNSUPPORTED or bool(re.search(r"\.(?:csproj|fsproj|vbproj|nuspec)$", name, re.I)) or bool(re.fullmatch(r"requirements[^/]*\.(?:txt|in)", name))
+    return name.rsplit('/', 1)[-1].casefold() in ('cargo.toml', 'cargo.lock') or cargo_config_path(name) or repository_archive(name) or name.rsplit("/", 1)[-1] in LOCKS | MANIFESTS | UNSUPPORTED or bool(re.search(r"\.(?:csproj|fsproj|vbproj|nuspec)$", name, re.I)) or bool(re.fullmatch(r"requirements[^/]*\.(?:txt|in)", name))
 
 
 def repository_archive(name):
@@ -115,7 +127,7 @@ def discover(root, check_budget, limits=None):
                     visit(child, relative + "/", depth + 1)
                 finally:
                     os.close(child)
-            elif recognized(name):
+            elif recognized(relative):
                 if not stat.S_ISREG(info.st_mode) or info.st_size > limits["lock_bytes"]:
                     gap(relative, "invalid-or-oversized-dependency-manifest")
                     continue
@@ -165,8 +177,8 @@ def manifest_bundle(value, source_sha, limits):
         path = row.get("path")
         if (not isinstance(path, str) or not path or len(path) > 4096 or "\\" in path
                 or any(ord(c) < 32 or ord(c) == 127 for c in path)
-                or any(part in ("", ".", "..") or part in SKIP_DIRECTORIES for part in path.split("/"))
-                or not recognized(path.rsplit("/", 1)[-1])):
+                or any(part in ("", ".", "..") or (part in SKIP_DIRECTORIES and not local_cargo_source(value, path)) for part in path.split("/"))
+                or not (local_cargo_source(value, path) or recognized(path))):
             raise Incomplete("dependency-bundle-file-path")
         canonical = unicodedata.normalize("NFC", path).casefold()
         if canonical in seen:
@@ -343,6 +355,13 @@ def verified_origin(package, provenance, acquisition):
         return False
     if provenance.get('name') != package['name'] or provenance.get('version') != package['version']:
         return False
+    if package['ecosystem'] == 'rust':
+        return (provenance.get('registry') == 'index.crates.io'
+                and provenance.get('registry_identity_verified') is True
+                and provenance.get('checksum_algorithm') == 'sha256'
+                and provenance.get('checksum') == package.get('checksum')
+                and re.fullmatch('[a-f0-9]{64}', package.get('checksum', '')) is not None
+                and provenance.get('archive_url') == acquisition.cargo_archive_url(package['name'], package['version']))
     if package['ecosystem'] == 'maven':
         try:
             expected = acquisition.acquire_maven(package, None, True)['provenance']
@@ -414,6 +433,7 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
     records, manifests, plans, downloaded_bytes, requests = [], {}, {}, 0, 0
     repository_artifacts = []
     gradle_release_review = None
+    cargo_graph_review = None
     bundle_validated = False
     public_packages = []
     advisory = None
@@ -471,13 +491,17 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
         bundle_validated = manifests_input is not None
         if bundle_validated and hasattr(acquisition, 'reviewed_gradle_release'):
             gradle_release_review = acquisition.reviewed_gradle_release(manifests_input, manifests)
+        if bundle_validated and hasattr(acquisition, 'reviewed_cargo_graph'):
+            cargo_graph_review = acquisition.reviewed_cargo_graph(manifests_input, manifests)
         for item in discovery_gaps:
             gap(item["path"], item["reason"])
         for path, raw in sorted(manifests.items()):
             check_budget()
             name = path.rsplit("/", 1)[-1]
             prefix = path[:-len(name)]
-            if repository_archive(name):
+            if local_cargo_source(manifests_input, path):
+                scanner.content('repository/' + path, raw)
+            elif repository_archive(name):
                 origin = (acquisition.reviewed_repository_origin(path, raw)
                           if hasattr(acquisition, 'reviewed_repository_origin') else None)
                 record = {"path": path, "sha256": sha256(raw), "bytes": len(raw),
@@ -502,7 +526,12 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
                               files_scanned=scanner.files_scanned - before_files,
                               blocking_findings=blockers, coverage_gaps=scanner.coverage_gap_total - before_gaps)
             elif name in LOCKS:
-                if name == "yarn.lock":
+                if name == 'Cargo.lock':
+                    # Reading every locked archive is not proof that untrusted
+                    # manifests/local overrides resolve to that graph.
+                    if cargo_graph_review is None:
+                        gap(path, 'cargo-manifest-graph-binding-needs-review')
+                elif name == "yarn.lock":
                     gap(path, "yarn-manifest-graph-binding-needs-review")
                 elif name not in ("composer.lock", "verification-metadata.xml"):
                     manifest_raw = manifests.get(prefix + "package.json")
@@ -521,7 +550,10 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
                     manifest_raw = manifests.get(prefix + "composer.json")
                     if manifest_raw is not None:
                         check_composer_graph(path, strict_json(manifest_raw), strict_json(raw), gap)
-                planned = acquisition.plan_packages(path, raw, composer_manifest=manifests.get(prefix + "composer.json"))
+                kwargs = {'composer_manifest': manifests.get(prefix + "composer.json")}
+                if name == 'Cargo.lock' and cargo_graph_review is not None:
+                    kwargs['cargo_local_packages'] = cargo_graph_review['local_packages']
+                planned = acquisition.plan_packages(path, raw, **kwargs)
                 for item in planned["gaps"]:
                     if (gradle_release_review is not None and path == 'gradle/verification-metadata.xml'
                             and item['reason'] == 'gradle-build-graph-binding-required'):
@@ -534,6 +566,14 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
                     plans[identity]["lockfiles"].append(path)
                     if len(plans) > limits["packages"]:
                         raise Incomplete("dependency-package-count-limit")
+            elif cargo_config_path(path):
+                if cargo_graph_review is None:
+                    gap(path, 'cargo-configuration-needs-review')
+            elif name == 'Cargo.toml':
+                acquisition.cargo_toml(raw)
+                ancestors = ['/'.join(path.split('/')[:i]) for i in range(len(path.split('/')))]
+                if not any((a + '/' if a else '') + 'Cargo.lock' in manifests for a in ancestors):
+                    gap(path, 'cargo-lockfile-missing')
             elif name in MANIFESTS:
                 manifest = strict_json(raw)
                 if name == "package.json":
@@ -568,6 +608,8 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
                           "lockfiles": value["lockfiles"], "status": "incomplete"}
                 if package['ecosystem'] == 'maven':
                     record['file'] = package['file']
+                if package['ecosystem'] == 'rust':
+                    record['checksum'] = package['checksum']
                 records.append(record)
                 before_gaps, before_files = scanner.coverage_gap_total, scanner.files_scanned
                 before_blockers = scanner.finding_counts['error'] + scanner.finding_counts['review']
@@ -576,6 +618,8 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
                     raw = result["data"]
                     if not isinstance(raw, bytes) or sha256(raw) != result.get("sha256"):
                         raise Incomplete("dependency-archive-digest-mismatch")
+                    if package['ecosystem'] == 'rust' and result['sha256'] != package['checksum']:
+                        raise Incomplete('cargo-archive-checksum-mismatch')
                     provenance = result.get("provenance")
                     if not verified_origin(package, provenance, acquisition):
                         raise Incomplete("dependency-provenance-incomplete")
@@ -661,6 +705,7 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
                          "digest_scope": "inspected-dependency-manifests"},
                   packages=records, repository_artifacts=repository_artifacts,
                   gradle_release_review=gradle_release_review,
+                  cargo_graph_review=acquisition.cargo_review_summary(cargo_graph_review) if hasattr(acquisition, 'cargo_review_summary') else None,
                   dependency_manifest_count=len(manifests), dependency_manifests=manifest,
                   dependency_inventory_complete=not result["gaps"],
                   downloads_as_data_only=True, installed_or_executed_packages=False,

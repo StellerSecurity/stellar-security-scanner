@@ -91,6 +91,38 @@ class ContentFormatsTests(unittest.TestCase):
         self.assertTrue(any(f['malware'] for f in scanner.findings))
         self.assertFalse(scanner.gaps)
 
+    def test_package_tar_uses_archive_budget_but_each_text_member_stays_bounded(self):
+        import io, tarfile
+        buffer = io.BytesIO()
+        with tarfile.open(fileobj=buffer, mode='w') as archive:
+            for i in range(20):
+                raw = b'reverse shell' if i == 19 else b'ordinary source'
+                info = tarfile.TarInfo('package/' + str(i) + '.js')
+                info.size = len(raw)
+                archive.addfile(info, io.BytesIO(raw))
+        scanner = content.Inspector(engine=engine(), limits={**content.LIMITS, 'text_bytes': 64})
+        scanner.archive('package-1', gzip.compress(buffer.getvalue()))
+        self.assertFalse(scanner.gaps)
+        self.assertEqual(scanner.files_scanned, 20)
+        self.assertTrue(any(f['malware'] for f in scanner.findings))
+        scanner = content.Inspector(engine=engine(), limits={**content.LIMITS, 'archive_bytes': 1024})
+        scanner.archive('package-1', gzip.compress(buffer.getvalue()))
+        self.assertTrue(any(g['reason'] == 'gzip-expansion-limit' for g in scanner.gaps))
+
+    def test_tar_header_cannot_hide_oversized_text_or_unreviewed_native_code(self):
+        import io, tarfile
+        buffer = io.BytesIO()
+        with tarfile.open(fileobj=buffer, mode='w') as archive:
+            for name, raw in [('package/big.js', b'x' * 1024), ('package/native', b'\x7fELF' + b'\0' * 32)]:
+                info = tarfile.TarInfo(name)
+                info.size = len(raw)
+                archive.addfile(info, io.BytesIO(raw))
+        scanner = content.Inspector(engine=engine(), limits={**content.LIMITS, 'text_bytes': 64})
+        scanner.archive('package-1', gzip.compress(buffer.getvalue()))
+        reasons = {g['reason'] for g in scanner.gaps}
+        self.assertIn('text-size-limit', reasons)
+        self.assertIn('executable-binary-needs-independent-review', reasons)
+
     def test_suffixless_gzip_keeps_binary_review_gap(self):
         scanner = self.inspect('opaque.resource', gzip.compress(b'\x7fELF' + b'\x00' * 200))
         self.assertTrue(any(g['reason'] == 'executable-binary-needs-independent-review' for g in scanner.gaps))

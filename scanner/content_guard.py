@@ -1436,10 +1436,19 @@ class Inspector:
                     and not path.lower().endswith(('.tar.gz', '.tgz'))):
                 # A standalone gzip stream is a compressed file, not a tarball.
                 # Bound expansion before scanning the decoded bytes recursively.
-                ceiling = min(self.limits['text_bytes'], self.limits['expanded_bytes'],
-                              max(8 * 1024 * 1024, len(raw) * self.limits['compression_ratio']))
                 inflater = zlib.decompressobj(31)
-                decoded = inflater.decompress(raw, ceiling + 1)
+                # Package coordinates have no filename suffix. Probe only a
+                # bounded tar header before selecting the existing archive or
+                # text budget; otherwise valid multi-file tarballs are capped
+                # as if their entire expanded stream were one text file.
+                prefix = inflater.decompress(raw, 512)
+                tar_stream = prefix[257:262] == b'ustar'
+                kind_limit = self.limits['archive_bytes'] if tar_stream else self.limits['text_bytes']
+                ceiling = min(kind_limit, self.limits['expanded_bytes'],
+                              max(8 * 1024 * 1024, len(raw) * self.limits['compression_ratio']))
+                if len(prefix) > ceiling:
+                    raise Incomplete('gzip-expansion-limit')
+                decoded = prefix + inflater.decompress(inflater.unconsumed_tail, ceiling - len(prefix) + 1)
                 if len(decoded) > ceiling or inflater.unconsumed_tail:
                     raise Incomplete('gzip-expansion-limit')
                 if not inflater.eof or inflater.unused_data:
