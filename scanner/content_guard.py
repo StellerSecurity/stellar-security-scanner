@@ -934,6 +934,62 @@ def jvm_constant_text(data, ceiling):
     return text
 
 
+# Exact small compiler diagnostics independently read as data. These bytes
+# intentionally quote invalid TOML containing NULs; they are not native code.
+REVIEWED_TOML_DIAGNOSTICS = [{'member': 'toml_edit-0.19.15/tests/fixtures/invalid/control/bare-null.stderr',
+  'bytes': 126,
+  'sha256': 'fe799f446b55ba89609a52842b4eb63bfa725035c0006107c85c6a8f6e8db688'},
+ {'member': 'toml_edit-0.19.15/tests/fixtures/invalid/control/comment-null.stderr',
+  'bytes': 124,
+  'sha256': '39ca1697c9e13969314368c85401dbb141ee80f514ab4a359ea8e74880e33d28'},
+ {'member': 'toml_edit-0.19.15/tests/fixtures/invalid/control/multi-null.stderr',
+  'bytes': 128,
+  'sha256': '9fec8ad3ba45ddb96ad3b6a118b4fa648056e26a9128528b2c0a8fa3b01e741c'},
+ {'member': 'toml_edit-0.19.15/tests/fixtures/invalid/control/rawmulti-null.stderr',
+  'bytes': 136,
+  'sha256': '84c04cc89a6bc716b6f7811142899014abdb0b49c4ea56bc163c19220b14c323'},
+ {'member': 'toml_edit-0.19.15/tests/fixtures/invalid/control/rawstring-null.stderr',
+  'bytes': 122,
+  'sha256': 'eafa2a63e9d12293b290405049457860a8fef70de56c4ba2f203e5f2c79a8634'},
+ {'member': 'toml_edit-0.19.15/tests/fixtures/invalid/control/string-null.stderr',
+  'bytes': 114,
+  'sha256': 'fe34d284c478853bad94235aac1f37ac3c591f97e12990847b5da0b6c99bd47d'},
+ {'member': 'toml_edit-0.19.15/tests/fixtures/invalid/encoding/utf16.stderr',
+  'bytes': 105,
+  'sha256': 'edb66c01034865f484ccf7921bfcec1efaa8599762cb9cd30c9c8103275bc4e6'},
+ {'member': 'toml_edit-0.20.2/tests/fixtures/invalid/control/bare-null.stderr',
+  'bytes': 126,
+  'sha256': 'fe799f446b55ba89609a52842b4eb63bfa725035c0006107c85c6a8f6e8db688'},
+ {'member': 'toml_edit-0.20.2/tests/fixtures/invalid/control/comment-null.stderr',
+  'bytes': 124,
+  'sha256': '39ca1697c9e13969314368c85401dbb141ee80f514ab4a359ea8e74880e33d28'},
+ {'member': 'toml_edit-0.20.2/tests/fixtures/invalid/control/multi-null.stderr',
+  'bytes': 128,
+  'sha256': '9fec8ad3ba45ddb96ad3b6a118b4fa648056e26a9128528b2c0a8fa3b01e741c'},
+ {'member': 'toml_edit-0.20.2/tests/fixtures/invalid/control/rawmulti-null.stderr',
+  'bytes': 136,
+  'sha256': '84c04cc89a6bc716b6f7811142899014abdb0b49c4ea56bc163c19220b14c323'},
+ {'member': 'toml_edit-0.20.2/tests/fixtures/invalid/control/rawstring-null.stderr',
+  'bytes': 122,
+  'sha256': 'eafa2a63e9d12293b290405049457860a8fef70de56c4ba2f203e5f2c79a8634'},
+ {'member': 'toml_edit-0.20.2/tests/fixtures/invalid/control/string-null.stderr',
+  'bytes': 114,
+  'sha256': 'fe34d284c478853bad94235aac1f37ac3c591f97e12990847b5da0b6c99bd47d'},
+ {'member': 'toml_edit-0.20.2/tests/fixtures/invalid/encoding/utf16.stderr',
+  'bytes': 105,
+  'sha256': 'edb66c01034865f484ccf7921bfcec1efaa8599762cb9cd30c9c8103275bc4e6'}]
+
+
+def reviewed_diagnostic_text(path, raw):
+    if not 1 <= len(raw) <= 136:
+        return None
+    for row in REVIEWED_TOML_DIAGNOSTICS:
+        if ((path == row['member'] or path.endswith('!' + row['member']))
+                and len(raw) == row['bytes'] and digest(raw) == row['sha256']):
+            return raw.decode('utf-8').replace('\x00', r'\0')
+    return None
+
+
 class Inspector:
     def __init__(self, engine=None, limits=None):
         self.engine = engine or load_engine()
@@ -1100,6 +1156,10 @@ class Inspector:
                 normalized = ''.join(c for c in text if unicodedata.category(c) != 'Cf')
                 if normalized != text:
                     self.inspect_text(path, normalized, counted=False)
+            return
+        diagnostic = reviewed_diagnostic_text(path, data)
+        if diagnostic is not None:
+            self.inspect_text(path, diagnostic)
             return
         if b'\x00' in data or any(b >= 128 for b in data):
             table = php_charset_table(path, data)
@@ -1436,10 +1496,19 @@ class Inspector:
                     and not path.lower().endswith(('.tar.gz', '.tgz'))):
                 # A standalone gzip stream is a compressed file, not a tarball.
                 # Bound expansion before scanning the decoded bytes recursively.
-                ceiling = min(self.limits['text_bytes'], self.limits['expanded_bytes'],
-                              max(8 * 1024 * 1024, len(raw) * self.limits['compression_ratio']))
                 inflater = zlib.decompressobj(31)
-                decoded = inflater.decompress(raw, ceiling + 1)
+                # Package coordinates have no filename suffix. Probe only a
+                # bounded tar header before selecting the existing archive or
+                # text budget; otherwise valid multi-file tarballs are capped
+                # as if their entire expanded stream were one text file.
+                prefix = inflater.decompress(raw, 512)
+                tar_stream = prefix[257:262] == b'ustar'
+                kind_limit = self.limits['archive_bytes'] if tar_stream else self.limits['text_bytes']
+                ceiling = min(kind_limit, self.limits['expanded_bytes'],
+                              max(8 * 1024 * 1024, len(raw) * self.limits['compression_ratio']))
+                if len(prefix) > ceiling:
+                    raise Incomplete('gzip-expansion-limit')
+                decoded = prefix + inflater.decompress(inflater.unconsumed_tail, ceiling - len(prefix) + 1)
                 if len(decoded) > ceiling or inflater.unconsumed_tail:
                     raise Incomplete('gzip-expansion-limit')
                 if not inflater.eof or inflater.unused_data:
@@ -1497,6 +1566,23 @@ class Inspector:
                             continue
                         with arc.extractfile(info) as stream:
                             consume(name, info.size, stream)
+                    # TarFile stops after the first zero header and its stream
+                    # reader may already buffer later bytes. Consume through
+                    # that same reader: reading only the underlying stream
+                    # would miss buffered trailing payloads and even CRC errors.
+                    if arc.fileobj.tell() != arc.offset + 512:
+                        raise Incomplete('tar-end-marker-missing')
+                    padding = 512
+                    while True:
+                        value = arc.fileobj.read(65536)
+                        if not value:
+                            break
+                        padding += len(value)
+                        if any(value):
+                            raise Incomplete('tar-nonzero-trailing-data')
+                        self.check_budget()
+                    if padding < 1024 or padding % 512:
+                        raise Incomplete('tar-invalid-end-padding')
         except (Incomplete, zipfile.BadZipFile, tarfile.TarError, OSError, EOFError, RuntimeError, ValueError, zlib.error) as exc:
             self.gap(path, str(exc) if isinstance(exc, Incomplete) else 'invalid-or-unsupported-archive')
 

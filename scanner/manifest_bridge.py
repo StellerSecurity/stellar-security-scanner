@@ -77,6 +77,20 @@ def validate_gap_summary(report):
 
 def verified_package_origin(package, provenance, acquisition=None):
     """Validate registry and separately reviewed Git proofs without conflating them."""
+    if package['ecosystem'] == 'rust':
+        if acquisition is None:
+            return False
+        try:
+            plan = acquisition.cargo_plan(package.get('name'), package.get('version'), package.get('checksum'))
+            expected_url = acquisition.cargo_archive_url(plan['name'], plan['version'])
+        except acquisition.AcquisitionError:
+            return False
+        return (provenance.get('registry') == 'index.crates.io'
+                and provenance.get('registry_identity_verified') is True
+                and provenance.get('checksum_algorithm') == 'sha256'
+                and provenance.get('checksum') == plan['checksum']
+                and package.get('archive_sha256') == plan['checksum']
+                and provenance.get('archive_url') == expected_url)
     if package['ecosystem'] == 'maven':
         if acquisition is None:
             return False
@@ -308,8 +322,20 @@ def verified_tree(tree, expected, limits):
     return entries
 
 
+def local_cargo_source(context, path):
+    # A bounded source-only corpus, not a general vendor exclusion or trust rule.
+    return (isinstance(context, dict)
+            and context.get('repository') == 'StellerSecurity/Stellar.UI.Desktop.VPNapp'
+            and context.get('repository_id') == 1111447739
+            and path.casefold().startswith('vendor/glib-0.18.5/'))
+
+
+def cargo_config_path(path):
+    return re.search(r'(?:^|/)\.cargo/config(?:\.toml)?$', path, re.I) is not None
+
+
 def recognized(name):
-    return name in MANIFEST_NAMES or bool(re.search(r'\.(?:csproj|fsproj|vbproj|nuspec|jar|aar)$', name, re.I)) or bool(re.fullmatch(r'requirements[^/]*\.(?:txt|in)', name))
+    return name.rsplit('/', 1)[-1].casefold() in ('cargo.toml', 'cargo.lock') or cargo_config_path(name) or name.rsplit('/', 1)[-1] in MANIFEST_NAMES or bool(re.search(r'\.(?:csproj|fsproj|vbproj|nuspec|jar|aar)$', name, re.I)) or bool(re.fullmatch(r'requirements[^/]*\.(?:txt|in)', name))
 
 
 def collect(ctx, reader, limits=None):
@@ -333,12 +359,13 @@ def collect(ctx, reader, limits=None):
         gaps.append({'path': path, 'reason': reason})
     for path, row in sorted(entries.items()):
         parts = path.split('/')
-        if any(p in SKIP_DIRECTORIES for p in parts[:-1]):
+        local_source = local_cargo_source(ctx, path)
+        if any(p in SKIP_DIRECTORIES for p in parts[:-1]) and not local_source:
             continue
         if row['mode'] in ('120000', '160000'):
             gap(path, 'dependency-symbolic-link-not-followed' if row['mode'] == '120000' else 'dependency-submodule-not-followed')
             continue
-        if row['type'] != 'blob' or not recognized(parts[-1]):
+        if row['type'] != 'blob' or not (local_source or recognized(path)):
             continue
         if row['size'] > limits['file_bytes']:
             gap(path, 'invalid-or-oversized-dependency-manifest')
@@ -488,6 +515,12 @@ def validate_report(report, bundle, pins, manifest_sha, acquisition=None):
             item['path']: base64.b64decode(item['content_base64'], validate=True) for item in bundle['files']})
     if report.get('gradle_release_review') != expected_gradle_review:
         raise BridgeError('gradle-release-review-binding-mismatch')
+    expected_cargo = None
+    if acquisition is not None and hasattr(acquisition, 'reviewed_cargo_graph'):
+        expected_cargo = acquisition.cargo_review_summary(acquisition.reviewed_cargo_graph(bundle, {
+            item['path']: base64.b64decode(item['content_base64'], validate=True) for item in bundle['files']}))
+    if report.get('cargo_graph_review') != expected_cargo:
+        raise BridgeError('cargo-source-graph-binding-mismatch')
     expected_archives = []
     origin_reviews = {}
     for item in bundle['files']:
@@ -558,7 +591,7 @@ def validate_report(report, bundle, pins, manifest_sha, acquisition=None):
         if not isinstance(package, dict) or package.get('status') not in ('passed', 'blocked', 'incomplete'):
             raise BridgeError('package-state-invalid')
         identity = tuple(package.get(k) for k in ('ecosystem', 'name', 'version'))
-        if identity[0] not in ('npm', 'composer', 'maven') or any(not isinstance(x, str) or not x for x in identity):
+        if identity[0] not in ('npm', 'composer', 'maven', 'rust') or any(not isinstance(x, str) or not x for x in identity):
             raise BridgeError('package-coordinate-invalid')
         identities.add(identity)
         if package['status'] == 'passed':

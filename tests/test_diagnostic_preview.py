@@ -104,3 +104,22 @@ class DiagnosticPreviewTests(unittest.TestCase):
                                                   **{field:'https://invalid.example/token=secret'})
             with self.assertRaises(d.WorkerError):
                 d.diagnostic_document({}, report, 'a'*64, 'b'*64, {})
+
+    def test_cargo_scope_survives_preview_without_clearing_binary_gaps(self):
+        report = self.report()
+        report['gaps'] = [{'path': 'example.node', 'reason': 'executable-binary-needs-independent-review'}]
+        review = {'id': 'source-review', 'scope': 'Only manifests and local source',
+                  'source_bindings_sha256': 'c' * 64, 'local_packages': [['local', '1.0.0']],
+                  'compiled_dependency_clearance': False, 'private_path': '/private/not-for-publication'}
+        report['cargo_graph_review'] = review
+        document, preview = d.diagnostic_document({}, report, 'a' * 64, 'b' * 64, {})
+        self.assertEqual(document['cargo_graph_review'], preview['cargo_graph_review'])
+        self.assertFalse(preview['cargo_graph_review']['compiled_dependency_clearance'])
+        self.assertEqual(1, preview['totals']['gaps'])
+        self.assertNotIn('private_path', d.canonical(document).decode())
+        self.assertIn('does not clear compiled dependencies', d.summary_text({}, preview))
+        for mutation in ({'compiled_dependency_clearance': True}, {'source_bindings_sha256': 'invalid'},
+                         {'local_packages': [['local', '1.0.0', 'extra']]}, {'local_packages': [None]}):
+            report['cargo_graph_review'] = dict(review, **mutation)
+            with self.assertRaises(d.WorkerError):
+                d.diagnostic_document({}, report, 'a' * 64, 'b' * 64, {})

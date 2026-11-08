@@ -162,6 +162,29 @@ def diagnostic_document(ctx, report, report_sha, manifest_sha, pins):
                 raise WorkerError('invalid-release-review-diagnostic')
             review_summary[field] = value
         document['gradle_release_review'] = review_summary
+    cargo_review = report.get('cargo_graph_review')
+    if cargo_review is not None:
+        if (not isinstance(cargo_review, dict)
+                or cargo_review.get('compiled_dependency_clearance') is not False
+                or not isinstance(cargo_review.get('id'), str)
+                or not isinstance(cargo_review.get('scope'), str)
+                or not isinstance(cargo_review.get('source_bindings_sha256'), str)
+                or not re.fullmatch('[0-9a-f]{64}', cargo_review['source_bindings_sha256'])
+                or not isinstance(cargo_review.get('local_packages'), list)
+                or len(cargo_review['local_packages']) > 100):
+            raise WorkerError('invalid-cargo-review-diagnostic')
+        local_packages = cargo_review['local_packages']
+        if any(not isinstance(row, list) or len(row) != 2
+               or any(not isinstance(value, str) or len(value) > 128 for value in row)
+               for row in local_packages):
+            raise WorkerError('invalid-cargo-review-diagnostic')
+        document['cargo_graph_review'] = {
+            'id': safe_diagnostic(cargo_review['id']),
+            'scope': safe_diagnostic(cargo_review['scope']),
+            'source_bindings_sha256': cargo_review['source_bindings_sha256'],
+            'local_packages': [[safe_diagnostic(value) for value in row] for row in local_packages],
+            'compiled_dependency_clearance': False,
+        }
     if 'finding_counts' in report:
         document['finding_summary'] = {
             'observed_by_severity': report['finding_counts'],
@@ -252,6 +275,9 @@ def summary_text(proof, preview):
         coverage_text += ('A separately reviewed release build is bound to this exact source tree. '
                           'Its task scope is recorded in the diagnostic preview. '
                           'This does not clear compiled dependencies or attest other build variants.\n\n')
+    if preview.get('cargo_graph_review') is not None:
+        coverage_text += ('The Cargo graph review binds only the recorded manifests and local source bytes. '
+                          'It does not clear compiled dependencies, package contents or advisories.\n\n')
     return (HEADER + '```json\n' + canonical(proof).decode() + '\n```\n\n'
         + '## Named diagnostic preview\n\n```json\n' + canonical(preview).decode() + '\n```\n\n'
         + coverage_text
