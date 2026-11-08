@@ -127,6 +127,43 @@ class ContentFormatsTests(unittest.TestCase):
         scanner = self.inspect('opaque.resource', gzip.compress(b'\x7fELF' + b'\x00' * 200))
         self.assertTrue(any(g['reason'] == 'executable-binary-needs-independent-review' for g in scanner.gaps))
 
+    def test_tar_buffered_and_unbuffered_trailing_payloads_never_pass(self):
+        import io, tarfile
+        buffer = io.BytesIO()
+        with tarfile.open(fileobj=buffer, mode='w') as archive:
+            info = tarfile.TarInfo('ordinary.txt')
+            info.size = 4
+            archive.addfile(info, io.BytesIO(b'data'))
+        tar = buffer.getvalue()
+        for raw in (tar[:2048] + b'reverse shell', tar + b'reverse shell',
+                    tar + b'\0' * 100000 + b'reverse shell'):
+            for name, payload in [('package.tar', raw), ('package.tgz', gzip.compress(raw)),
+                                  ('package-1', gzip.compress(raw))]:
+                scanner = content.Inspector(engine=engine())
+                scanner.archive(name, payload)
+                self.assertTrue(any(g['reason'] == 'tar-nonzero-trailing-data' for g in scanner.gaps))
+
+    def test_tar_end_markers_alignment_and_compressed_integrity_are_required(self):
+        import io, tarfile
+        buffer = io.BytesIO()
+        with tarfile.open(fileobj=buffer, mode='w') as archive:
+            info = tarfile.TarInfo('ordinary.txt')
+            info.size = 4
+            archive.addfile(info, io.BytesIO(b'data'))
+        tar = buffer.getvalue()
+        for raw in (tar[:1024], tar[:1536], tar + b'\0'):
+            scanner = content.Inspector(engine=engine())
+            scanner.archive('package.tar', raw)
+            self.assertTrue(scanner.gaps)
+        for raw in (gzip.compress(tar)[:-1], gzip.compress(tar)[:-8] + b'\0' * 8):
+            scanner = content.Inspector(engine=engine())
+            scanner.archive('package.tgz', raw)
+            self.assertTrue(scanner.gaps)
+        scanner = content.Inspector(engine=engine())
+        scanner.archive('package.tar', tar + b'\0' * 512)
+        self.assertFalse(scanner.gaps)
+        self.assertEqual(1, scanner.files_scanned)
+
     def test_invalid_or_concatenated_gzip_does_not_pass(self):
         raw = gzip.compress(b'body {}')
         for value in (raw[:-1], raw + b'junk', raw + gzip.compress(b'reverse shell')):

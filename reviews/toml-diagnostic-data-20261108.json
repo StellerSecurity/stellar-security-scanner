@@ -1,0 +1,87 @@
+{
+  "scope": "Exact reviewed compiler diagnostic data only. NUL bytes are quoted before text scanning. No executable, source, lifecycle, binary, advisory or execution waiver. Changed bytes or paths retain normal inspection and gaps.",
+  "packages": [
+    {
+      "name": "toml_edit",
+      "version": "0.19.15",
+      "archive_sha256": "1b5bb770da30e5cbfde35a2d7b9b8a2c4b8ef89548a7a6aeab5c9a576e3e7421"
+    },
+    {
+      "name": "toml_edit",
+      "version": "0.20.2",
+      "archive_sha256": "396e4d48bbb2b7554c944bde63101b5ae446cff6ec4a24227428f15eb72ef338"
+    }
+  ],
+  "members": [
+    {
+      "member": "toml_edit-0.19.15/tests/fixtures/invalid/control/bare-null.stderr",
+      "bytes": 126,
+      "sha256": "fe799f446b55ba89609a52842b4eb63bfa725035c0006107c85c6a8f6e8db688"
+    },
+    {
+      "member": "toml_edit-0.19.15/tests/fixtures/invalid/control/comment-null.stderr",
+      "bytes": 124,
+      "sha256": "39ca1697c9e13969314368c85401dbb141ee80f514ab4a359ea8e74880e33d28"
+    },
+    {
+      "member": "toml_edit-0.19.15/tests/fixtures/invalid/control/multi-null.stderr",
+      "bytes": 128,
+      "sha256": "9fec8ad3ba45ddb96ad3b6a118b4fa648056e26a9128528b2c0a8fa3b01e741c"
+    },
+    {
+      "member": "toml_edit-0.19.15/tests/fixtures/invalid/control/rawmulti-null.stderr",
+      "bytes": 136,
+      "sha256": "84c04cc89a6bc716b6f7811142899014abdb0b49c4ea56bc163c19220b14c323"
+    },
+    {
+      "member": "toml_edit-0.19.15/tests/fixtures/invalid/control/rawstring-null.stderr",
+      "bytes": 122,
+      "sha256": "eafa2a63e9d12293b290405049457860a8fef70de56c4ba2f203e5f2c79a8634"
+    },
+    {
+      "member": "toml_edit-0.19.15/tests/fixtures/invalid/control/string-null.stderr",
+      "bytes": 114,
+      "sha256": "fe34d284c478853bad94235aac1f37ac3c591f97e12990847b5da0b6c99bd47d"
+    },
+    {
+      "member": "toml_edit-0.19.15/tests/fixtures/invalid/encoding/utf16.stderr",
+      "bytes": 105,
+      "sha256": "edb66c01034865f484ccf7921bfcec1efaa8599762cb9cd30c9c8103275bc4e6"
+    },
+    {
+      "member": "toml_edit-0.20.2/tests/fixtures/invalid/control/bare-null.stderr",
+      "bytes": 126,
+      "sha256": "fe799f446b55ba89609a52842b4eb63bfa725035c0006107c85c6a8f6e8db688"
+    },
+    {
+      "member": "toml_edit-0.20.2/tests/fixtures/invalid/control/comment-null.stderr",
+      "bytes": 124,
+      "sha256": "39ca1697c9e13969314368c85401dbb141ee80f514ab4a359ea8e74880e33d28"
+    },
+    {
+      "member": "toml_edit-0.20.2/tests/fixtures/invalid/control/multi-null.stderr",
+      "bytes": 128,
+      "sha256": "9fec8ad3ba45ddb96ad3b6a118b4fa648056e26a9128528b2c0a8fa3b01e741c"
+    },
+    {
+      "member": "toml_edit-0.20.2/tests/fixtures/invalid/control/rawmulti-null.stderr",
+      "bytes": 136,
+      "sha256": "84c04cc89a6bc716b6f7811142899014abdb0b49c4ea56bc163c19220b14c323"
+    },
+    {
+      "member": "toml_edit-0.20.2/tests/fixtures/invalid/control/rawstring-null.stderr",
+      "bytes": 122,
+      "sha256": "eafa2a63e9d12293b290405049457860a8fef70de56c4ba2f203e5f2c79a8634"
+    },
+    {
+      "member": "toml_edit-0.20.2/tests/fixtures/invalid/control/string-null.stderr",
+      "bytes": 114,
+      "sha256": "fe34d284c478853bad94235aac1f37ac3c591f97e12990847b5da0b6c99bd47d"
+    },
+    {
+      "member": "toml_edit-0.20.2/tests/fixtures/invalid/encoding/utf16.stderr",
+      "bytes": 105,
+      "sha256": "edb66c01034865f484ccf7921bfcec1efaa8599762cb9cd30c9c8103275bc4e6"
+    }
+  ]
+}
