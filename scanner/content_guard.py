@@ -864,6 +864,55 @@ def reviewed_native_code(path, data):
             and digest(data) == '8fdff52a7430dba14fb97239c7fe414710991f16da269374e0936a1385f3a318')
 
 
+REVIEWED_SHA2_VECTORS = (
+    ('sha224', 178, '59b185972521af418fd49a079de3d5f5bed74cd76d80473da51cab3faee6c7d0'),
+    ('sha256', 190, 'bb096934bb7e43e41ce143d211397afca6fcdfe243a39811688ea31aae6f800a'),
+    ('sha384', 238, 'e8fe66c07ba336fae2c0aa4c87cb768f41bd4ed318ee1a36fbde0a68581946ec'),
+    ('sha512', 289, '1cc0e86571f2f4e3bc81438ce7b6c25c118d2d7437355240113f59cbb782c8d6'),
+    ('sha512_224', 178, 'b02dd46741db1034112e0888d0cdb233a21b9a82c319456f806bbaae49acf440'),
+    ('sha512_256', 190, '95195b758e362d92ff0cebebac4cca696512ea5811b635243bc70e29164e5786'),
+)
+
+
+def reviewed_hash_vector_text(path, raw):
+    """Reconstruct six exact data fixtures; never clear arbitrary blob files.
+
+    Each byte is a framing byte, a known literal input, or a digest computed
+    independently with the standard library. No blob decoder or target code
+    runs. Evidence: reviews/sha2-test-vectors.json. Unknown algorithms and
+    unavailable host hash implementations fail closed.
+    """
+    member = path.rsplit('!', 1)[-1]
+    for algorithm, size, checksum in REVIEWED_SHA2_VECTORS:
+        if member != 'sha2-0.10.9/tests/data/' + algorithm + '.blb':
+            continue
+        if len(raw) != size or digest(raw) != checksum:
+            return None
+        inputs = (b'', b'The quick brown fox jumps over the lazy dog',
+                  b'The quick brown fox jumps over the lazy dog.')
+        expected = bytearray(b'\0')  # zero deduplicated blobs
+        rows = []
+        try:
+            for value in inputs:
+                hashed = hashlib.new(algorithm, value).digest()
+                for blob in (value, hashed):
+                    tag = 2 * len(blob)  # literal blob, never a backreference
+                    if tag < 128:
+                        expected.append(tag)
+                    elif tag == 128:
+                        expected.extend(b'\x80\0')
+                    else:
+                        return None
+                    expected.extend(blob)
+                rows.append({'input': value.decode('ascii'), 'digest': hashed.hex()})
+        except (ValueError, TypeError):
+            return None
+        if bytes(expected) != raw:
+            return None
+        return json.dumps({'algorithm': algorithm, 'vectors': rows})
+    return None
+
+
 def java_modified_utf8(raw):
     """Decode Java DataInput/JVM strings without interpreting their contents."""
     if b'\0' in raw or any(b >= 0xf0 for b in raw):
@@ -1166,6 +1215,10 @@ class Inspector:
         diagnostic = reviewed_diagnostic_text(path, data)
         if diagnostic is not None:
             self.inspect_text(path, diagnostic)
+            return
+        vectors = reviewed_hash_vector_text(path, data)
+        if vectors is not None:
+            self.inspect_text(path, vectors)
             return
         if b'\x00' in data or any(b >= 128 for b in data):
             table = php_charset_table(path, data)
