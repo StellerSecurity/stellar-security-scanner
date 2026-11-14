@@ -107,12 +107,14 @@ class ReviewedSourceCapabilityTests(unittest.TestCase):
 
 class ReviewEvidenceTests(unittest.TestCase):
     def test_evidence_and_pinned_rules_match(self):
-        evidence = json.loads((ROOT / 'reviews/npm-capability-correlations.json').read_text())
-        actual = {(e['member'], e['bytes'], e['sha256'], e['rule'], e['id']) for e in evidence['reviews']}
+        entries = []
+        for name in ('npm-capability-correlations.json', 'dbus-capability-correlations.json'):
+            entries.extend(json.loads((ROOT / 'reviews' / name).read_text())['reviews'])
+        actual = {(e['member'], e['bytes'], e['sha256'], e['rule'], e['id']) for e in entries}
         self.assertEqual(actual, set(guard.SOURCE_CAPABILITY_REVIEWS))
-        self.assertEqual(len(actual), 4)
-        self.assertEqual(len({e['id'] for e in evidence['reviews']}), 4)
-        for entry in evidence['reviews']:
+        self.assertEqual(len(actual), 6)
+        self.assertEqual(len({e['id'] for e in entries}), 6)
+        for entry in entries:
             self.assertRegex(entry['sha256'], r'^[0-9a-f]{64}$')
             self.assertRegex(entry['archive_sha256'], r'^[0-9a-f]{64}$')
             self.assertIn(entry['rule'], guard.SUSPICION_RULES)

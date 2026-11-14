@@ -38,7 +38,7 @@ NON_RUNTIME_REVIEW_SUFFIX = re.compile(
 
 # Finding-specific static reviews, NOT package exemptions or execution approval.
 # Keep the original finding visible. Changed bytes/paths and every other rule
-# retain normal severity. Evidence: reviews/npm-capability-correlations.json.
+# retain normal severity. Evidence: reviews/*-capability-correlations.json.
 SOURCE_CAPABILITY_REVIEWS = (
     ('package/src/utilities/package-metadata.js', 9958,
      '41e99e14a82e5776f7dd6ca59eb3abe0a2457b7c5ba4014aa3b8584b2fe1f70b',
@@ -52,6 +52,12 @@ SOURCE_CAPABILITY_REVIEWS = (
     ('package/dist/node/chunks/config.js', 1342444,
      '2e71344450b7c25a7fe0848d5ee474fb7342614d900ab9168588986150cbb9f9',
      'environment-collection-and-network-review', 'vite-7.3.7-env-configuration'),
+    ('libdbus-sys-0.2.7/vendor/dbus/dbus/dbus-sysdeps-unix.c', 140164,
+     'd33c16198f83865438e253b7b7e946b10713eb6c034866aa5fa7e6174e74e3ae',
+     'persistence-and-process-review', 'libdbus-sys-0.2.7-launchd-socket-lookup'),
+    ('libdbus-sys-0.2.7/vendor/dbus/doc/dbus-specification.xml', 323664,
+     'a84933df0e498c962518b3c93780d6a229e3a019d1c1251531f04395dac3fdd3',
+     'persistence-and-process-review', 'libdbus-sys-0.2.7-transport-documentation'),
 )
 
 

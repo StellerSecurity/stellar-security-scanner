@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "date": "2026-11-14",
+  "scope": "Only two exact persistence-and-process correlations. Keep original warning findings and inspect every byte and sibling normally. No package, advisory, native-code, installation or execution approval.",
+  "evidence": "Static in-memory inspection of the existing cached libdbus-sys 0.2.7 crate, SHA-256 verified against the desktop app's reviewed Cargo.lock. No download, extraction to disk or target execution.",
+  "reviews": [
+    {
+      "id": "libdbus-sys-0.2.7-launchd-socket-lookup",
+      "package": "libdbus-sys",
+      "version": "0.2.7",
+      "member": "libdbus-sys-0.2.7/vendor/dbus/dbus/dbus-sysdeps-unix.c",
+      "bytes": 140164,
+      "sha256": "d33c16198f83865438e253b7b7e946b10713eb6c034866aa5fa7e6174e74e3ae",
+      "archive_sha256": "328c4789d42200f1eeec05bd86c9c13c7f091d2ba9a6ea35acdf51f31bc0f043",
+      "rule": "persistence-and-process-review",
+      "reason": "The only persistence-regex match is launchctl at line 4340 in _dbus_lookup_launchd_socket. Its fixed argument is getenv (4342), followed by the requested environment-variable name (4344); _read_subprocess_line_argv returns the existing socket path. It does not load/bootstrap/enable a job or write a LaunchAgent. The process regex matches subprocess in comments at 3907/3914. This file does have real fork/exec support: _dbus_connect_exec (1033-1105), the bounded subprocess reader (3926-4051), and optional X11 dbus-launch autolaunch (4138 onward). Those capabilities and PATH lookup are not denied or authorized by this finding-specific review. The inspected persistence/process co-occurrence is not evidence of installing persistence.",
+      "upstream": "https://github.com/diwic/dbus-rs",
+      "publisher": "David Henningsson; bundled D-Bus upstream source"
+    },
+    {
+      "id": "libdbus-sys-0.2.7-transport-documentation",
+      "package": "libdbus-sys",
+      "version": "0.2.7",
+      "member": "libdbus-sys-0.2.7/vendor/dbus/doc/dbus-specification.xml",
+      "bytes": 323664,
+      "sha256": "a84933df0e498c962518b3c93780d6a229e3a019d1c1251531f04395dac3fdd3",
+      "archive_sha256": "328c4789d42200f1eeec05bd86c9c13c7f091d2ba9a6ea35acdf51f31bc0f043",
+      "rule": "persistence-and-process-review",
+      "reason": "The only persistence-regex match is the documented command launchctl getenv DBUS_LAUNCHD_SESSION_BUS_SOCKET at line 3747. Process matches are the transport-description prose at 3623 and unixexec address documentation at 4058. The launchd section explains reading an existing per-user socket; the unixexec section describes real process-transport arguments, not executed XML. No blanket XML/documentation exclusion is added: only these exact original bytes and this rule receive a retained warning instead of a blocking correlation. Strong findings, changed content and every other archive member remain subject to normal inspection.",
+      "upstream": "https://dbus.freedesktop.org/doc/dbus-specification.html",
+      "publisher": "D-Bus project, redistributed by libdbus-sys"
+    }
+  ],
+  "limitations": [
+    "This is a review of two regex correlations, not a complete D-Bus vulnerability audit or proof of safe execution.",
+    "No advisory override or independent native binary review is supplied.",
+    "Different paths, versions, bytes, decoded payloads, lifecycle findings and stronger rules retain normal blocking behavior."
+  ]
+}
