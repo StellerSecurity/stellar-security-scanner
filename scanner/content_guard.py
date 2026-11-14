@@ -1496,23 +1496,44 @@ class Inspector:
                     and not path.lower().endswith(('.tar.gz', '.tgz'))):
                 # A standalone gzip stream is a compressed file, not a tarball.
                 # Bound expansion before scanning the decoded bytes recursively.
-                inflater = zlib.decompressobj(31)
                 # Package coordinates have no filename suffix. Probe only a
                 # bounded tar header before selecting the existing archive or
                 # text budget; otherwise valid multi-file tarballs are capped
                 # as if their entire expanded stream were one text file.
-                prefix = inflater.decompress(raw, 512)
-                tar_stream = prefix[257:262] == b'ustar'
-                kind_limit = self.limits['archive_bytes'] if tar_stream else self.limits['text_bytes']
-                ceiling = min(kind_limit, self.limits['expanded_bytes'],
-                              max(8 * 1024 * 1024, len(raw) * self.limits['compression_ratio']))
-                if len(prefix) > ceiling:
+                ratio_limit = max(8 * 1024 * 1024, len(raw) * self.limits['compression_ratio'])
+                ceiling = min(self.limits['text_bytes'], self.limits['expanded_bytes'], ratio_limit)
+                decoded = bytearray()
+                pending = raw
+                # RFC 1952 permits concatenated members. Inspect their joined
+                # plaintext so a rule split across members cannot be hidden.
+                # Every header, trailer/CRC, byte and shared budget is checked;
+                # arbitrary trailing data and incomplete later members fail.
+                while pending:
+                    self.archive_members_seen += 1
+                    self.check_budget()
+                    if not pending.startswith(b'\x1f\x8b'):
+                        raise Incomplete('gzip-trailing-or-incomplete-stream')
+                    inflater = zlib.decompressobj(31)
+                    compressed = pending
+                    while True:
+                        allowance = ceiling - len(decoded) + 1
+                        if len(decoded) < 512:
+                            allowance = 512 - len(decoded)
+                        decoded.extend(inflater.decompress(compressed, allowance))
+                        if decoded[257:262] == b'ustar':
+                            ceiling = min(self.limits['archive_bytes'], self.limits['expanded_bytes'], ratio_limit)
+                        if len(decoded) >= 512 and len(decoded) > ceiling:
+                            raise Incomplete('gzip-expansion-limit')
+                        self.check_budget()
+                        if inflater.eof:
+                            pending = inflater.unused_data
+                            break
+                        compressed = inflater.unconsumed_tail
+                        if not compressed:
+                            raise Incomplete('gzip-trailing-or-incomplete-stream')
+                if len(decoded) > ceiling:
                     raise Incomplete('gzip-expansion-limit')
-                decoded = prefix + inflater.decompress(inflater.unconsumed_tail, ceiling - len(prefix) + 1)
-                if len(decoded) > ceiling or inflater.unconsumed_tail:
-                    raise Incomplete('gzip-expansion-limit')
-                if not inflater.eof or inflater.unused_data:
-                    raise Incomplete('gzip-trailing-or-incomplete-stream')
+                decoded = bytes(decoded)
                 self.check_budget()
                 decoded_path = path[:-3] if path.lower().endswith('.gz') else path + '!gzip-content'
                 if decoded[257:262] == b'ustar':
