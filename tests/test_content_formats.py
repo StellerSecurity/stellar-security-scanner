@@ -164,11 +164,45 @@ class ContentFormatsTests(unittest.TestCase):
         self.assertFalse(scanner.gaps)
         self.assertEqual(1, scanner.files_scanned)
 
-    def test_invalid_or_concatenated_gzip_does_not_pass(self):
+    def test_invalid_gzip_or_later_member_does_not_pass(self):
         raw = gzip.compress(b'body {}')
-        for value in (raw[:-1], raw + b'junk', raw + gzip.compress(b'reverse shell')):
+        later = gzip.compress(b'other body')
+        for value in (raw[:-1], raw + b'junk', raw + later[:-1],
+                      raw + later[:-8] + b'\0' * 8, raw + later + b'junk'):
             scanner = self.inspect('main.css.gz', value)
             self.assertTrue(scanner.gaps)
+
+    def test_concatenated_gzip_inspects_all_joined_plaintext(self):
+        scanner = self.inspect('main.css.gz', gzip.compress(b'body {}') + gzip.compress(b' other {}'))
+        self.assertFalse(scanner.gaps)
+        self.assertEqual(scanner.files_scanned, 1)
+        for chunks in ((b'body {}', b'reverse shell'), (b'reverse ', b'shell'),
+                       (b'', b'reverse ', b'', b'shell')):
+            scanner = self.inspect('payload.gz', b''.join(gzip.compress(c) for c in chunks))
+            self.assertFalse(scanner.gaps)
+            self.assertTrue(any(f['malware'] for f in scanner.findings))
+
+    def test_concatenated_gzip_keeps_shared_expansion_and_member_limits(self):
+        scanner = content.Inspector(engine=engine(), limits={**content.LIMITS, 'text_bytes': 32})
+        scanner.content('large.gz', gzip.compress(b'A' * 20) + gzip.compress(b'B' * 20))
+        self.assertTrue(any(g['reason'] == 'gzip-expansion-limit' for g in scanner.gaps))
+        scanner = content.Inspector(engine=engine(), limits={**content.LIMITS, 'members': 3})
+        scanner.content('many.gz', gzip.compress(b'') * 5)
+        self.assertTrue(scanner.gaps)
+        scanner = self.inspect('native.gz', gzip.compress(b'\x7fELF') + gzip.compress(b'\0' * 200))
+        self.assertEqual(scanner.gaps[0]['reason'], 'executable-binary-needs-independent-review')
+
+    def test_tar_header_can_span_gzip_members_without_losing_member_inspection(self):
+        import io, tarfile
+        buffer = io.BytesIO()
+        with tarfile.open(fileobj=buffer, mode='w') as archive:
+            info = tarfile.TarInfo('payload.js')
+            info.size = len(b'reverse shell')
+            archive.addfile(info, io.BytesIO(b'reverse shell'))
+        raw = buffer.getvalue()
+        scanner = self.inspect('opaque.resource', gzip.compress(raw[:260]) + gzip.compress(raw[260:]))
+        self.assertFalse(scanner.gaps)
+        self.assertTrue(any(f['malware'] for f in scanner.findings))
 
     def test_gzip_expansion_is_bounded(self):
         scanner = content.Inspector(engine=engine(), limits={**content.LIMITS, 'text_bytes': 32})

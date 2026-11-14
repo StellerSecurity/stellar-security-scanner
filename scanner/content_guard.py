@@ -38,7 +38,7 @@ NON_RUNTIME_REVIEW_SUFFIX = re.compile(
 
 # Finding-specific static reviews, NOT package exemptions or execution approval.
 # Keep the original finding visible. Changed bytes/paths and every other rule
-# retain normal severity. Evidence: reviews/npm-capability-correlations.json.
+# retain normal severity. Evidence: reviews/*-capability-correlations.json.
 SOURCE_CAPABILITY_REVIEWS = (
     ('package/src/utilities/package-metadata.js', 9958,
      '41e99e14a82e5776f7dd6ca59eb3abe0a2457b7c5ba4014aa3b8584b2fe1f70b',
@@ -52,6 +52,12 @@ SOURCE_CAPABILITY_REVIEWS = (
     ('package/dist/node/chunks/config.js', 1342444,
      '2e71344450b7c25a7fe0848d5ee474fb7342614d900ab9168588986150cbb9f9',
      'environment-collection-and-network-review', 'vite-7.3.7-env-configuration'),
+    ('libdbus-sys-0.2.7/vendor/dbus/dbus/dbus-sysdeps-unix.c', 140164,
+     'd33c16198f83865438e253b7b7e946b10713eb6c034866aa5fa7e6174e74e3ae',
+     'persistence-and-process-review', 'libdbus-sys-0.2.7-launchd-socket-lookup'),
+    ('libdbus-sys-0.2.7/vendor/dbus/doc/dbus-specification.xml', 323664,
+     'a84933df0e498c962518b3c93780d6a229e3a019d1c1251531f04395dac3fdd3',
+     'persistence-and-process-review', 'libdbus-sys-0.2.7-transport-documentation'),
 )
 
 
@@ -1496,23 +1502,44 @@ class Inspector:
                     and not path.lower().endswith(('.tar.gz', '.tgz'))):
                 # A standalone gzip stream is a compressed file, not a tarball.
                 # Bound expansion before scanning the decoded bytes recursively.
-                inflater = zlib.decompressobj(31)
                 # Package coordinates have no filename suffix. Probe only a
                 # bounded tar header before selecting the existing archive or
                 # text budget; otherwise valid multi-file tarballs are capped
                 # as if their entire expanded stream were one text file.
-                prefix = inflater.decompress(raw, 512)
-                tar_stream = prefix[257:262] == b'ustar'
-                kind_limit = self.limits['archive_bytes'] if tar_stream else self.limits['text_bytes']
-                ceiling = min(kind_limit, self.limits['expanded_bytes'],
-                              max(8 * 1024 * 1024, len(raw) * self.limits['compression_ratio']))
-                if len(prefix) > ceiling:
+                ratio_limit = max(8 * 1024 * 1024, len(raw) * self.limits['compression_ratio'])
+                ceiling = min(self.limits['text_bytes'], self.limits['expanded_bytes'], ratio_limit)
+                decoded = bytearray()
+                pending = raw
+                # RFC 1952 permits concatenated members. Inspect their joined
+                # plaintext so a rule split across members cannot be hidden.
+                # Every header, trailer/CRC, byte and shared budget is checked;
+                # arbitrary trailing data and incomplete later members fail.
+                while pending:
+                    self.archive_members_seen += 1
+                    self.check_budget()
+                    if not pending.startswith(b'\x1f\x8b'):
+                        raise Incomplete('gzip-trailing-or-incomplete-stream')
+                    inflater = zlib.decompressobj(31)
+                    compressed = pending
+                    while True:
+                        allowance = ceiling - len(decoded) + 1
+                        if len(decoded) < 512:
+                            allowance = 512 - len(decoded)
+                        decoded.extend(inflater.decompress(compressed, allowance))
+                        if decoded[257:262] == b'ustar':
+                            ceiling = min(self.limits['archive_bytes'], self.limits['expanded_bytes'], ratio_limit)
+                        if len(decoded) >= 512 and len(decoded) > ceiling:
+                            raise Incomplete('gzip-expansion-limit')
+                        self.check_budget()
+                        if inflater.eof:
+                            pending = inflater.unused_data
+                            break
+                        compressed = inflater.unconsumed_tail
+                        if not compressed:
+                            raise Incomplete('gzip-trailing-or-incomplete-stream')
+                if len(decoded) > ceiling:
                     raise Incomplete('gzip-expansion-limit')
-                decoded = prefix + inflater.decompress(inflater.unconsumed_tail, ceiling - len(prefix) + 1)
-                if len(decoded) > ceiling or inflater.unconsumed_tail:
-                    raise Incomplete('gzip-expansion-limit')
-                if not inflater.eof or inflater.unused_data:
-                    raise Incomplete('gzip-trailing-or-incomplete-stream')
+                decoded = bytes(decoded)
                 self.check_budget()
                 decoded_path = path[:-3] if path.lower().endswith('.gz') else path + '!gzip-content'
                 if decoded[257:262] == b'ustar':
