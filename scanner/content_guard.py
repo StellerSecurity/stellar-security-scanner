@@ -3698,11 +3698,21 @@ REVIEWED_WINDOWS_IMPORT_METADATA = (
     ('windows_i686_msvc-0.42.2/lib/windows.lib', 4653282,
      '4228aed5db35e1305ccdbdb767e7646bfdd047c4e710fffd29e1e56c1e1e000b',
      'windows_i686_msvc-0.42.2-metadata'),
+    ('webview2-com-sys-0.39.1/x86/WebView2Loader.dll.lib', 2998,
+     'a3ec0ee539d58fe72391f2e89cb814f96fab721c6d8d30953d152ea95dffad49',
+     'webview2-com-sys-0.39.1-x86-imports'),
+    ('webview2-com-sys-0.39.1/x64/WebView2Loader.dll.lib', 2916,
+     'bfc8ccaaa056be95243a5b66a827e5849d2bb39676fca4dcc2053796d8e15c6d',
+     'webview2-com-sys-0.39.1-x64-imports'),
+    ('webview2-com-sys-0.39.1/arm64/WebView2Loader.dll.lib', 2916,
+     'd70271daa44507865ca0696cd1c1ede5e58e694eec74cb2d06e17dbbe205e9a2',
+     'webview2-com-sys-0.39.1-arm64-imports'),
 )
 
 
 def reviewed_windows_import_metadata(path, data):
-    """Exact metadata-only reviews in windows-target-import-metadata.json.
+    """Exact metadata-only reviews in windows-target-import-metadata.json
+    and webview2-import-metadata.json.
 
     Complete AR/COFF/import/CodeView structures and both linker indexes were
     independently inspected. No executable sections, target loading or linking.
@@ -3712,6 +3722,27 @@ def reviewed_windows_import_metadata(path, data):
     for name, size, checksum, review_id in REVIEWED_WINDOWS_IMPORT_METADATA:
         if (member == name and len(data) == size and data.startswith(b'!<arch>\n')
                 and digest(data) == checksum):
+            return review_id
+    return None
+
+
+REVIEWED_COMPONENT_DECLARATIONS = (
+    ('wit-bindgen-0.57.1/wasi-cli@0.2.0.wasm', 25587,
+     '60b274319c9dce183269a0e3ad922b8ee4ead915f34d171de9da23a390863119',
+     'wit-bindgen-0.57.1-wasi-cli-type-declarations'),
+)
+
+
+def reviewed_component_declarations(path, data):
+    """Exact declaration-only artifact; evidence in wit-component-declarations.json.
+
+    Every nested declaration and custom field was parsed without instantiation.
+    This is code-absence proof, not a full nominal typechecker or engine approval.
+    """
+    member = path.rsplit('!', 1)[-1]
+    for name, size, checksum, review_id in REVIEWED_COMPONENT_DECLARATIONS:
+        if (member == name and len(data) == size
+                and data.startswith(b'\0asm\x0d\0\x01\0') and digest(data) == checksum):
             return review_id
     return None
 
@@ -4113,6 +4144,12 @@ class Inspector:
                 self.exclusions.append({'path': path,
                     'reason': 'exact-native-import-metadata-review:' + metadata_review,
                     'sha256': digest(data)})
+            elif (component_review := reviewed_component_declarations(path, data)) is not None:
+                self.exclusions.append({'path': path,
+                    'reason': 'exact-component-declaration-review:' + component_review,
+                    'sha256': digest(data)})
+                text = '\n'.join(value.decode('ascii') for value in re.findall(rb'[\x20-\x7e]{3,}', data))
+                self.inspect_text(path, text)
             elif (wasm_review := reviewed_wasm_binary(path, data)) is not None:
                 self.files_scanned += 1
                 self.exclusions.append({'path': path,

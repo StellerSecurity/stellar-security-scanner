@@ -83,7 +83,7 @@ class WasmEvidenceTests(unittest.TestCase):
         self.assertEqual([r['sha256'] for r in archive['members'][2:]],
                          [r['sha256'] for r in wit['bindings'][:2]])
 
-    def test_larger_component_is_still_unreviewed(self):
+    def test_generic_wasm_reviews_do_not_clear_component_declarations(self):
         member = 'wit-bindgen-0.57.1/wasi-cli@0.2.0.wasm'
         self.assertFalse(any(row[0] == member for row in guard.REVIEWED_WASM_BINARIES))
         self.assertIsNone(guard.reviewed_wasm_binary(member, b'\0asm\x0d\0\x01\0'))

@@ -1,0 +1,241 @@
+{
+  "sections": [
+    {
+      "offset": 8,
+      "id": 7,
+      "end_offset": 130
+    },
+    {
+      "offset": 130,
+      "id": 11,
+      "end_offset": 149
+    },
+    {
+      "offset": 149,
+      "id": 7,
+      "end_offset": 207
+    },
+    {
+      "offset": 207,
+      "id": 11,
+      "end_offset": 219
+    },
+    {
+      "offset": 219,
+      "id": 7,
+      "end_offset": 267
+    },
+    {
+      "offset": 267,
+      "id": 11,
+      "end_offset": 278
+    },
+    {
+      "offset": 278,
+      "id": 7,
+      "end_offset": 630
+    },
+    {
+      "offset": 630,
+      "id": 11,
+      "end_offset": 643
+    },
+    {
+      "offset": 643,
+      "id": 7,
+      "end_offset": 999
+    },
+    {
+      "offset": 999,
+      "id": 11,
+      "end_offset": 1013
+    },
+    {
+      "offset": 1013,
+      "id": 7,
+      "end_offset": 1369
+    },
+    {
+      "offset": 1369,
+      "id": 11,
+      "end_offset": 1383
+    },
+    {
+      "offset": 1383,
+      "id": 7,
+      "end_offset": 1444
+    },
+    {
+      "offset": 1444,
+      "id": 11,
+      "end_offset": 1466
+    },
+    {
+      "offset": 1466,
+      "id": 7,
+      "end_offset": 1529
+    },
+    {
+      "offset": 1529,
+      "id": 11,
+      "end_offset": 1552
+    },
+    {
+      "offset": 1552,
+      "id": 7,
+      "end_offset": 1729
+    },
+    {
+      "offset": 1729,
+      "id": 11,
+      "end_offset": 1751
+    },
+    {
+      "offset": 1751,
+      "id": 7,
+      "end_offset": 1934
+    },
+    {
+      "offset": 1934,
+      "id": 11,
+      "end_offset": 1957
+    },
+    {
+      "offset": 1957,
+      "id": 7,
+      "end_offset": 2140
+    },
+    {
+      "offset": 2140,
+      "id": 11,
+      "end_offset": 2163
+    },
+    {
+      "offset": 2163,
+      "id": 7,
+      "end_offset": 12770
+    },
+    {
+      "offset": 12770,
+      "id": 11,
+      "end_offset": 12785
+    },
+    {
+      "offset": 12785,
+      "id": 7,
+      "end_offset": 23435
+    },
+    {
+      "offset": 23435,
+      "id": 11,
+      "end_offset": 23450
+    },
+    {
+      "offset": 23450,
+      "id": 0,
+      "end_offset": 25538
+    },
+    {
+      "offset": 25538,
+      "id": 0,
+      "end_offset": 25587
+    }
+  ],
+  "exports": [
+    {
+      "name": "environment",
+      "type_index": 0
+    },
+    {
+      "name": "exit",
+      "type_index": 2
+    },
+    {
+      "name": "run",
+      "type_index": 4
+    },
+    {
+      "name": "stdin",
+      "type_index": 6
+    },
+    {
+      "name": "stdout",
+      "type_index": 8
+    },
+    {
+      "name": "stderr",
+      "type_index": 10
+    },
+    {
+      "name": "terminal-input",
+      "type_index": 12
+    },
+    {
+      "name": "terminal-output",
+      "type_index": 14
+    },
+    {
+      "name": "terminal-stdin",
+      "type_index": 16
+    },
+    {
+      "name": "terminal-stdout",
+      "type_index": 18
+    },
+    {
+      "name": "terminal-stderr",
+      "type_index": 20
+    },
+    {
+      "name": "imports",
+      "type_index": 22
+    },
+    {
+      "name": "command",
+      "type_index": 24
+    }
+  ],
+  "custom_sections": [
+    "package-docs",
+    "producers"
+  ],
+  "type_counts": {
+    "0x41": 15,
+    "0x42": 78,
+    "0x6f": 19,
+    "0x70": 26,
+    "0x40": 214,
+    "0x6b": 22,
+    "0x6a": 75,
+    "0x69": 61,
+    "0x71": 11,
+    "0x68": 30,
+    "0x77": 8,
+    "0x72": 16,
+    "0x6d": 12,
+    "0x6e": 6
+  },
+  "nodes": 1865,
+  "all_bytes_accounted_for": true,
+  "target_executed": false,
+  "schema": 1,
+  "id": "wit-bindgen-0.57.1-wasi-cli-type-declarations",
+  "member": "wit-bindgen-0.57.1/wasi-cli@0.2.0.wasm",
+  "bytes": 25587,
+  "sha256": "60b274319c9dce183269a0e3ad922b8ee4ead915f34d171de9da23a390863119",
+  "archive_sha256": "1ebf944e87a7c253233ad6766e082e3cd714b5d03812acc24c318f549614536e",
+  "review_reader_sha256": "cd2dd5820c171d41a18947d70dd101f084119276d0a982d21d5e9d55624e196d",
+  "scope": "Only this exact member/path/length/hash. No generic component, package or execution approval.",
+  "review": "Every section and nested declaration is parsed using the declaration-only subset. Outer sections are type definitions, type exports and parsed JSON/producer metadata only. No module/component bodies, instances, canonical operations, start functions, runtime imports, resource destructors or executable instructions are accepted.",
+  "limitations": [
+    "This is a complete byte/syntax/code-absence inspection of this exact declaration artifact, not a full nominal component typechecker or validation of all cross-scope type equivalences.",
+    "Host engines, consumers and downstream linking are not vouched for.",
+    "Original binary is not committed or executed. Changed bytes and other components retain their native-code gap."
+  ],
+  "sources": [
+    "https://github.com/WebAssembly/component-model/blob/main/design/mvp/Binary.md"
+  ],
+  "inspected_string_count": 1128,
+  "inspected_strings_sha256": "ed95114fa7d46635313a8b490fa6dee8b4ae9fd140724de95c06c6ac75bab700",
+  "documentation_review": "Parsed JSON documentation for CLI environment/arguments, exit/run, standard streams and terminal interfaces. Metadata describes APIs; it does not implement them or call host functions. No original Markdown documentation is committed."
+}
