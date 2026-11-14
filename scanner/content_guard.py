@@ -3725,6 +3725,22 @@ def reviewed_native_code(path, data):
             and digest(data) == '8fdff52a7430dba14fb97239c7fe414710991f16da269374e0936a1385f3a318')
 
 
+def reviewed_timezone_text(path, data):
+    """Exact typed data review; not a generic .dat or TZif exemption.
+
+    All 345 records, 690 blocks and 17,056 transitions were structurally
+    inspected without target execution. The bounded reader and byte-level
+    evidence are in tools/review_tzif_database.py and reviews/jiff-timezone-data.json.
+    Changed paths/bytes and other databases retain their coverage gaps.
+    """
+    if (path.rsplit('!', 1)[-1] != 'jiff-tzdb-0.1.9/concatenated-zoneinfo.dat'
+            or len(data) != 206788
+            or digest(data) != 'b1278d744c58f7a35b19cdca67749e72bae2112b9a96d52300b5b81388997478'):
+        return None
+    # Inspect every printable string as well as the complete typed-data review.
+    return '\n'.join(part.decode('ascii') for part in re.findall(rb'[\x20-\x7e]{3,}', data))
+
+
 REVIEWED_SHA2_VECTORS = (
     ('sha224', 178, '59b185972521af418fd49a079de3d5f5bed74cd76d80473da51cab3faee6c7d0'),
     ('sha256', 190, 'bb096934bb7e43e41ce143d211397afca6fcdfe243a39811688ea31aae6f800a'),
@@ -4095,6 +4111,11 @@ class Inspector:
         vectors = reviewed_hash_vector_text(path, data)
         if vectors is not None:
             self.inspect_text(path, vectors)
+            return
+        timezone_text = reviewed_timezone_text(path, data)
+        if timezone_text is not None:
+            self.exclusions.append({'path': path, 'reason': 'exact-typed-data-review:jiff-tzdb-0.1.9'})
+            self.inspect_text(path, timezone_text)
             return
         if b'\x00' in data or any(b >= 128 for b in data):
             table = php_charset_table(path, data)
