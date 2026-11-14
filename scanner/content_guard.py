@@ -3981,6 +3981,29 @@ def reviewed_diagnostic_text(path, raw):
     return None
 
 
+REVIEWED_ARCHIVE_CASE_ALIASES = (
+    ('static_vcruntime-3.0.0/README.md', 'static_vcruntime-3.0.0/Readme.md',
+     2498, 0o644, '45b9cf6dfd289cf7da6aa64fdc7a152c52cd779af7fa9fb0a1a5d5469bbaa9c2',
+     'static-vcruntime-3.0.0-identical-documentation'),
+)
+
+
+def reviewed_archive_case_alias(previous, current):
+    """Only a reviewed same-byte documentation pair; neither file is skipped.
+
+    Evidence: reviews/static-vcruntime-case-alias.json. Hashes and lengths of
+    BOTH members are checked before the case collision is accepted. Unknown
+    collisions, permissions, directories, changed bytes and traversal fail.
+    """
+    if previous[0] != 'file' or current[0] != 'file':
+        return None
+    for first, second, size, mode, checksum, review_id in REVIEWED_ARCHIVE_CASE_ALIASES:
+        if ({previous[1], current[1]} == {first, second}
+                and previous[2] == current[2] == mode):
+            return size, checksum, review_id
+    return None
+
+
 class Inspector:
     def __init__(self, engine=None, limits=None):
         self.engine = engine or load_engine()
@@ -4474,6 +4497,9 @@ class Inspector:
             return
         seen = {}
         content_digests = {}
+        content_lengths = {}
+        pending_case_aliases = {}
+        reviewed_case_collisions = set()
         # JVM entries are case-sensitive names, not an extracted portable
         # filesystem tree. Inspect BOTH A.class and a.class. Generic archives
         # retain their cross-platform ambiguity checks.
@@ -4486,7 +4512,15 @@ class Inspector:
             kind = 'directory' if directory else 'file'
             identity = (kind, normalized, mode)
             if canonical in seen and seen[canonical] != identity:
-                raise Incomplete('duplicate-archive-member')
+                previous = seen[canonical]
+                review = reviewed_archive_case_alias(previous, identity)
+                previous_path = path + '!' + previous[1]
+                if (review is None or canonical in reviewed_case_collisions
+                        or content_digests.get(previous_path) != review[1]
+                        or content_lengths.get(previous_path) != review[0]):
+                    raise Incomplete('duplicate-archive-member')
+                pending_case_aliases[path + '!' + normalized] = review
+                reviewed_case_collisions.add(canonical)
             parts = canonical.split('/')
             if any(seen.get('/'.join(parts[:n]), (None,))[0] == 'file' for n in range(1, len(parts))):
                 raise Incomplete('archive-file-directory-conflict')
@@ -4506,6 +4540,12 @@ class Inspector:
             if len(value) != size:
                 raise Incomplete('archive-member-length-mismatch')
             value_digest = digest(value)
+            case_review = pending_case_aliases.pop(name, None)
+            if case_review is not None:
+                if (size, value_digest) != case_review[:2]:
+                    raise Incomplete('reviewed-case-alias-content-mismatch')
+                self.exclusions.append({'path': name, 'sha256': value_digest,
+                                        'reason': 'reviewed-identical-case-alias:' + case_review[2]})
             if name in content_digests:
                 if content_digests[name] != value_digest:
                     raise Incomplete('duplicate-archive-member-content-mismatch')
@@ -4515,6 +4555,7 @@ class Inspector:
                 self.check_budget()
                 return
             content_digests[name] = value_digest
+            content_lengths[name] = size
             self.content(name, value, depth)
         try:
             if (raw.startswith(b'\x1f\x8b')
