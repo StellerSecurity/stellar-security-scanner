@@ -3657,6 +3657,65 @@ def reviewed_gnu_import_code(path, data):
     return review.hexdigest() in REVIEWED_GNU_IMPORT_BINDINGS
 
 
+REVIEWED_WINDOWS_GNU_TARGET_IMPORTS = (
+    ('windows_i686_gnu-0.42.2/lib/libwindows.a', 11024176,
+     'f1e1da956456aa4892997a45b01ee9280f49aa34f5cc3eaa5a771137a475011e',
+     'windows_i686_gnu-0.42.2-imports'),
+    ('windows_x86_64_gnu-0.42.2/lib/libwindows.a', 10599654,
+     'bebaf61850eb1e9d5dc491d573df2c095eb3d6f5f7ef42de5099d9dc9518ce0b',
+     'windows_x86_64_gnu-0.42.2-imports'),
+)
+
+
+def reviewed_windows_gnu_target_import(path, data):
+    """Complete strict-reader evidence: reviews/windows-gnu-target-imports.json.
+
+    Every COFF object, instruction, relocation, symbol, index and byte range
+    was checked by review_gnu_import_archives.py. No target was executed.
+    Other formats, versions and changed bytes retain native-code gaps.
+    """
+    member = path.rsplit('!', 1)[-1]
+    for name, size, checksum, review_id in REVIEWED_WINDOWS_GNU_TARGET_IMPORTS:
+        if (member == name and len(data) == size and data.startswith(b'!<arch>\n')
+                and digest(data) == checksum):
+            return review_id
+    return None
+
+
+REVIEWED_WINDOWS_IMPORT_METADATA = (
+    ('windows_aarch64_gnullvm-0.42.2/lib/libwindows.a', 3251098,
+     'cb06d181b0a09e82c0a1378b78ccc23041755c76dc63bd03dd3d459b2e2fc45d',
+     'windows_aarch64_gnullvm-0.42.2-metadata'),
+    ('windows_x86_64_gnullvm-0.42.2/lib/libwindows.a', 3251098,
+     '6472b8452f8b46a3697e66edc9084a1aa2f885503292954fef327315ed6623ec',
+     'windows_x86_64_gnullvm-0.42.2-metadata'),
+    ('windows_aarch64_msvc-0.42.2/lib/windows.lib', 4364330,
+     'd9d9823d0b8507a4144cb800c815ef8495e2dac7a36a4a70306bc925c85496b1',
+     'windows_aarch64_msvc-0.42.2-metadata'),
+    ('windows_x86_64_msvc-0.42.2/lib/windows.lib', 4364330,
+     'beb99c19321d38566041c5138af6d02b27a5b1ba8a251a073715fba2ad8c92a6',
+     'windows_x86_64_msvc-0.42.2-metadata'),
+    ('windows_i686_msvc-0.42.2/lib/windows.lib', 4653282,
+     '4228aed5db35e1305ccdbdb767e7646bfdd047c4e710fffd29e1e56c1e1e000b',
+     'windows_i686_msvc-0.42.2-metadata'),
+)
+
+
+def reviewed_windows_import_metadata(path, data):
+    """Exact metadata-only reviews in windows-target-import-metadata.json.
+
+    Complete AR/COFF/import/CodeView structures and both linker indexes were
+    independently inspected. No executable sections, target loading or linking.
+    Other paths, hashes and binaries remain blocked.
+    """
+    member = path.rsplit('!', 1)[-1]
+    for name, size, checksum, review_id in REVIEWED_WINDOWS_IMPORT_METADATA:
+        if (member == name and len(data) == size and data.startswith(b'!<arch>\n')
+                and digest(data) == checksum):
+            return review_id
+    return None
+
+
 REVIEWED_WASM_BINARIES = (
     ('wry-0.57.1/examples/custom_protocol/wasm.wasm', 92,
      '2cb1a33779de77d7cc016d934f91262b0984ec695e1f8dda9ba3c33725f5ef1b',
@@ -3922,6 +3981,29 @@ def reviewed_diagnostic_text(path, raw):
     return None
 
 
+REVIEWED_ARCHIVE_CASE_ALIASES = (
+    ('static_vcruntime-3.0.0/README.md', 'static_vcruntime-3.0.0/Readme.md',
+     2498, 0o644, '45b9cf6dfd289cf7da6aa64fdc7a152c52cd779af7fa9fb0a1a5d5469bbaa9c2',
+     'static-vcruntime-3.0.0-identical-documentation'),
+)
+
+
+def reviewed_archive_case_alias(previous, current):
+    """Only a reviewed same-byte documentation pair; neither file is skipped.
+
+    Evidence: reviews/static-vcruntime-case-alias.json. Hashes and lengths of
+    BOTH members are checked before the case collision is accepted. Unknown
+    collisions, permissions, directories, changed bytes and traversal fail.
+    """
+    if previous[0] != 'file' or current[0] != 'file':
+        return None
+    for first, second, size, mode, checksum, review_id in REVIEWED_ARCHIVE_CASE_ALIASES:
+        if ({previous[1], current[1]} == {first, second}
+                and previous[2] == current[2] == mode):
+            return size, checksum, review_id
+    return None
+
+
 class Inspector:
     def __init__(self, engine=None, limits=None):
         self.engine = engine or load_engine()
@@ -4020,6 +4102,16 @@ class Inspector:
                 self.files_scanned += 1
                 self.exclusions.append({'path': path,
                     'reason': 'exact-native-import-review:gnu-winapi-0.4.0-20261114',
+                    'sha256': digest(data)})
+            elif (target_import_review := reviewed_windows_gnu_target_import(path, data)) is not None:
+                self.files_scanned += 1
+                self.exclusions.append({'path': path,
+                    'reason': 'exact-native-import-review:' + target_import_review,
+                    'sha256': digest(data)})
+            elif (metadata_review := reviewed_windows_import_metadata(path, data)) is not None:
+                self.files_scanned += 1
+                self.exclusions.append({'path': path,
+                    'reason': 'exact-native-import-metadata-review:' + metadata_review,
                     'sha256': digest(data)})
             elif (wasm_review := reviewed_wasm_binary(path, data)) is not None:
                 self.files_scanned += 1
@@ -4405,6 +4497,9 @@ class Inspector:
             return
         seen = {}
         content_digests = {}
+        content_lengths = {}
+        pending_case_aliases = {}
+        reviewed_case_collisions = set()
         # JVM entries are case-sensitive names, not an extracted portable
         # filesystem tree. Inspect BOTH A.class and a.class. Generic archives
         # retain their cross-platform ambiguity checks.
@@ -4417,7 +4512,15 @@ class Inspector:
             kind = 'directory' if directory else 'file'
             identity = (kind, normalized, mode)
             if canonical in seen and seen[canonical] != identity:
-                raise Incomplete('duplicate-archive-member')
+                previous = seen[canonical]
+                review = reviewed_archive_case_alias(previous, identity)
+                previous_path = path + '!' + previous[1]
+                if (review is None or canonical in reviewed_case_collisions
+                        or content_digests.get(previous_path) != review[1]
+                        or content_lengths.get(previous_path) != review[0]):
+                    raise Incomplete('duplicate-archive-member')
+                pending_case_aliases[path + '!' + normalized] = review
+                reviewed_case_collisions.add(canonical)
             parts = canonical.split('/')
             if any(seen.get('/'.join(parts[:n]), (None,))[0] == 'file' for n in range(1, len(parts))):
                 raise Incomplete('archive-file-directory-conflict')
@@ -4437,6 +4540,12 @@ class Inspector:
             if len(value) != size:
                 raise Incomplete('archive-member-length-mismatch')
             value_digest = digest(value)
+            case_review = pending_case_aliases.pop(name, None)
+            if case_review is not None:
+                if (size, value_digest) != case_review[:2]:
+                    raise Incomplete('reviewed-case-alias-content-mismatch')
+                self.exclusions.append({'path': name, 'sha256': value_digest,
+                                        'reason': 'reviewed-identical-case-alias:' + case_review[2]})
             if name in content_digests:
                 if content_digests[name] != value_digest:
                     raise Incomplete('duplicate-archive-member-content-mismatch')
@@ -4446,6 +4555,7 @@ class Inspector:
                 self.check_budget()
                 return
             content_digests[name] = value_digest
+            content_lengths[name] = size
             self.content(name, value, depth)
         try:
             if (raw.startswith(b'\x1f\x8b')
