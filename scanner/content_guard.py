@@ -3657,6 +3657,62 @@ def reviewed_gnu_import_code(path, data):
     return review.hexdigest() in REVIEWED_GNU_IMPORT_BINDINGS
 
 
+REVIEWED_WASM_BINARIES = (
+    ('wry-0.57.1/examples/custom_protocol/wasm.wasm', 92,
+     '2cb1a33779de77d7cc016d934f91262b0984ec695e1f8dda9ba3c33725f5ef1b',
+     'wry-0.57.1-constant42', 'core'),
+    ('wit-bindgen-0.57.1/src/rt/wit_bindgen_cabi_realloc.o', 251,
+     'f5bef0033f3baaada79949e9c8e506d1de1722259c24dc752d2084784317f8de',
+     'wit-bindgen-0.57.1-realloc-forwarder', 'core'),
+    ('wit-bindgen-0.57.1/src/rt/wit_bindgen_cabi_wasip3.o', 260,
+     '76a7b6bf1529c2657f0e7620a443db23294647b009916df1b3b55646879ef61a',
+     'wit-bindgen-0.57.1-task-pointer-swap', 'core'),
+    ('wit-bindgen-0.57.1/src/rt/libwit_bindgen_cabi.a', 858,
+     'a18a4de12821dd777e6003625cc33896984a91a55bbf03c70abc5675842c60c1',
+     'wit-bindgen-0.57.1-two-object-container', 'ar'),
+)
+
+
+def reviewed_wasm_binary(path, data):
+    """Exact complete-code/declaration reviews, never generic Wasm trust.
+
+    Evidence: reviews/wry-constant-wasm.json and wit-bindgen-wasm-runtime.json.
+    No inspected module/object was instantiated or run. All other binaries,
+    changed bytes/paths, advisories and lifecycle rules retain their blockers.
+    """
+    member = path.rsplit('!', 1)[-1]
+    headers = {'core': b'\0asm\x01\0\0\0', 'ar': b'!<arch>\n'}
+    for name, size, checksum, review_id, kind in REVIEWED_WASM_BINARIES:
+        if member != name or len(data) != size:
+            continue
+        header = headers.get(kind)
+        if header is not None and data.startswith(header) and digest(data) == checksum:
+            return review_id, kind
+    return None
+
+
+REVIEWED_ORDINAL_TEST_DLLS = (
+    ('libloading-0.7.4/tests/nagisa32.dll', 3072,
+     '5c69b2bd9c8a6ad04165c221075fc9fade1dd66ca697399ace528a5a62328e36',
+     'libloading-0.7.4-nagisa32-ordinal-test'),
+    ('libloading-0.7.4/tests/nagisa64.dll', 2560,
+     'e20b95e3036f3289421abd100760874d4f455afd33c3b5b64fec56b191f7d477',
+     'libloading-0.7.4-nagisa64-ordinal-test'),
+)
+
+
+def reviewed_ordinal_test_dll(path, data):
+    """Whole-file code/metadata reviews in libloading-ordinal-test-dlls.json.
+
+    No generic PE, import, signature or package trust. No DLL was loaded.
+    """
+    member = path.rsplit('!', 1)[-1]
+    for name, size, checksum, review_id in REVIEWED_ORDINAL_TEST_DLLS:
+        if member == name and len(data) == size and data.startswith(b'MZ') and digest(data) == checksum:
+            return review_id
+    return None
+
+
 def reviewed_native_code(path, data):
     """Exact code review, not a package-wide exemption or a signature trust rule.
 
@@ -3948,6 +4004,16 @@ class Inspector:
                 self.files_scanned += 1
                 self.exclusions.append({'path': path,
                     'reason': 'exact-native-import-review:gnu-winapi-0.4.0-20261114',
+                    'sha256': digest(data)})
+            elif (wasm_review := reviewed_wasm_binary(path, data)) is not None:
+                self.files_scanned += 1
+                self.exclusions.append({'path': path,
+                    'reason': 'exact-wasm-code-review:' + wasm_review[0],
+                    'sha256': digest(data)})
+            elif (ordinal_review := reviewed_ordinal_test_dll(path, data)) is not None:
+                self.files_scanned += 1
+                self.exclusions.append({'path': path,
+                    'reason': 'exact-native-code-review:' + ordinal_review,
                     'sha256': digest(data)})
             elif reviewed_native_code(path, data):
                 self.files_scanned += 1

@@ -1,0 +1,283 @@
+{
+  "schema": 1,
+  "package": "libloading",
+  "version": "0.7.4",
+  "archive_sha256": "b67380fd3b2fbe7527a606e18729d21c6f3951633d0500574c4dc22d2d638b9f",
+  "source_comparison": {
+    "member": "libloading-0.7.4/tests/windows.rs",
+    "sha256": "35584a46658b305cd539712d3ba3c21fe7a130fd693aa1389e4886a67625d532",
+    "review": "Tests describe and check exactly one ordinal-one export returning bunny. No C source for the DLLs is shipped; the complete executable instructions are independently decoded above."
+  },
+  "bindings": [
+    {
+      "member": "libloading-0.7.4/tests/nagisa32.dll",
+      "bytes": 3072,
+      "sha256": "5c69b2bd9c8a6ad04165c221075fc9fade1dd66ca697399ace528a5a62328e36",
+      "id": "libloading-0.7.4-nagisa32-ordinal-test",
+      "machine": "0x14c",
+      "pe_offset": 184,
+      "coff_flags": "0x2102",
+      "entry_rva": 4106,
+      "sections": [
+        {
+          "name": ".text",
+          "rva": 4096,
+          "virtual_bytes": 20,
+          "file_offset": 1024,
+          "file_bytes": 512,
+          "attributes": "0x60000020",
+          "zero_file_alignment_padding": true
+        },
+        {
+          "name": ".rdata",
+          "rva": 8192,
+          "virtual_bytes": 200,
+          "file_offset": 1536,
+          "file_bytes": 512,
+          "attributes": "0x40000040",
+          "zero_file_alignment_padding": true
+        },
+        {
+          "name": ".data",
+          "rva": 12288,
+          "virtual_bytes": 6,
+          "file_offset": 2048,
+          "file_bytes": 512,
+          "attributes": "0xc0000040",
+          "zero_file_alignment_padding": true
+        },
+        {
+          "name": ".reloc",
+          "rva": 16384,
+          "virtual_bytes": 12,
+          "file_offset": 2560,
+          "file_bytes": 512,
+          "attributes": "0x42000040",
+          "zero_file_alignment_padding": true
+        }
+      ],
+      "data_directories": [
+        {
+          "index": 0,
+          "rva": 8224,
+          "bytes": 72
+        },
+        {
+          "index": 5,
+          "rva": 16384,
+          "bytes": 12
+        },
+        {
+          "index": 6,
+          "rva": 8192,
+          "bytes": 28
+        }
+      ],
+      "exports": {
+        "ordinal_base": 1,
+        "functions": 1,
+        "names": [
+          "windows"
+        ],
+        "function_rva": 4096,
+        "forwarders": false
+      },
+      "debug": {
+        "type": 13,
+        "bytes": 96,
+        "entries": [
+          {
+            "rva": 4096,
+            "bytes": 20,
+            "name": ".text$mn"
+          },
+          {
+            "rva": 8192,
+            "bytes": 32,
+            "name": ".rdata"
+          },
+          {
+            "rva": 8224,
+            "bytes": 72,
+            "name": ".edata"
+          },
+          {
+            "rva": 8296,
+            "bytes": 96,
+            "name": ".rdata$zzzdbg"
+          },
+          {
+            "rva": 12288,
+            "bytes": 6,
+            "name": ".data"
+          }
+        ]
+      },
+      "padding_review": "All file-alignment and header padding bytes are zero; no overlay, certificate table, extra section or symbols.",
+      "data": "Six bytes: ASCII bunny followed by NUL.",
+      "code": [
+        {
+          "rva": 4096,
+          "bytes": 10,
+          "instructions": [
+            "push ebp",
+            "mov ebp, esp",
+            "mov eax, image-base + 0x3000",
+            "pop ebp",
+            "ret"
+          ]
+        },
+        {
+          "rva": 4106,
+          "bytes": 10,
+          "instructions": [
+            "push ebp",
+            "mov ebp, esp",
+            "xor eax, eax",
+            "inc eax",
+            "pop ebp",
+            "ret 12"
+          ]
+        }
+      ],
+      "relocations": "One HIGHLOW relocation at RVA 0x1004 adjusts the exported function pointer literal; one ABSOLUTE padding entry. Single 12-byte block for page RVA 0x1000; no trailing records."
+    },
+    {
+      "member": "libloading-0.7.4/tests/nagisa64.dll",
+      "bytes": 2560,
+      "sha256": "e20b95e3036f3289421abd100760874d4f455afd33c3b5b64fec56b191f7d477",
+      "id": "libloading-0.7.4-nagisa64-ordinal-test",
+      "machine": "0x8664",
+      "pe_offset": 184,
+      "coff_flags": "0x2022",
+      "entry_rva": 4112,
+      "sections": [
+        {
+          "name": ".text",
+          "rva": 4096,
+          "virtual_bytes": 36,
+          "file_offset": 1024,
+          "file_bytes": 512,
+          "attributes": "0x60000020",
+          "zero_file_alignment_padding": true
+        },
+        {
+          "name": ".rdata",
+          "rva": 8192,
+          "virtual_bytes": 200,
+          "file_offset": 1536,
+          "file_bytes": 512,
+          "attributes": "0x40000040",
+          "zero_file_alignment_padding": true
+        },
+        {
+          "name": ".data",
+          "rva": 12288,
+          "virtual_bytes": 6,
+          "file_offset": 2048,
+          "file_bytes": 512,
+          "attributes": "0xc0000040",
+          "zero_file_alignment_padding": true
+        }
+      ],
+      "data_directories": [
+        {
+          "index": 0,
+          "rva": 8224,
+          "bytes": 72
+        },
+        {
+          "index": 6,
+          "rva": 8192,
+          "bytes": 28
+        }
+      ],
+      "exports": {
+        "ordinal_base": 1,
+        "functions": 1,
+        "names": [
+          "windows"
+        ],
+        "function_rva": 4096,
+        "forwarders": false
+      },
+      "debug": {
+        "type": 13,
+        "bytes": 96,
+        "entries": [
+          {
+            "rva": 4096,
+            "bytes": 36,
+            "name": ".text$mn"
+          },
+          {
+            "rva": 8192,
+            "bytes": 32,
+            "name": ".rdata"
+          },
+          {
+            "rva": 8224,
+            "bytes": 72,
+            "name": ".edata"
+          },
+          {
+            "rva": 8296,
+            "bytes": 96,
+            "name": ".rdata$zzzdbg"
+          },
+          {
+            "rva": 12288,
+            "bytes": 6,
+            "name": ".data"
+          }
+        ]
+      },
+      "padding_review": "All file-alignment and header padding bytes are zero; no overlay, certificate table, extra section or symbols.",
+      "data": "Six bytes: ASCII bunny followed by NUL.",
+      "code": [
+        {
+          "rva": 4096,
+          "bytes": 8,
+          "instructions": [
+            "lea rax, [rip + 0x1ff9] (RVA 0x3000)",
+            "ret"
+          ]
+        },
+        {
+          "rva": 4104,
+          "bytes": 8,
+          "instructions": [
+            "int3 alignment padding, eight bytes, unreachable from either defined entry"
+          ]
+        },
+        {
+          "rva": 4112,
+          "bytes": 20,
+          "instructions": [
+            "mov [rsp + 0x18], r8",
+            "mov [rsp + 0x10], edx",
+            "mov [rsp + 0x08], rcx",
+            "mov eax, 1",
+            "ret"
+          ]
+        }
+      ],
+      "relocations": "None; exported function uses RIP-relative addressing."
+    }
+  ],
+  "target_executed": false,
+  "scope": "Only the exact two member paths, sizes and whole-file hashes. No generic PE, signed publisher, package or execution trust.",
+  "common_review": {
+    "dos": "Both have the same conventional 64-byte MZ header and 14-byte DOS code stub: push cs; pop ds; mov dx,14; mov ah,9; int 21h; mov ax,0x4c01; int 21h. This prints the embedded fixed DOS incompatibility message and exits with code one under DOS. It is not the Windows entry point.",
+    "rich": "The pre-PE bytes contain the conventional Microsoft Rich build metadata and zero padding; not mapped as executable code.",
+    "capabilities": "Windows code has no imports, dynamic loading, filesystem, network, credential access, processes or persistence. The export returns a pointer to fixed data; DllMain returns TRUE. The x64 entry saves its three arguments in caller-provided home slots. No TLS callbacks, load-config callbacks, resource scripts, exception handlers or delay-imports.",
+    "permissions": "Code is read/execute; data read/write; read-only metadata is non-executable. No writable executable section."
+  },
+  "limitations": [
+    "This is static whole-file review, not approval to load or run the DLLs.",
+    "The legacy DOS stub performs fixed console output and process termination under DOS; no assertion of zero IO for that separate entry point.",
+    "No original binary or encoded binary is included in this report.",
+    "Host loader/engine vulnerabilities and other package code are not cleared.",
+    "Any changed bytes, size or path require new review."
+  ]
+}

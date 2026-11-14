@@ -1,0 +1,82 @@
+{
+  "schema": 1,
+  "id": "wry-0.57.1-constant42",
+  "package": "wry",
+  "version": "0.57.1",
+  "member": "wry-0.57.1/examples/custom_protocol/wasm.wasm",
+  "bytes": 92,
+  "sha256": "2cb1a33779de77d7cc016d934f91262b0984ec695e1f8dda9ba3c33725f5ef1b",
+  "archive_sha256": "759c50ddad0ef9913bb5496cb9d509a50433a3b78cb0238d61105526589cf0e9",
+  "target_executed": false,
+  "scope": "This exact member/path/size/hash only. No generic Wasm, package, advisory, installation or execution approval.",
+  "format": "WebAssembly core version 1. All section-size fields use legal padded unsigned LEB32 values; the complete module ends at offset 92.",
+  "sections": [
+    {
+      "offset": 8,
+      "id": 1,
+      "payload_offset": 14,
+      "payload_bytes": 5,
+      "end_offset": 19,
+      "review": "One function type: no parameters, one i32 result."
+    },
+    {
+      "offset": 19,
+      "id": 3,
+      "payload_offset": 25,
+      "payload_bytes": 2,
+      "end_offset": 27,
+      "review": "One function with type index zero."
+    },
+    {
+      "offset": 27,
+      "id": 4,
+      "payload_offset": 33,
+      "payload_bytes": 4,
+      "end_offset": 37,
+      "review": "One funcref table with minimum zero; no elements."
+    },
+    {
+      "offset": 37,
+      "id": 5,
+      "payload_offset": 43,
+      "payload_bytes": 3,
+      "end_offset": 46,
+      "review": "One memory with minimum one zero-initialized 64 KiB page; no declared maximum."
+    },
+    {
+      "offset": 46,
+      "id": 6,
+      "payload_offset": 52,
+      "payload_bytes": 1,
+      "end_offset": 53,
+      "review": "Zero globals."
+    },
+    {
+      "offset": 53,
+      "id": 7,
+      "payload_offset": 59,
+      "payload_bytes": 17,
+      "end_offset": 76,
+      "review": "Exports memory at index zero and main at function index zero."
+    },
+    {
+      "offset": 76,
+      "id": 10,
+      "payload_offset": 82,
+      "payload_bytes": 10,
+      "end_offset": 92,
+      "review": "One four-byte function body: zero locals, i32.const 42, end. No calls, loads/stores, growth, branches or other instructions."
+    }
+  ],
+  "absent": "No imports, start function, data/element segments, custom sections, nested modules or trailing bytes. The entire executable body returns the constant 42.",
+  "semantics": "Instantiation declares an empty function-reference table and one initially zeroed memory page. Calling main returns i32 42. There are no host calls, networking, filesystem, credentials, subprocess or persistence operations in the module.",
+  "sources": [
+    "https://webassembly.github.io/spec/core/binary/values.html",
+    "https://webassembly.github.io/spec/core/binary/instructions.html"
+  ],
+  "limitations": [
+    "Review does not vouch for host engine vulnerabilities, arbitrary host manipulation of exported memory or unbounded host-driven growth. The module itself has no grow instruction.",
+    "Original binary is not committed, encoded into the repository or executed. Review records hashes and complete section/code interpretation only.",
+    "Any changed byte/path or other module retains its native-code gap."
+  ]
+}
