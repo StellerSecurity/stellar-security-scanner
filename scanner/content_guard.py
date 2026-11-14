@@ -3682,6 +3682,40 @@ def reviewed_windows_gnu_target_import(path, data):
     return None
 
 
+REVIEWED_WINDOWS_IMPORT_METADATA = (
+    ('windows_aarch64_gnullvm-0.42.2/lib/libwindows.a', 3251098,
+     'cb06d181b0a09e82c0a1378b78ccc23041755c76dc63bd03dd3d459b2e2fc45d',
+     'windows_aarch64_gnullvm-0.42.2-metadata'),
+    ('windows_x86_64_gnullvm-0.42.2/lib/libwindows.a', 3251098,
+     '6472b8452f8b46a3697e66edc9084a1aa2f885503292954fef327315ed6623ec',
+     'windows_x86_64_gnullvm-0.42.2-metadata'),
+    ('windows_aarch64_msvc-0.42.2/lib/windows.lib', 4364330,
+     'd9d9823d0b8507a4144cb800c815ef8495e2dac7a36a4a70306bc925c85496b1',
+     'windows_aarch64_msvc-0.42.2-metadata'),
+    ('windows_x86_64_msvc-0.42.2/lib/windows.lib', 4364330,
+     'beb99c19321d38566041c5138af6d02b27a5b1ba8a251a073715fba2ad8c92a6',
+     'windows_x86_64_msvc-0.42.2-metadata'),
+    ('windows_i686_msvc-0.42.2/lib/windows.lib', 4653282,
+     '4228aed5db35e1305ccdbdb767e7646bfdd047c4e710fffd29e1e56c1e1e000b',
+     'windows_i686_msvc-0.42.2-metadata'),
+)
+
+
+def reviewed_windows_import_metadata(path, data):
+    """Exact metadata-only reviews in windows-target-import-metadata.json.
+
+    Complete AR/COFF/import/CodeView structures and both linker indexes were
+    independently inspected. No executable sections, target loading or linking.
+    Other paths, hashes and binaries remain blocked.
+    """
+    member = path.rsplit('!', 1)[-1]
+    for name, size, checksum, review_id in REVIEWED_WINDOWS_IMPORT_METADATA:
+        if (member == name and len(data) == size and data.startswith(b'!<arch>\n')
+                and digest(data) == checksum):
+            return review_id
+    return None
+
+
 REVIEWED_WASM_BINARIES = (
     ('wry-0.57.1/examples/custom_protocol/wasm.wasm', 92,
      '2cb1a33779de77d7cc016d934f91262b0984ec695e1f8dda9ba3c33725f5ef1b',
@@ -4050,6 +4084,11 @@ class Inspector:
                 self.files_scanned += 1
                 self.exclusions.append({'path': path,
                     'reason': 'exact-native-import-review:' + target_import_review,
+                    'sha256': digest(data)})
+            elif (metadata_review := reviewed_windows_import_metadata(path, data)) is not None:
+                self.files_scanned += 1
+                self.exclusions.append({'path': path,
+                    'reason': 'exact-native-import-metadata-review:' + metadata_review,
                     'sha256': digest(data)})
             elif (wasm_review := reviewed_wasm_binary(path, data)) is not None:
                 self.files_scanned += 1
