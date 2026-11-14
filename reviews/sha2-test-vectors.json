@@ -1,0 +1,143 @@
+{
+  "schema": 1,
+  "date": "2026-11-14",
+  "package": "sha2",
+  "version": "0.10.9",
+  "upstream": "https://github.com/RustCrypto/hashes",
+  "scope": "Six exact test data fixtures only; not a blobby-format, package, advisory, native-code or execution exemption.",
+  "review": "Every byte was reconstructed independently using standard-library hashes of three known literal inputs. The complete file is a zero deduplication-count byte followed by six literal length tags and their input/digest bytes. Tags below 128 use one byte; the 128 tag uses 0x80 0x00. No backreferences, trailing bytes or unaccounted data exist. All 18 digests match. Each exact member path, size and SHA-256 is required before reconstructing and scanning a JSON text representation of every input and digest.",
+  "reviews": [
+    {
+      "algorithm": "sha224",
+      "member": "sha2-0.10.9/tests/data/sha224.blb",
+      "bytes": 178,
+      "sha256": "59b185972521af418fd49a079de3d5f5bed74cd76d80473da51cab3faee6c7d0",
+      "archive_sha256": "a7507d819769d01a365ab707794a4084392c824f54a7a6a7862f8c3d0892b283",
+      "vectors": [
+        {
+          "input": "",
+          "digest": "d14a028c2a3a2bc9476102bb288234c415a2b01f828ea62ac5b3e42f"
+        },
+        {
+          "input": "The quick brown fox jumps over the lazy dog",
+          "digest": "730e109bd7a8a32b1cb9d9a09aa2325d2430587ddbc0c38bad911525"
+        },
+        {
+          "input": "The quick brown fox jumps over the lazy dog.",
+          "digest": "619cba8e8e05826e9b8c519c0a5c68f4fb653e8a3d8aa04bb2c8cd4c"
+        }
+      ]
+    },
+    {
+      "algorithm": "sha256",
+      "member": "sha2-0.10.9/tests/data/sha256.blb",
+      "bytes": 190,
+      "sha256": "bb096934bb7e43e41ce143d211397afca6fcdfe243a39811688ea31aae6f800a",
+      "archive_sha256": "a7507d819769d01a365ab707794a4084392c824f54a7a6a7862f8c3d0892b283",
+      "vectors": [
+        {
+          "input": "",
+          "digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "input": "The quick brown fox jumps over the lazy dog",
+          "digest": "d7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592"
+        },
+        {
+          "input": "The quick brown fox jumps over the lazy dog.",
+          "digest": "ef537f25c895bfa782526529a9b63d97aa631564d5d789c2b765448c8635fb6c"
+        }
+      ]
+    },
+    {
+      "algorithm": "sha384",
+      "member": "sha2-0.10.9/tests/data/sha384.blb",
+      "bytes": 238,
+      "sha256": "e8fe66c07ba336fae2c0aa4c87cb768f41bd4ed318ee1a36fbde0a68581946ec",
+      "archive_sha256": "a7507d819769d01a365ab707794a4084392c824f54a7a6a7862f8c3d0892b283",
+      "vectors": [
+        {
+          "input": "",
+          "digest": "38b060a751ac96384cd9327eb1b1e36a21fdb71114be07434c0cc7bf63f6e1da274edebfe76f65fbd51ad2f14898b95b"
+        },
+        {
+          "input": "The quick brown fox jumps over the lazy dog",
+          "digest": "ca737f1014a48f4c0b6dd43cb177b0afd9e5169367544c494011e3317dbf9a509cb1e5dc1e85a941bbee3d7f2afbc9b1"
+        },
+        {
+          "input": "The quick brown fox jumps over the lazy dog.",
+          "digest": "ed892481d8272ca6df370bf706e4d7bc1b5739fa2177aae6c50e946678718fc67a7af2819a021c2fc34e91bdb63409d7"
+        }
+      ]
+    },
+    {
+      "algorithm": "sha512",
+      "member": "sha2-0.10.9/tests/data/sha512.blb",
+      "bytes": 289,
+      "sha256": "1cc0e86571f2f4e3bc81438ce7b6c25c118d2d7437355240113f59cbb782c8d6",
+      "archive_sha256": "a7507d819769d01a365ab707794a4084392c824f54a7a6a7862f8c3d0892b283",
+      "vectors": [
+        {
+          "input": "",
+          "digest": "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"
+        },
+        {
+          "input": "The quick brown fox jumps over the lazy dog",
+          "digest": "07e547d9586f6a73f73fbac0435ed76951218fb7d0c8d788a309d785436bbb642e93a252a954f23912547d1e8a3b5ed6e1bfd7097821233fa0538f3db854fee6"
+        },
+        {
+          "input": "The quick brown fox jumps over the lazy dog.",
+          "digest": "91ea1245f20d46ae9a037a989f54f1f790f0a47607eeb8a14d12890cea77a1bbc6c7ed9cf205e67b7f2b8fd4c7dfd3a7a8617e45f3c463d481c7e586c39ac1ed"
+        }
+      ]
+    },
+    {
+      "algorithm": "sha512_224",
+      "member": "sha2-0.10.9/tests/data/sha512_224.blb",
+      "bytes": 178,
+      "sha256": "b02dd46741db1034112e0888d0cdb233a21b9a82c319456f806bbaae49acf440",
+      "archive_sha256": "a7507d819769d01a365ab707794a4084392c824f54a7a6a7862f8c3d0892b283",
+      "vectors": [
+        {
+          "input": "",
+          "digest": "6ed0dd02806fa89e25de060c19d3ac86cabb87d6a0ddd05c333b84f4"
+        },
+        {
+          "input": "The quick brown fox jumps over the lazy dog",
+          "digest": "944cd2847fb54558d4775db0485a50003111c8e5daa63fe722c6aa37"
+        },
+        {
+          "input": "The quick brown fox jumps over the lazy dog.",
+          "digest": "6d6a9279495ec4061769752e7ff9c68b6b0b3c5a281b7917ce0572de"
+        }
+      ]
+    },
+    {
+      "algorithm": "sha512_256",
+      "member": "sha2-0.10.9/tests/data/sha512_256.blb",
+      "bytes": 190,
+      "sha256": "95195b758e362d92ff0cebebac4cca696512ea5811b635243bc70e29164e5786",
+      "archive_sha256": "a7507d819769d01a365ab707794a4084392c824f54a7a6a7862f8c3d0892b283",
+      "vectors": [
+        {
+          "input": "",
+          "digest": "c672b8d1ef56ed28ab87c3622c5114069bdd3ad7b8f9737498d0c01ecef0967a"
+        },
+        {
+          "input": "The quick brown fox jumps over the lazy dog",
+          "digest": "dd9d67b371519c339ed8dbd25af90e976a1eeefd4ad3d889005e532fc5bef04d"
+        },
+        {
+          "input": "The quick brown fox jumps over the lazy dog.",
+          "digest": "1546741840f8a492b959d9b8b2344b9b0eb51b004bba35c0aebaac86d45264c3"
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Changed bytes or paths and other .blb files remain gaps.",
+    "Missing host hash algorithms fail closed.",
+    "This does not assess the sha2 implementation, generated machine code or the rest of its package.",
+    "No new download, target execution or binary upload was performed."
+  ]
+}
