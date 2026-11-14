@@ -62,12 +62,12 @@ class ImportEvidenceTests(unittest.TestCase):
     def test_every_runtime_binding_has_exact_static_review_evidence(self):
         evidence = json.loads((ROOT / 'reviews/gnu-winapi-imports.json').read_text())
         rows = evidence['bindings']
-        self.assertEqual(len(rows), 2774)
+        self.assertEqual(len(rows), 2780)
         self.assertEqual({r['binding_sha256'] for r in rows}, guard.REVIEWED_GNU_IMPORT_BINDINGS)
         self.assertEqual(len({r['path'] for r in rows}), len(rows))
         self.assertEqual(evidence['review_reader_sha256'], hashlib.sha256(
             (ROOT / 'tools/review_gnu_import_archives.py').read_bytes()).hexdigest())
-        self.assertEqual(len(evidence['still_unreviewed']), 6)
+        self.assertEqual(len(evidence['still_unreviewed']), 0)
         for row in rows:
             self.assertRegex(row['sha256'], r'^[0-9a-f]{64}$')
             self.assertRegex(row['binding_sha256'], r'^[0-9a-f]{64}$')

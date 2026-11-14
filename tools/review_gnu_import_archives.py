@@ -113,7 +113,11 @@ def coff(raw, expected_machine):
             else:
                 require(attributes == 0xc0300040, 'DLL name flags')
                 dll = cstring(data)
-                require(dll.lower().endswith(('.dll', '.drv', '.cpl')) and '/' not in dll and '\\' not in dll, 'DLL basename')
+                # These three Windows modules have non-DLL extensions but are
+                # documented import targets. This does not run/enable them.
+                known_non_dll = dll.lower() in ('ksproxy.ax', 'netsh.exe', 'ntvdm.exe')
+                require((dll.lower().endswith(('.dll', '.drv', '.cpl')) or known_non_dll)
+                        and '/' not in dll and '\\' not in dll, 'DLL basename')
                 names.append(dll)
         elif name == '.idata$6':
             require(attributes == 0xc0200000 and len(data) >= 3 and not relocs, 'import hint/name flags')

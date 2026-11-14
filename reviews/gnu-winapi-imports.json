@@ -1,14 +1,14 @@
 {
   "schema": 1,
   "id": "gnu-winapi-0.4.0-20261114",
-  "scope": "Only 2774 exact archive members; each binding includes complete path, byte length and every byte. No package, other-platform, advisory, lifecycle, installation or execution exemption.",
-  "review_reader_sha256": "878bd15e0d5aeb0b808aa1aedc6cafcb0f9203a4067d7c2293b8d5bd5b33179d",
+  "scope": "Only 2780 exact archive members; each binding includes complete path, byte length and every byte. No package, other-platform, advisory, lifecycle, installation or execution exemption.",
+  "review_reader_sha256": "da6782828be194d2d7003c1e3d22752a9e685c09674d0a9991a48d965cfbe6d0",
   "review": "Every AR member, linker symbol index, COFF section, symbol/auxiliary entry, relocation and covered byte was examined with the published bounded first-party reader. Only ordinary GNU import descriptors, zero import-table slots, ASCII names, a fixed fake-file debug auxiliary, and the two explicitly reviewed x86/x64 jump-stub forms are accepted. Each nonempty text section is exactly ff 25 00 00 00 00 90 90; its only relocation at offset 2 targets the same object import slot. This is an indirect jump through that slot followed by unreachable NOP padding, not hidden initialization, downloads, registry access or arbitrary extra machine code. .data/.bss must be empty; unexpected constructors/directives/sections, unaccounted nonzero bytes, overlapping ranges, aliasing linker indexes, nonimport relocation targets and unexplained instructions fail.",
   "counts": {
-    "files": 2774,
-    "objects": 125665,
-    "jump_stubs": 120117,
-    "symbol_records": 1287164
+    "files": 2780,
+    "objects": 125913,
+    "jump_stubs": 120353,
+    "symbol_records": 1289710
   },
   "bindings": [
     {
@@ -1240,6 +1240,16 @@
       "members": 1311,
       "jumps": 1309,
       "symbols": 13121
+    },
+    {
+      "path": "winapi-i686-pc-windows-gnu-0.4.0/lib/libwinapi_ksproxy.a",
+      "bytes": 6644,
+      "sha256": "542c343abc37f44ed008029b6225a45a450dea4dd44914e2f3f31b2b776d42af",
+      "binding_sha256": "94969f9e8c4713c30a9cdfc34f5254b2a3aa6466306ef4391e10d96b01cef643",
+      "archive_sha256": "ac3b87c63620426dd9b991e5ce0329eff545bccbbb34f3be09ff6fb6ab51b7b6",
+      "members": 8,
+      "jumps": 6,
+      "symbols": 91
     },
     {
       "path": "winapi-i686-pc-windows-gnu-0.4.0/lib/libwinapi_ksuser.a",
@@ -3452,6 +3462,16 @@
       "symbols": 2151
     },
     {
+      "path": "winapi-i686-pc-windows-gnu-0.4.0/lib/libwinapi_netsh.a",
+      "bytes": 19686,
+      "sha256": "93011663fee375bd21bf79955495acea760ce0982da464983ce741afc94563ba",
+      "binding_sha256": "e7333437ced6cdcfc6cf2cf2475135c26f350dbd6987afa51bfa58be34200af3",
+      "archive_sha256": "ac3b87c63620426dd9b991e5ce0329eff545bccbbb34f3be09ff6fb6ab51b7b6",
+      "members": 25,
+      "jumps": 23,
+      "symbols": 261
+    },
+    {
       "path": "winapi-i686-pc-windows-gnu-0.4.0/lib/libwinapi_newdev.a",
       "bytes": 20704,
       "sha256": "4b4c90a7ac3abb42db40b26a4c02b4eb58ae62ff3cd58af1cc15d4349a95bdbb",
@@ -3570,6 +3590,16 @@
       "members": 15,
       "jumps": 13,
       "symbols": 161
+    },
+    {
+      "path": "winapi-i686-pc-windows-gnu-0.4.0/lib/libwinapi_ntvdm.a",
+      "bytes": 119370,
+      "sha256": "bd6d965ab94264566b978b6e1b814ad077a4ae79cb4c0c48c4b2f4e7cfcb7d4c",
+      "binding_sha256": "3a3b20d4b537c7cf09581f9c9a1912d30fe801a54a2ecc6f87a571598e0719cb",
+      "archive_sha256": "ac3b87c63620426dd9b991e5ce0329eff545bccbbb34f3be09ff6fb6ab51b7b6",
+      "members": 157,
+      "jumps": 155,
+      "symbols": 1581
     },
     {
       "path": "winapi-i686-pc-windows-gnu-0.4.0/lib/libwinapi_odbc32.a",
@@ -14952,6 +14982,16 @@
       "symbols": 13381
     },
     {
+      "path": "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_ksproxy.a",
+      "bytes": 6626,
+      "sha256": "1e5bf114bcab137b6c40b779509fe0db92b31456ec6a5f52df14d029ff53047e",
+      "binding_sha256": "c8c164c058721bcd84386e77f2c157febc490292d4b07db870b2f124c4ce25b0",
+      "archive_sha256": "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f",
+      "members": 8,
+      "jumps": 6,
+      "symbols": 91
+    },
+    {
       "path": "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_ksuser.a",
       "bytes": 7980,
       "sha256": "c0e457ec782e0ee328b26e84d4aadcec7a4764eff69311788820352b11a4a340",
@@ -17302,6 +17342,16 @@
       "symbols": 1631
     },
     {
+      "path": "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_nanosrv-netsh.a",
+      "bytes": 19890,
+      "sha256": "508ed31e1dcff117a481e22b1a9cf715603e39797b1be841c285fac1242bb111",
+      "binding_sha256": "5bdde08fdc215fc761d1706a9807f4ae2afcdf29137689fcf5836f379bda5385",
+      "archive_sha256": "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f",
+      "members": 25,
+      "jumps": 23,
+      "symbols": 261
+    },
+    {
       "path": "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_nanosrv-ntdsapi.a",
       "bytes": 97814,
       "sha256": "da6b41c87a140aa5955e12146450c06ee69def0b4403df08fff03ab360691f03",
@@ -17490,6 +17540,16 @@
       "members": 214,
       "jumps": 212,
       "symbols": 2151
+    },
+    {
+      "path": "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_netsh.a",
+      "bytes": 19666,
+      "sha256": "72aaf2d1b4ce73e1b61d60fc82c7e9e4f2d02767bf25981012f3359ca7cf2114",
+      "binding_sha256": "9c7c5b148b508d00d8d3e5b2de516297b879f559956cdf3cc7c5137d2819c090",
+      "archive_sha256": "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f",
+      "members": 25,
+      "jumps": 23,
+      "symbols": 261
     },
     {
       "path": "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_newdev.a",
@@ -27752,36 +27812,17 @@
       "symbols": 51
     }
   ],
-  "still_unreviewed": [
-    {
-      "path": "winapi-i686-pc-windows-gnu-0.4.0/lib/libwinapi_ksproxy.a",
-      "reason": "DLL basename"
-    },
-    {
-      "path": "winapi-i686-pc-windows-gnu-0.4.0/lib/libwinapi_netsh.a",
-      "reason": "DLL basename"
-    },
-    {
-      "path": "winapi-i686-pc-windows-gnu-0.4.0/lib/libwinapi_ntvdm.a",
-      "reason": "DLL basename"
-    },
-    {
-      "path": "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_ksproxy.a",
-      "reason": "DLL basename"
-    },
-    {
-      "path": "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_nanosrv-netsh.a",
-      "reason": "DLL basename"
-    },
-    {
-      "path": "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_netsh.a",
-      "reason": "DLL basename"
-    }
-  ],
+  "still_unreviewed": [],
   "limitations": [
     "These import stubs delegate to OS DLL exports chosen by callers; trust in resolved DLLs and runtime library search remains a platform/application concern. This is not a guarantee of safe arbitrary caller behavior or OS libraries.",
     "No runtime execution or new package download was performed. Existing explicit execution approvals remain necessary.",
-    "Six differently named import targets and every other native file remain blocked. No inference is made from publisher, platform being unused, package name alone, or absence of advisories.",
-    "The runtime scanner recognizes only the recorded cryptographic bindings; it does not generically approve import-looking archives. The independent reader and adversarial tests are shipped for reproducible static review."
-  ]
+    "Every native file outside these exact reviewed bindings remains blocked. No inference is made from publisher, platform being unused, package name alone, or absence of advisories.",
+    "The runtime scanner recognizes only the recorded cryptographic bindings; it does not generically approve import-looking archives. The independent reader and adversarial tests are shipped for reproducible static review.",
+    "The non-DLL names are documented module import names, not subprocess commands. This review does not enable or recommend NTVDM, register Netsh/KS proxy helpers, or authorize any OS binary execution."
+  ],
+  "documented_non_dll_targets": {
+    "ksproxy.ax": "https://learn.microsoft.com/en-us/windows-hardware/drivers/stream/kernel-streaming-proxy-plug-ins-design-guide",
+    "netsh.exe": "https://learn.microsoft.com/en-us/windows/win32/api/netsh/nf-netsh-registerhelper",
+    "ntvdm.exe": "https://learn.microsoft.com/en-us/windows/compatibility/ntvdm-and-16-bit-app-support"
+  }
 }

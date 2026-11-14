@@ -64,6 +64,13 @@ class ImportReviewTests(unittest.TestCase):
         self.assertEqual(result['jumps'], 0)
         self.assertIn('KERNEL32.dll', result['names'])
 
+    def test_three_documented_non_dll_import_names_are_only_metadata(self):
+        for name in ('ksproxy.ax', 'NETSH.EXE', 'ntvdm.exe'):
+            value = object_bytes([('.idata$7', name.encode() + b'\0', 0xc0300040, [])], [('.idata$7', 0, 1, 3)])
+            result = review(archive(value), 0x8664)
+            self.assertEqual(result['jumps'], 0)
+            self.assertIn(name, result['names'])
+
     def test_changed_instructions_are_rejected(self):
         for value in (b'\xc3' + b'\0' * 7, b'\xe9' + b'\0' * 7,
                       b'\xff\x25\1\0\0\0\x90\x90', b'\xff\x25\0\0\0\0\x90\xcc'):
