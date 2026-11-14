@@ -3657,6 +3657,31 @@ def reviewed_gnu_import_code(path, data):
     return review.hexdigest() in REVIEWED_GNU_IMPORT_BINDINGS
 
 
+REVIEWED_WINDOWS_GNU_TARGET_IMPORTS = (
+    ('windows_i686_gnu-0.42.2/lib/libwindows.a', 11024176,
+     'f1e1da956456aa4892997a45b01ee9280f49aa34f5cc3eaa5a771137a475011e',
+     'windows_i686_gnu-0.42.2-imports'),
+    ('windows_x86_64_gnu-0.42.2/lib/libwindows.a', 10599654,
+     'bebaf61850eb1e9d5dc491d573df2c095eb3d6f5f7ef42de5099d9dc9518ce0b',
+     'windows_x86_64_gnu-0.42.2-imports'),
+)
+
+
+def reviewed_windows_gnu_target_import(path, data):
+    """Complete strict-reader evidence: reviews/windows-gnu-target-imports.json.
+
+    Every COFF object, instruction, relocation, symbol, index and byte range
+    was checked by review_gnu_import_archives.py. No target was executed.
+    Other formats, versions and changed bytes retain native-code gaps.
+    """
+    member = path.rsplit('!', 1)[-1]
+    for name, size, checksum, review_id in REVIEWED_WINDOWS_GNU_TARGET_IMPORTS:
+        if (member == name and len(data) == size and data.startswith(b'!<arch>\n')
+                and digest(data) == checksum):
+            return review_id
+    return None
+
+
 REVIEWED_WASM_BINARIES = (
     ('wry-0.57.1/examples/custom_protocol/wasm.wasm', 92,
      '2cb1a33779de77d7cc016d934f91262b0984ec695e1f8dda9ba3c33725f5ef1b',
@@ -4020,6 +4045,11 @@ class Inspector:
                 self.files_scanned += 1
                 self.exclusions.append({'path': path,
                     'reason': 'exact-native-import-review:gnu-winapi-0.4.0-20261114',
+                    'sha256': digest(data)})
+            elif (target_import_review := reviewed_windows_gnu_target_import(path, data)) is not None:
+                self.files_scanned += 1
+                self.exclusions.append({'path': path,
+                    'reason': 'exact-native-import-review:' + target_import_review,
                     'sha256': digest(data)})
             elif (wasm_review := reviewed_wasm_binary(path, data)) is not None:
                 self.files_scanned += 1

@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "bindings": [
+    {
+      "member": "windows_i686_gnu-0.42.2/lib/libwindows.a",
+      "bytes": 11024176,
+      "sha256": "f1e1da956456aa4892997a45b01ee9280f49aa34f5cc3eaa5a771137a475011e",
+      "package": "windows_i686_gnu",
+      "version": "0.42.2",
+      "archive_sha256": "c61d927d8da41da96a81f029489353e68739737d3beca43145c8afec9a31a84f",
+      "machine": "0x14c",
+      "review": {
+        "members": 17849,
+        "jumps": 17161,
+        "symbols": 89589
+      },
+      "metadata_names_sha256": "4b1324404bea953efa1a3d492ab5ec9e825e60d1eb08cbaea492f340ca90ebe0",
+      "id": "windows_i686_gnu-0.42.2-imports"
+    },
+    {
+      "member": "windows_x86_64_gnu-0.42.2/lib/libwindows.a",
+      "bytes": 10599654,
+      "sha256": "bebaf61850eb1e9d5dc491d573df2c095eb3d6f5f7ef42de5099d9dc9518ce0b",
+      "package": "windows_x86_64_gnu",
+      "version": "0.42.2",
+      "archive_sha256": "8de912b8b8feb55c064867cf047dda097f92d51efad5b491dfb98f6bbb70cb36",
+      "machine": "0x8664",
+      "review": {
+        "members": 17849,
+        "jumps": 17161,
+        "symbols": 72428
+      },
+      "metadata_names_sha256": "b9ddf7863911efa785f8680e9f0a131613fa96117346c438bac3b5e0e685a26b",
+      "id": "windows_x86_64_gnu-0.42.2-imports"
+    }
+  ],
+  "target_executed": false,
+  "review_reader_sha256": "da6782828be194d2d7003c1e3d22752a9e685c09674d0a9991a48d965cfbe6d0",
+  "scope": "Only two exact paths, lengths and whole-file hashes. No generic AR, COFF, package or publisher trust.",
+  "review": "The previously tested strict GNU reader validates every member header, linker index/name and defined symbol, complete COFF sections/symbols/auxiliaries, nonoverlap and zero padding, imports and all relocation records. The only executable bytes are canonical indirect IAT jump stubs followed by unreachable NOP padding. Each sole jump relocation resolves the corresponding import slot. No other code, constructor, hidden byte range, unknown section or trailing data passes.",
+  "limitations": [
+    "Import metadata does not vouch for the DLLs eventually loaded or for linker/loader vulnerabilities.",
+    "No original binary or encoded binary is committed.",
+    "Other windows-targets formats, changed bytes/paths, advisories, lifecycle and execution approval remain blocked."
+  ]
+}
