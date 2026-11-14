@@ -3691,6 +3691,28 @@ def reviewed_wasm_binary(path, data):
     return None
 
 
+REVIEWED_ORDINAL_TEST_DLLS = (
+    ('libloading-0.7.4/tests/nagisa32.dll', 3072,
+     '5c69b2bd9c8a6ad04165c221075fc9fade1dd66ca697399ace528a5a62328e36',
+     'libloading-0.7.4-nagisa32-ordinal-test'),
+    ('libloading-0.7.4/tests/nagisa64.dll', 2560,
+     'e20b95e3036f3289421abd100760874d4f455afd33c3b5b64fec56b191f7d477',
+     'libloading-0.7.4-nagisa64-ordinal-test'),
+)
+
+
+def reviewed_ordinal_test_dll(path, data):
+    """Whole-file code/metadata reviews in libloading-ordinal-test-dlls.json.
+
+    No generic PE, import, signature or package trust. No DLL was loaded.
+    """
+    member = path.rsplit('!', 1)[-1]
+    for name, size, checksum, review_id in REVIEWED_ORDINAL_TEST_DLLS:
+        if member == name and len(data) == size and data.startswith(b'MZ') and digest(data) == checksum:
+            return review_id
+    return None
+
+
 def reviewed_native_code(path, data):
     """Exact code review, not a package-wide exemption or a signature trust rule.
 
@@ -3987,6 +4009,11 @@ class Inspector:
                 self.files_scanned += 1
                 self.exclusions.append({'path': path,
                     'reason': 'exact-wasm-code-review:' + wasm_review[0],
+                    'sha256': digest(data)})
+            elif (ordinal_review := reviewed_ordinal_test_dll(path, data)) is not None:
+                self.files_scanned += 1
+                self.exclusions.append({'path': path,
+                    'reason': 'exact-native-code-review:' + ordinal_review,
                     'sha256': digest(data)})
             elif reviewed_native_code(path, data):
                 self.files_scanned += 1
