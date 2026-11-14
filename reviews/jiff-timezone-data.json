@@ -21790,7 +21790,7 @@
   "schema": 1,
   "member": "jiff-tzdb-0.1.9/concatenated-zoneinfo.dat",
   "archive_sha256": "fa8377070c6bae868759445e5a77f66d84f0b72f3a054bfb00e6d038b8282da7",
-  "review_reader_sha256": "6e70433fa318af1854633a991c29c12a5f99e259276fadfa844cb1f5fe09b1cc",
+  "review_reader_sha256": "2983119cbc45a558088891e5422cc95859f97f770484faa0537c25ab536e4ad5",
   "sources": [
     "https://www.rfc-editor.org/rfc/rfc9636.html"
   ],

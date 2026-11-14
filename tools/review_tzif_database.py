@@ -89,5 +89,3 @@ def review(raw):
         offset = close + 1
         rows.append(dict(offset=start,end_offset=offset,version=chr(version),sha256=hashlib.sha256(raw[start:offset]).hexdigest(),blocks=blocks,footer=footer))
     return dict(bytes=len(raw),sha256=hashlib.sha256(raw).hexdigest(),records=rows,record_count=len(rows),transition_count=total_transitions,target_executed=False,all_bytes_accounted_for=offset==len(raw))
-
-
