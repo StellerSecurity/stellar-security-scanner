@@ -1,0 +1,103 @@
+{
+  "rows": [
+    {
+      "package": "@tauri-apps/cli-win32-arm64-msvc",
+      "code_bytes": 8953248,
+      "zero_padding_bytes": 96,
+      "instructions": 2238312,
+      "unknown_rows": 260,
+      "syscall_rows": 26,
+      "unbacked_virtual_bytes": 0,
+      "target_executed": false,
+      "semantic_review_complete": false,
+      "native_code_cleared": false
+    },
+    {
+      "package": "@tauri-apps/cli-win32-ia32-msvc",
+      "code_bytes": 9670245,
+      "zero_padding_bytes": 411,
+      "instructions": 2725024,
+      "unknown_rows": 293,
+      "syscall_rows": 73,
+      "unbacked_virtual_bytes": 0,
+      "target_executed": false,
+      "semantic_review_complete": false,
+      "native_code_cleared": false
+    },
+    {
+      "package": "@tauri-apps/cli-win32-x64-msvc",
+      "code_bytes": 10547952,
+      "zero_padding_bytes": 272,
+      "instructions": 2426294,
+      "unknown_rows": 16,
+      "syscall_rows": 45,
+      "unbacked_virtual_bytes": 0,
+      "target_executed": false,
+      "semantic_review_complete": false,
+      "native_code_cleared": false
+    },
+    {
+      "package": "@rollup/rollup-win32-arm64-msvc",
+      "code_bytes": 1667844,
+      "zero_padding_bytes": 252,
+      "instructions": 416961,
+      "unknown_rows": 33,
+      "syscall_rows": 5,
+      "unbacked_virtual_bytes": 0,
+      "target_executed": false,
+      "semantic_review_complete": false,
+      "native_code_cleared": false
+    },
+    {
+      "package": "@rollup/rollup-win32-ia32-msvc",
+      "code_bytes": 1773693,
+      "zero_padding_bytes": 387,
+      "instructions": 518810,
+      "unknown_rows": 58,
+      "syscall_rows": 226,
+      "unbacked_virtual_bytes": 0,
+      "target_executed": false,
+      "semantic_review_complete": false,
+      "native_code_cleared": false
+    },
+    {
+      "package": "@rollup/rollup-win32-x64-gnu",
+      "code_bytes": 1728272,
+      "zero_padding_bytes": 240,
+      "instructions": 410905,
+      "unknown_rows": 0,
+      "syscall_rows": 224,
+      "unbacked_virtual_bytes": 0,
+      "target_executed": false,
+      "semantic_review_complete": false,
+      "native_code_cleared": false
+    },
+    {
+      "package": "@rollup/rollup-win32-x64-msvc",
+      "code_bytes": 1983152,
+      "zero_padding_bytes": 336,
+      "instructions": 520892,
+      "unknown_rows": 7,
+      "syscall_rows": 225,
+      "unbacked_virtual_bytes": 0,
+      "target_executed": false,
+      "semantic_review_complete": false,
+      "native_code_cleared": false
+    }
+  ],
+  "count": 7,
+  "total_code_bytes": 36324406,
+  "total_padding_bytes": 1994,
+  "target_executed": false,
+  "native_code_cleared": false,
+  "schema": 1,
+  "scope": "Static executable file-byte range and decoding evidence only; not loader, import, control-flow, source/native correspondence or malware clearance.",
+  "range_parser_sha256": "8248eaa5e0bd000a1444c99403900c33b616792f671e5123f43893b815dd69fa",
+  "tool_sha256": "dfc9b8179ea5e3af99064ac2b062d5237d09b5b92482f724b5ba98ca0dec9f55",
+  "inventory_sha256": "9bbf1b22deca951b43c540244e390a4bc7d82829e7402180c0cecbe900621d9c",
+  "per_process_seconds": 15,
+  "per_process_output_bytes": 16777216,
+  "third_party_binaries_uploaded": false,
+  "scanner_exception_added": false,
+  "specification": "https://learn.microsoft.com/en-us/windows/win32/debug/pe-format"
+}

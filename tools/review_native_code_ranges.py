@@ -2,12 +2,13 @@
 
 No subprocess, target loading, native-code clearance or execution authorization.
 Disassembled data can resemble instructions; complete byte coverage is evidence,
-not proof of program behavior. ELF loader metadata is explicitly unreviewed.
+not proof of program behavior. ELF/PE loader metadata is explicitly unreviewed.
 """
 import hashlib
 import re
 import struct
 import review_macho_metadata as M
+import review_pe_code_ranges as P
 
 
 def rows(text, arm):
@@ -47,6 +48,8 @@ def verify_chunk(data, section, start, stop, decoded):
 
 
 def images(data):
+    if data.startswith(b'MZ'):
+        return P.images(data)
     if data[:4] != b'\x7fELF':
         return [(offset, thin, M.inspect(thin)) for offset, thin in M.slices(data)]
     if len(data) < 64 or data[4:7] != b'\x02\x01\x01':
