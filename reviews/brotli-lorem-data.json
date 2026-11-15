@@ -33,5 +33,11 @@
   ],
   "sources": [
     "https://nodejs.org/api/zlib.html"
-  ]
+  ],
+  "content_clearance_active": false,
+  "independent_decoder_revalidation_required": true,
+  "current_reader_sha256": "ede440f03ee7ce5575ffc68fdbef0bb14e7a490ee95ded5c41528019eb821fe4",
+  "suspension_reason": "Historical Node 24.20.0 / Brotli 1.2.0 is affected by CVE-2026-111497; retain historical evidence but revalidate before restoring clearance.",
+  "runtime_advisory": "https://nodejs.org/en/blog/vulnerability/october-2026-security-releases",
+  "current_runtime_policy_sha256": "efaba73ee86195f1cb6b730ba369f29567f0c668da106424a09d57c7e5b8a71b"
 }

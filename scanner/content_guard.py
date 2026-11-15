@@ -3891,17 +3891,12 @@ def reviewed_deflate_fixture_text(path, data):
 
 
 def reviewed_brotli_fixture_text(path, data):
-    """One fully decoded prose fixture, not a generic Brotli exclusion.
+    """Suspended pending independent revalidation with a patched decoder.
 
-    The bounded independent standard-library review consumes the entire input
-    and matches all 5018 decoded bytes to the separate plaintext witness.
-    Evidence: reviews/brotli-lorem-data.json. No target crate code is run.
+    The historical decoder used Brotli 1.2.0, affected by CVE-2026-111497.
+    Preserve evidence, but do not use it as current content clearance.
     """
-    if (path.rsplit('!', 1)[-1] != 'brotli-decompressor-6.2.0/src/bin/ipsum.brotli'
-            or len(data) != 1752
-            or digest(data) != '74106184c7abce3075914e8147e664e6a0c6ee0184d8a4a585be557ad2f8aede'):
-        return None
-    return 'Exact compressed ASCII Lorem ipsum prose; full decoded-data review brotli-6.2.0-ipsum'
+    return None
 
 
 def reviewed_cfb_metadata_fixture_text(path, data):

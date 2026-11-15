@@ -1,15 +1,21 @@
-// First-party data-only review using the already available Node standard library.
+// First-party data-only review; require a separately reviewed patched runtime.
 // Never loads the reviewed Rust crate, package hooks, plugins or target code.
 'use strict';
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
 const fs = require('node:fs');
-const zlib = require('node:zlib');
+const {patchedRuntime} = require('./review_brotli_runtime.cjs');
+
+function requirePatchedRuntime() {
+  assert(patchedRuntime(process.versions),
+    'Brotli review blocked: patched supported Node and Brotli runtime required (CVE-2026-111497)');
+}
 
 function decodeBounded(input, limit) {
+  requirePatchedRuntime();
   assert(input.length > 0 && input.length <= 8192);
   assert(Number.isInteger(limit) && limit > 0 && limit <= 8192);
-  const result = zlib.brotliDecompressSync(input, { info: true, maxOutputLength: limit });
+  const result = require('node:zlib').brotliDecompressSync(input, { info: true, maxOutputLength: limit });
   assert.equal(result.engine.bytesWritten, input.length, 'unconsumed Brotli tail');
   return result.buffer;
 }
@@ -30,6 +36,8 @@ function review(compressed, plain) {
 }
 
 function selfTest() {
+  requirePatchedRuntime();
+  const zlib = require('node:zlib');
   const data = Buffer.from('first-party synthetic data '.repeat(20));
   const encoded = zlib.brotliCompressSync(data);
   assert(decodeBounded(encoded, 8192).equals(data));
@@ -44,6 +52,8 @@ function selfTest() {
 }
 
 if (require.main === module) {
+  // Stop before importing the decoder or reading any supplied compressed input.
+  requirePatchedRuntime();
   if (process.argv.length === 3 && process.argv[2] === '--self-test') {
     selfTest();
   } else {

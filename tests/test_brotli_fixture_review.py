@@ -20,8 +20,8 @@ class BrotliFixtureBindingTests(unittest.TestCase):
         raw = bytes(1752)  # First-party synthetic input, never the original file.
         self.assertIsNone(guard.reviewed_brotli_fixture_text(MEMBER, raw))
         with patch.object(guard, 'digest', return_value=SHA):
-            self.assertIsNotNone(guard.reviewed_brotli_fixture_text(MEMBER, raw))
-            self.assertIsNotNone(guard.reviewed_brotli_fixture_text('a!b!' + MEMBER, raw))
+            self.assertIsNone(guard.reviewed_brotli_fixture_text(MEMBER, raw))
+            self.assertIsNone(guard.reviewed_brotli_fixture_text('a!b!' + MEMBER, raw))
             for name, value in ((MEMBER + '.other', raw), ('other/' + MEMBER, raw),
                                 (MEMBER, raw[:-1]), (MEMBER, raw + b'X')):
                 self.assertIsNone(guard.reviewed_brotli_fixture_text(name, value))
@@ -47,5 +47,9 @@ class BrotliFixtureBindingTests(unittest.TestCase):
         self.assertTrue(evidence['review']['input_fully_consumed'])
         self.assertTrue(evidence['review']['plaintext_witness_matches'])
         self.assertFalse(evidence['review']['target_executed'])
-        self.assertEqual(evidence['review_reader_sha256'], hashlib.sha256(
+        self.assertTrue(evidence['independent_decoder_revalidation_required'])
+        self.assertFalse(evidence['content_clearance_active'])
+        self.assertEqual(evidence['current_reader_sha256'], hashlib.sha256(
             (ROOT / 'tools/review_brotli_fixture.cjs').read_bytes()).hexdigest())
+        self.assertEqual(evidence['current_runtime_policy_sha256'], hashlib.sha256(
+            (ROOT / 'tools/review_brotli_runtime.cjs').read_bytes()).hexdigest())
