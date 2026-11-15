@@ -3904,6 +3904,29 @@ def reviewed_brotli_fixture_text(path, data):
     return 'Exact compressed ASCII Lorem ipsum prose; full decoded-data review brotli-6.2.0-ipsum'
 
 
+def reviewed_cfb_metadata_fixture_text(path, data):
+    """One fully read, fixed malformed metadata datum; never generic CFB trust."""
+    if (path.rsplit('!', 1)[-1] != 'cfb-0.14.0/tests/infinite_loops_fuzzed/loop_in_open_1'
+            or len(data) != 1049
+            or digest(data) != 'b587ad479a6bc028b26c93c9d53bce38d1d08f1a2294426e6c10003664158873'):
+        return None
+    if data[:8] != bytes.fromhex('d0cf11e0a1b11ae1'):
+        return None
+    if data[24:34] != bytes.fromhex('3e000300feff09000600'):
+        return None
+    expected = {40: 0, 44: 1, 48: 1, 56: 4096, 60: 2097154,
+                64: 512, 68: 0, 72: 4294966799, 76: 255}
+    if any(int.from_bytes(data[pos:pos+4], 'little') != value for pos, value in expected.items()):
+        return None
+    if data[1024:] != b'\0' + b'\xff' * 24 or re.search(rb'[ -~]{3,}', data):
+        return None
+    names = [s.decode('utf-16-le') for s in re.findall(rb'(?:[ -~]\x00){3,}', data)]
+    if names != ['VAA', 'ThisWorkbo', 'hisWorkbo', 'VAA']:
+        return None
+    return 'Exact malformed CFB header/directory regression data; no complete directory entry.\n' + '\n'.join(names)
+
+
+
 REVIEWED_SHA2_VECTORS = (
     ('sha224', 178, '59b185972521af418fd49a079de3d5f5bed74cd76d80473da51cab3faee6c7d0'),
     ('sha256', 190, 'bb096934bb7e43e41ce143d211397afca6fcdfe243a39811688ea31aae6f800a'),
@@ -4325,6 +4348,11 @@ class Inspector:
         if deflate_fixture_text is not None:
             self.exclusions.append({'path': path, 'reason': 'exact-regression-data-review:fdeflate-0.3.7'})
             self.inspect_text(path, deflate_fixture_text)
+            return
+        cfb_fixture_text = reviewed_cfb_metadata_fixture_text(path, data)
+        if cfb_fixture_text is not None:
+            self.exclusions.append({'path': path, 'reason': 'exact-metadata-regression-data-review:cfb-0.14.0-open-1'})
+            self.inspect_text(path, cfb_fixture_text)
             return
         brotli_fixture_text = reviewed_brotli_fixture_text(path, data)
         if brotli_fixture_text is not None:
