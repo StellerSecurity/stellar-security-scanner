@@ -3815,6 +3815,19 @@ def reviewed_native_code(path, data):
             and digest(data) == '8fdff52a7430dba14fb97239c7fe414710991f16da269374e0936a1385f3a318')
 
 
+def reviewed_fsevents_native(path, data):
+    """Exact two-architecture code review, not publisher or package trust.
+
+    Both slices' executable bytes, functions, assertions, loader bindings and
+    strings were compared with the pinned C source. Evidence and limitations:
+    reviews/fsevents-universal-native.json. No addon or install hook was run;
+    this content review does not grant execution or installation approval.
+    """
+    return (path.rsplit('!', 1)[-1] == 'package/fsevents.node'
+            and len(data) == 163626
+            and digest(data) == '40f2f51199e4f5fc46fa6b985fb3461bb63e6cd86c62bfa9bcee45ed4438d5fb')
+
+
 def reviewed_timezone_text(path, data):
     """Exact typed data review; not a generic .dat or TZif exemption.
 
@@ -4225,6 +4238,13 @@ class Inspector:
                 self.exclusions.append({'path': path,
                     'reason': 'exact-native-code-review:symfony-hiddeninput-20120325',
                     'sha256': digest(data)})
+            elif reviewed_fsevents_native(path, data):
+                self.exclusions.append({'path': path,
+                    'reason': 'exact-native-code-review:fsevents-2.3.3-universal',
+                    'sha256': digest(data)})
+                # Preserve string rules even for these exact reviewed bytes.
+                text = '\n'.join(value.decode('ascii') for value in re.findall(rb'[\x20-\x7e]{3,}', data))
+                self.inspect_text(path, text)
             else:
                 self.gap(path, 'executable-binary-needs-independent-review')
             return
