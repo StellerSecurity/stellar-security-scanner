@@ -1,0 +1,208 @@
+{
+  "schema": 1,
+  "archive_sha256": "a347dcabdae9c31b0825fd6a8bed285ec9c2acb89c47827126d52fa4f59cece3",
+  "reader_sha256": "8db76f17139646533835d50663c107140522b1061d0aa3fbdf5769ec249c3174",
+  "files": [
+    {
+      "member": "cfb-0.14.0/tests/infinite_loops_fuzzed/loop_in_alloc",
+      "bytes": 14106,
+      "sha256": "d3743f9748422ecb6e965d8a0b8cdd9daba71f28fa9fa876729b7c111e5849b0",
+      "candidates_attempted": 13,
+      "budget_exhausted": false,
+      "partial_review": true,
+      "compound_file_cleared": false,
+      "target_executed": false,
+      "fragments": [
+        {
+          "chunk_offset": 2876,
+          "compressed_chunk_bytes": 179,
+          "decoded_bytes": 305,
+          "decoded_sha256": "14de0425a62586687c3d59b7d3d7dc60268f989ab7e07a61403525064d98502a"
+        },
+        {
+          "chunk_offset": 3900,
+          "compressed_chunk_bytes": 171,
+          "decoded_bytes": 299,
+          "decoded_sha256": "8e442a8e542ca01c7d87af7e9ad015863e0a19232a647712a6e31b3911beb372"
+        },
+        {
+          "chunk_offset": 6010,
+          "compressed_chunk_bytes": 94,
+          "decoded_bytes": 90,
+          "decoded_sha256": "ca440fccc70f7438db3a012a7b03535285e8abbc09a0b78b3585f45bc8dd9f80"
+        }
+      ]
+    },
+    {
+      "member": "cfb-0.14.0/tests/infinite_loops_fuzzed/loop_in_chain",
+      "bytes": 16959,
+      "sha256": "6a206fd90052ff13cc7eb56aa6cefd9af8ff478badce8acf94005ed8d3c0d468",
+      "candidates_attempted": 0,
+      "budget_exhausted": false,
+      "partial_review": true,
+      "compound_file_cleared": false,
+      "target_executed": false,
+      "fragments": []
+    },
+    {
+      "member": "cfb-0.14.0/tests/infinite_loops_fuzzed/loop_in_directory",
+      "bytes": 13954,
+      "sha256": "286754276f1a1e7eae818823f0db1111efaafafb70d1f3cd6ac347333618d454",
+      "candidates_attempted": 12,
+      "budget_exhausted": false,
+      "partial_review": true,
+      "compound_file_cleared": false,
+      "target_executed": false,
+      "fragments": [
+        {
+          "chunk_offset": 2876,
+          "compressed_chunk_bytes": 179,
+          "decoded_bytes": 305,
+          "decoded_sha256": "14de0425a62586687c3d59b7d3d7dc60268f989ab7e07a61403525064d98502a"
+        },
+        {
+          "chunk_offset": 3900,
+          "compressed_chunk_bytes": 171,
+          "decoded_bytes": 299,
+          "decoded_sha256": "8e442a8e542ca01c7d87af7e9ad015863e0a19232a647712a6e31b3911beb372"
+        },
+        {
+          "chunk_offset": 6010,
+          "compressed_chunk_bytes": 94,
+          "decoded_bytes": 90,
+          "decoded_sha256": "ca440fccc70f7438db3a012a7b03535285e8abbc09a0b78b3585f45bc8dd9f80"
+        }
+      ]
+    },
+    {
+      "member": "cfb-0.14.0/tests/infinite_loops_fuzzed/loop_in_minialloc",
+      "bytes": 14336,
+      "sha256": "d37e6ba08c7a4da986b06e8369d92ef81901ca618551a7cc604de39f56ab8f4c",
+      "candidates_attempted": 10,
+      "budget_exhausted": false,
+      "partial_review": true,
+      "compound_file_cleared": false,
+      "target_executed": false,
+      "fragments": [
+        {
+          "chunk_offset": 2876,
+          "compressed_chunk_bytes": 179,
+          "decoded_bytes": 305,
+          "decoded_sha256": "14de0425a62586687c3d59b7d3d7dc60268f989ab7e07a61403525064d98502a"
+        },
+        {
+          "chunk_offset": 3900,
+          "compressed_chunk_bytes": 171,
+          "decoded_bytes": 299,
+          "decoded_sha256": "8e442a8e542ca01c7d87af7e9ad015863e0a19232a647712a6e31b3911beb372"
+        },
+        {
+          "chunk_offset": 6010,
+          "compressed_chunk_bytes": 94,
+          "decoded_bytes": 90,
+          "decoded_sha256": "ca440fccc70f7438db3a012a7b03535285e8abbc09a0b78b3585f45bc8dd9f80"
+        }
+      ]
+    },
+    {
+      "member": "cfb-0.14.0/tests/infinite_loops_fuzzed/loop_in_minichain",
+      "bytes": 13992,
+      "sha256": "ea5a3a69882ffc08d79d3c15eeb028a4987c933f740bba630ccab28e8cc792a2",
+      "candidates_attempted": 13,
+      "budget_exhausted": false,
+      "partial_review": true,
+      "compound_file_cleared": false,
+      "target_executed": false,
+      "fragments": [
+        {
+          "chunk_offset": 2876,
+          "compressed_chunk_bytes": 179,
+          "decoded_bytes": 305,
+          "decoded_sha256": "14de0425a62586687c3d59b7d3d7dc60268f989ab7e07a61403525064d98502a"
+        },
+        {
+          "chunk_offset": 3900,
+          "compressed_chunk_bytes": 171,
+          "decoded_bytes": 299,
+          "decoded_sha256": "8e442a8e542ca01c7d87af7e9ad015863e0a19232a647712a6e31b3911beb372"
+        },
+        {
+          "chunk_offset": 6010,
+          "compressed_chunk_bytes": 94,
+          "decoded_bytes": 90,
+          "decoded_sha256": "ca440fccc70f7438db3a012a7b03535285e8abbc09a0b78b3585f45bc8dd9f80"
+        }
+      ]
+    },
+    {
+      "member": "cfb-0.14.0/tests/infinite_loops_fuzzed/loop_in_open_1",
+      "bytes": 1049,
+      "sha256": "b587ad479a6bc028b26c93c9d53bce38d1d08f1a2294426e6c10003664158873",
+      "candidates_attempted": 0,
+      "budget_exhausted": false,
+      "partial_review": true,
+      "compound_file_cleared": false,
+      "target_executed": false,
+      "fragments": []
+    },
+    {
+      "member": "cfb-0.14.0/tests/infinite_loops_fuzzed/loop_in_open_2",
+      "bytes": 13830,
+      "sha256": "d895b126559ec1f66bd2146d2da0dca79e59d2dfcce2bc41bcd8352cdbf666cf",
+      "candidates_attempted": 10,
+      "budget_exhausted": false,
+      "partial_review": true,
+      "compound_file_cleared": false,
+      "target_executed": false,
+      "fragments": [
+        {
+          "chunk_offset": 2876,
+          "compressed_chunk_bytes": 179,
+          "decoded_bytes": 305,
+          "decoded_sha256": "3b55ffbe6e9100d49eb0bcf195b488b9bb8f7fe084f4d086e25df4f63ae37fcd"
+        },
+        {
+          "chunk_offset": 3515,
+          "compressed_chunk_bytes": 171,
+          "decoded_bytes": 299,
+          "decoded_sha256": "8e442a8e542ca01c7d87af7e9ad015863e0a19232a647712a6e31b3911beb372"
+        }
+      ]
+    },
+    {
+      "member": "cfb-0.14.0/tests/panics_fuzzed/alloc_panic",
+      "bytes": 16928,
+      "sha256": "43dc86944f70e3f146d5f42fed1ba2cd3c07738556dd2d52a445cb630c60333f",
+      "candidates_attempted": 0,
+      "budget_exhausted": false,
+      "partial_review": true,
+      "compound_file_cleared": false,
+      "target_executed": false,
+      "fragments": []
+    },
+    {
+      "member": "cfb-0.14.0/tests/panics_fuzzed/minialloc_panic",
+      "bytes": 16909,
+      "sha256": "73e5cb0e0f1700f8e795ccc4fed2141d8689bebc0cfa7318d38c4c25130c4376",
+      "candidates_attempted": 0,
+      "budget_exhausted": false,
+      "partial_review": true,
+      "compound_file_cleared": false,
+      "target_executed": false,
+      "fragments": []
+    }
+  ],
+  "total_fragments": 14,
+  "target_executed": false,
+  "compound_file_cleared": false,
+  "review": "Recognized intact fragment contents were read in memory. They contain workbook/sheet Attribute declarations and a Module1 test function displaying Hello world. One declaration is fuzz-corrupted. This is not a complete document or macro review.",
+  "limitations": [
+    "Candidate scanning does not resolve or validate CFB directories, allocation chains, fragmented streams, embedded objects, VBA p-code, or all compressed data.",
+    "No fragment match or absence of matches proves the malformed document safe. All nine existing gaps remain blocking.",
+    "No original input, decoded source or encoded copy is committed. Only hashes, offsets, sizes and paraphrased review are recorded."
+  ],
+  "sources": [
+    "https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-ovba/3d5ea4df-e8a5-4079-a454-9595b840525f",
+    "https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-ovba/c821c6f8-ec48-40a9-88fa-8c2b89589aec"
+  ]
+}
