@@ -11,17 +11,6 @@
   "unchanged_scanner_blocking_of_wasm": true,
   "range_analysis": [
     {
-      "package": "@rollup/rollup-openbsd-x64",
-      "sha256": "03bd119e2e7f69a6abe294084dd72f7e6e1e0a5755d2aefb66cbfc04e4dac4a8",
-      "slices": 1,
-      "code_section_bytes": 1599954,
-      "decoded_candidate_rows": 424451,
-      "unknown_or_data_rows": 0,
-      "direct_syscall_candidate_rows": 0,
-      "analysis_sha256": "2f678d2ca2869679beed445b6fda8f2a60efe8765253d27260f7db5a3bf24fc6",
-      "native_code_cleared": false
-    },
-    {
       "package": "@esbuild/android-arm64",
       "sha256": "087671da02d323e7915fafc13567c0929192633ed544bd8adee9bc020fddf5b4",
       "slices": 1,
@@ -33,80 +22,25 @@
       "native_code_cleared": false
     },
     {
-      "package": "@esbuild/linux-x64",
-      "sha256": "0c6588b092a2c291a72bab90659f3c9e0e25e0fe59c9ac12b4dae4d945e5548c",
+      "package": "@esbuild/darwin-arm64",
+      "sha256": "e2dc9a52440a2a34f09434a2f4843cb1e30f84e40dcf238976ec61ef8cd7f36a",
       "slices": 1,
-      "code_section_bytes": 5906545,
-      "decoded_candidate_rows": 1379812,
-      "unknown_or_data_rows": 1,
-      "direct_syscall_candidate_rows": 44,
-      "analysis_sha256": "8b8d62c8cbae8754ff9115e4a244c6daa6e2854cc0fe311b5dc8402ceefe4a03",
-      "native_code_cleared": false
-    },
-    {
-      "package": "@tauri-apps/cli-linux-arm64-musl",
-      "sha256": "2feb516227f026866adc2c2e968b5c5baf54a55c90ea5b2b68e6217aa79aef60",
-      "slices": 1,
-      "code_section_bytes": 10704888,
-      "decoded_candidate_rows": 2676222,
-      "unknown_or_data_rows": 15,
-      "direct_syscall_candidate_rows": 6,
-      "analysis_sha256": "b730a39fd08dc7aef162751a5791049b3cb3540af6a13579c3a335abaa602364",
-      "native_code_cleared": false
-    },
-    {
-      "package": "@esbuild/freebsd-x64",
-      "sha256": "4427a8cbfa0661943ccfef2606a65b35f3411ac73e447e86f7732aace61e4609",
-      "slices": 1,
-      "code_section_bytes": 5878641,
-      "decoded_candidate_rows": 1372491,
-      "unknown_or_data_rows": 1,
-      "direct_syscall_candidate_rows": 36,
-      "analysis_sha256": "9ec8c2c7cbed61779c5455a0af975f0a5bed5e203d5c34d46dd333ebbbe55fa3",
-      "native_code_cleared": false
-    },
-    {
-      "package": "@esbuild/netbsd-arm64",
-      "sha256": "490cfdac2d96d5608d91cf55bdf4052bbde7013dafe87ec7adc7784778ad4d4c",
-      "slices": 1,
-      "code_section_bytes": 4854820,
-      "decoded_candidate_rows": 1213705,
+      "code_section_bytes": 4878328,
+      "decoded_candidate_rows": 1219582,
       "unknown_or_data_rows": 18,
-      "direct_syscall_candidate_rows": 36,
-      "analysis_sha256": "f29234b680c2a79a503bbb640eb7308a2a023647816eb0d98f11fcfb4f4b7d4d",
+      "direct_syscall_candidate_rows": 0,
+      "analysis_sha256": "7ef4694cfb2a080cf837312910567fcd5d9a405421aef5bcb504990b92a0d5a6",
       "native_code_cleared": false
     },
     {
-      "package": "@rollup/rollup-darwin-x64",
-      "sha256": "4d9232a08936d642664bf8e60edc4f1486921d169005d05b5855884ac7163869",
+      "package": "@esbuild/darwin-x64",
+      "sha256": "dd53ccf32f9b5b3ab30d41388ef1fc8f81c44ca57ee7a32a7364a1753308d009",
       "slices": 1,
-      "code_section_bytes": 1711647,
-      "decoded_candidate_rows": 423632,
-      "unknown_or_data_rows": 9503,
-      "direct_syscall_candidate_rows": 37,
-      "analysis_sha256": "33740af64135aab9dbba6edb0edc609fc68e1a3954e9091a5d1cbb485983ad78",
-      "native_code_cleared": false
-    },
-    {
-      "package": "@esbuild/linux-arm64",
-      "sha256": "51e829ba36f36be6d9aea6e329ddc4f9350302339b16aaca96a3cb97f64a8ebb",
-      "slices": 1,
-      "code_section_bytes": 4894244,
-      "decoded_candidate_rows": 1223561,
-      "unknown_or_data_rows": 18,
-      "direct_syscall_candidate_rows": 37,
-      "analysis_sha256": "953a4916c42f52ded0de2de5549f2e25dca35d8d82fca0747fefaca0b4117616",
-      "native_code_cleared": false
-    },
-    {
-      "package": "@tauri-apps/cli-linux-arm64-gnu",
-      "sha256": "53a38495a63a2d12d0e1c22d9908b580a8bd3b98b8edcd74b8ad030e519be843",
-      "slices": 1,
-      "code_section_bytes": 10708680,
-      "decoded_candidate_rows": 2677170,
-      "unknown_or_data_rows": 15,
-      "direct_syscall_candidate_rows": 6,
-      "analysis_sha256": "485e43557650dc6db1bb49359211c3ca7c579fc508ceac99376bf74b9be4be80",
+      "code_section_bytes": 5888713,
+      "decoded_candidate_rows": 1377598,
+      "unknown_or_data_rows": 1,
+      "direct_syscall_candidate_rows": 2,
+      "analysis_sha256": "86eecde1bc5927017c0d82a423c896771fa4bd81f44df96344ab2cf114328b26",
       "native_code_cleared": false
     },
     {
@@ -121,6 +55,138 @@
       "native_code_cleared": false
     },
     {
+      "package": "@esbuild/freebsd-x64",
+      "sha256": "4427a8cbfa0661943ccfef2606a65b35f3411ac73e447e86f7732aace61e4609",
+      "slices": 1,
+      "code_section_bytes": 5878641,
+      "decoded_candidate_rows": 1372491,
+      "unknown_or_data_rows": 1,
+      "direct_syscall_candidate_rows": 36,
+      "analysis_sha256": "9ec8c2c7cbed61779c5455a0af975f0a5bed5e203d5c34d46dd333ebbbe55fa3",
+      "native_code_cleared": false
+    },
+    {
+      "package": "@esbuild/linux-arm64",
+      "sha256": "51e829ba36f36be6d9aea6e329ddc4f9350302339b16aaca96a3cb97f64a8ebb",
+      "slices": 1,
+      "code_section_bytes": 4894244,
+      "decoded_candidate_rows": 1223561,
+      "unknown_or_data_rows": 18,
+      "direct_syscall_candidate_rows": 37,
+      "analysis_sha256": "953a4916c42f52ded0de2de5549f2e25dca35d8d82fca0747fefaca0b4117616",
+      "native_code_cleared": false
+    },
+    {
+      "package": "@esbuild/linux-x64",
+      "sha256": "0c6588b092a2c291a72bab90659f3c9e0e25e0fe59c9ac12b4dae4d945e5548c",
+      "slices": 1,
+      "code_section_bytes": 5906545,
+      "decoded_candidate_rows": 1379812,
+      "unknown_or_data_rows": 1,
+      "direct_syscall_candidate_rows": 44,
+      "analysis_sha256": "8b8d62c8cbae8754ff9115e4a244c6daa6e2854cc0fe311b5dc8402ceefe4a03",
+      "native_code_cleared": false
+    },
+    {
+      "package": "@esbuild/netbsd-arm64",
+      "sha256": "490cfdac2d96d5608d91cf55bdf4052bbde7013dafe87ec7adc7784778ad4d4c",
+      "slices": 1,
+      "code_section_bytes": 4854820,
+      "decoded_candidate_rows": 1213705,
+      "unknown_or_data_rows": 18,
+      "direct_syscall_candidate_rows": 36,
+      "analysis_sha256": "f29234b680c2a79a503bbb640eb7308a2a023647816eb0d98f11fcfb4f4b7d4d",
+      "native_code_cleared": false
+    },
+    {
+      "package": "@esbuild/netbsd-x64",
+      "sha256": "c61e0e4c553a4986fd0e9d63a0425e93be831ff7b13bfb8a564368fb7590f85d",
+      "slices": 1,
+      "code_section_bytes": 5864625,
+      "decoded_candidate_rows": 1368070,
+      "unknown_or_data_rows": 1,
+      "direct_syscall_candidate_rows": 41,
+      "analysis_sha256": "7c63ca625f1b36259d45017d255f895887e17aed5fda4877f8428d1f84ba846c",
+      "native_code_cleared": false
+    },
+    {
+      "package": "@esbuild/openbsd-arm64",
+      "sha256": "f9d814698e26c09c3f90d4c103cbdf3832c9f2c841d64a93889d63d23da9b8cf",
+      "slices": 1,
+      "code_section_bytes": 4859492,
+      "decoded_candidate_rows": 1214873,
+      "unknown_or_data_rows": 18,
+      "direct_syscall_candidate_rows": 0,
+      "analysis_sha256": "46e40419ec62b7f707e352f62a95cf94c756c813a36c4328ca63a80aaf5260d3",
+      "native_code_cleared": false
+    },
+    {
+      "package": "@esbuild/openbsd-x64",
+      "sha256": "2e30dce11f7236aa362c1c57212cc696f51472169aa417f30e9b641f3b7dcade",
+      "slices": 1,
+      "code_section_bytes": 5866113,
+      "decoded_candidate_rows": 1369874,
+      "unknown_or_data_rows": 1,
+      "direct_syscall_candidate_rows": 2,
+      "analysis_sha256": "8e0c1a8fb84ebf8dad2784ab2c1341082ccae0ae805ec652a656af9e552a81ca",
+      "native_code_cleared": false
+    },
+    {
+      "package": "@esbuild/sunos-x64",
+      "sha256": "770e0d2bc930b1a1d19d3f43243ff8f393efddb599e7f5843160feacd253267d",
+      "slices": 1,
+      "code_section_bytes": 5876593,
+      "decoded_candidate_rows": 1371769,
+      "unknown_or_data_rows": 1,
+      "direct_syscall_candidate_rows": 2,
+      "analysis_sha256": "bb423c79d084533084496c34306b954d6829379243c87b74ad4426610fcd200d",
+      "native_code_cleared": false
+    },
+    {
+      "package": "@rollup/rollup-android-arm64",
+      "sha256": "f7393232641e51f18262cf52bead751469f494f1643ee3bb72598fb50a988f68",
+      "slices": 1,
+      "code_section_bytes": 1489768,
+      "decoded_candidate_rows": 372442,
+      "unknown_or_data_rows": 0,
+      "direct_syscall_candidate_rows": 0,
+      "analysis_sha256": "952972176723b6985168b250c2d6eed816704d93e48f05c4839f02f1c540bef0",
+      "native_code_cleared": false
+    },
+    {
+      "package": "@rollup/rollup-darwin-arm64",
+      "sha256": "d2f2892d97c3f910d67337a5f68acd0313cb18079337022b47afc92b6bac13f3",
+      "slices": 1,
+      "code_section_bytes": 1434140,
+      "decoded_candidate_rows": 358535,
+      "unknown_or_data_rows": 0,
+      "direct_syscall_candidate_rows": 0,
+      "analysis_sha256": "78e3c4bcf61182761bbd4465e457eb87c3000e702b1bd7319a4860b9f758108a",
+      "native_code_cleared": false
+    },
+    {
+      "package": "@rollup/rollup-darwin-x64",
+      "sha256": "4d9232a08936d642664bf8e60edc4f1486921d169005d05b5855884ac7163869",
+      "slices": 1,
+      "code_section_bytes": 1711647,
+      "decoded_candidate_rows": 423632,
+      "unknown_or_data_rows": 9503,
+      "direct_syscall_candidate_rows": 37,
+      "analysis_sha256": "33740af64135aab9dbba6edb0edc609fc68e1a3954e9091a5d1cbb485983ad78",
+      "native_code_cleared": false
+    },
+    {
+      "package": "@rollup/rollup-freebsd-arm64",
+      "sha256": "bb91078453a68e61c750d81cef828265999ddab91908afca641685609df04f73",
+      "slices": 1,
+      "code_section_bytes": 1238840,
+      "decoded_candidate_rows": 309710,
+      "unknown_or_data_rows": 0,
+      "direct_syscall_candidate_rows": 0,
+      "analysis_sha256": "0b246e889be39206c5caa446c95dfbc277cef17c008f3f1381a38a6f46344157",
+      "native_code_cleared": false
+    },
+    {
       "package": "@rollup/rollup-freebsd-x64",
       "sha256": "703c8be9d6cafee630e85317607f56b979e1e9fb996271676f8886076319209a",
       "slices": 1,
@@ -129,6 +195,39 @@
       "unknown_or_data_rows": 0,
       "direct_syscall_candidate_rows": 0,
       "analysis_sha256": "17b6b00b4dc4bcd6c582249a3767d5b1a5a2a54a431a42528a3d585195d5fcb5",
+      "native_code_cleared": false
+    },
+    {
+      "package": "@rollup/rollup-linux-arm64-gnu",
+      "sha256": "eb4432a1a67718a3ec94ee89f01d0c383328986f90957bd27631cebc4365167f",
+      "slices": 1,
+      "code_section_bytes": 1466308,
+      "decoded_candidate_rows": 366577,
+      "unknown_or_data_rows": 0,
+      "direct_syscall_candidate_rows": 0,
+      "analysis_sha256": "d627294b493cc5336d8414c5ca39290e509d902872227d677d3ebe507e72ed6d",
+      "native_code_cleared": false
+    },
+    {
+      "package": "@rollup/rollup-linux-arm64-musl",
+      "sha256": "bb62a15abbd4288fa29114bbb9647121163094e7e8cf7bf4e67ad3ed818a617b",
+      "slices": 1,
+      "code_section_bytes": 1479704,
+      "decoded_candidate_rows": 369926,
+      "unknown_or_data_rows": 0,
+      "direct_syscall_candidate_rows": 0,
+      "analysis_sha256": "d5e68d0726291633ac87cae07bb6cecd718ce3669e9810e3fec269034ae52fa3",
+      "native_code_cleared": false
+    },
+    {
+      "package": "@rollup/rollup-linux-x64-gnu",
+      "sha256": "efbf7113cf8d127917b005207198700d61318c69fad364a2b15bc7bc184d4707",
+      "slices": 1,
+      "code_section_bytes": 1667491,
+      "decoded_candidate_rows": 395812,
+      "unknown_or_data_rows": 0,
+      "direct_syscall_candidate_rows": 0,
+      "analysis_sha256": "665e9bafce7a42fbbeb1d2955740ef7b9da80595f73b8b48ce270662ee5e2252",
       "native_code_cleared": false
     },
     {
@@ -143,6 +242,17 @@
       "native_code_cleared": false
     },
     {
+      "package": "@rollup/rollup-openbsd-x64",
+      "sha256": "03bd119e2e7f69a6abe294084dd72f7e6e1e0a5755d2aefb66cbfc04e4dac4a8",
+      "slices": 1,
+      "code_section_bytes": 1599954,
+      "decoded_candidate_rows": 424451,
+      "unknown_or_data_rows": 0,
+      "direct_syscall_candidate_rows": 0,
+      "analysis_sha256": "2f678d2ca2869679beed445b6fda8f2a60efe8765253d27260f7db5a3bf24fc6",
+      "native_code_cleared": false
+    },
+    {
       "package": "@rollup/rollup-openharmony-arm64",
       "sha256": "8baa167d5251f37830b96671752c51eca7442808b4a2f174af459780fd7176b8",
       "slices": 1,
@@ -151,6 +261,50 @@
       "unknown_or_data_rows": 0,
       "direct_syscall_candidate_rows": 0,
       "analysis_sha256": "be91733d03b14051b24f4c7a76dc713cc6bab3dadc6fdb991a393662f87f9d4f",
+      "native_code_cleared": false
+    },
+    {
+      "package": "@tauri-apps/cli-darwin-arm64",
+      "sha256": "a8f098a245f75ce6aafd2332284e59fd3fc9ed0a88a298b5e207d306b1f3d002",
+      "slices": 1,
+      "code_section_bytes": 9885404,
+      "decoded_candidate_rows": 2471351,
+      "unknown_or_data_rows": 15,
+      "direct_syscall_candidate_rows": 0,
+      "analysis_sha256": "8e024bea094d1fde6b0d0d9e55e2e33c26dfd0e017fb7c4e7527c7bd0ffda674",
+      "native_code_cleared": false
+    },
+    {
+      "package": "@tauri-apps/cli-darwin-x64",
+      "sha256": "fd8ceb948644e6222e7100e6d398288448d8261c6c8d59d91699866f0fef0d60",
+      "slices": 1,
+      "code_section_bytes": 11833754,
+      "decoded_candidate_rows": 2821895,
+      "unknown_or_data_rows": 24430,
+      "direct_syscall_candidate_rows": 78,
+      "analysis_sha256": "1fdb6d388bada4f751511190fcbe49909cade8a758b5d315404cf11a05844d0f",
+      "native_code_cleared": false
+    },
+    {
+      "package": "@tauri-apps/cli-linux-arm64-gnu",
+      "sha256": "53a38495a63a2d12d0e1c22d9908b580a8bd3b98b8edcd74b8ad030e519be843",
+      "slices": 1,
+      "code_section_bytes": 10708680,
+      "decoded_candidate_rows": 2677170,
+      "unknown_or_data_rows": 15,
+      "direct_syscall_candidate_rows": 6,
+      "analysis_sha256": "485e43557650dc6db1bb49359211c3ca7c579fc508ceac99376bf74b9be4be80",
+      "native_code_cleared": false
+    },
+    {
+      "package": "@tauri-apps/cli-linux-arm64-musl",
+      "sha256": "2feb516227f026866adc2c2e968b5c5baf54a55c90ea5b2b68e6217aa79aef60",
+      "slices": 1,
+      "code_section_bytes": 10704888,
+      "decoded_candidate_rows": 2676222,
+      "unknown_or_data_rows": 15,
+      "direct_syscall_candidate_rows": 6,
+      "analysis_sha256": "b730a39fd08dc7aef162751a5791049b3cb3540af6a13579c3a335abaa602364",
       "native_code_cleared": false
     },
     {
@@ -173,127 +327,6 @@
       "unknown_or_data_rows": 0,
       "direct_syscall_candidate_rows": 6,
       "analysis_sha256": "a18c7ad3bd78db4f4c8152440248e24008ed0979c34afa3017cc369c97c389dc",
-      "native_code_cleared": false
-    },
-    {
-      "package": "@tauri-apps/cli-darwin-arm64",
-      "sha256": "a8f098a245f75ce6aafd2332284e59fd3fc9ed0a88a298b5e207d306b1f3d002",
-      "slices": 1,
-      "code_section_bytes": 9885404,
-      "decoded_candidate_rows": 2471351,
-      "unknown_or_data_rows": 15,
-      "direct_syscall_candidate_rows": 0,
-      "analysis_sha256": "8e024bea094d1fde6b0d0d9e55e2e33c26dfd0e017fb7c4e7527c7bd0ffda674",
-      "native_code_cleared": false
-    },
-    {
-      "package": "@rollup/rollup-linux-arm64-musl",
-      "sha256": "bb62a15abbd4288fa29114bbb9647121163094e7e8cf7bf4e67ad3ed818a617b",
-      "slices": 1,
-      "code_section_bytes": 1479704,
-      "decoded_candidate_rows": 369926,
-      "unknown_or_data_rows": 0,
-      "direct_syscall_candidate_rows": 0,
-      "analysis_sha256": "d5e68d0726291633ac87cae07bb6cecd718ce3669e9810e3fec269034ae52fa3",
-      "native_code_cleared": false
-    },
-    {
-      "package": "@rollup/rollup-freebsd-arm64",
-      "sha256": "bb91078453a68e61c750d81cef828265999ddab91908afca641685609df04f73",
-      "slices": 1,
-      "code_section_bytes": 1238840,
-      "decoded_candidate_rows": 309710,
-      "unknown_or_data_rows": 0,
-      "direct_syscall_candidate_rows": 0,
-      "analysis_sha256": "0b246e889be39206c5caa446c95dfbc277cef17c008f3f1381a38a6f46344157",
-      "native_code_cleared": false
-    },
-    {
-      "package": "@esbuild/netbsd-x64",
-      "sha256": "c61e0e4c553a4986fd0e9d63a0425e93be831ff7b13bfb8a564368fb7590f85d",
-      "slices": 1,
-      "code_section_bytes": 5864625,
-      "decoded_candidate_rows": 1368070,
-      "unknown_or_data_rows": 1,
-      "direct_syscall_candidate_rows": 41,
-      "analysis_sha256": "7c63ca625f1b36259d45017d255f895887e17aed5fda4877f8428d1f84ba846c",
-      "native_code_cleared": false
-    },
-    {
-      "package": "@rollup/rollup-darwin-arm64",
-      "sha256": "d2f2892d97c3f910d67337a5f68acd0313cb18079337022b47afc92b6bac13f3",
-      "slices": 1,
-      "code_section_bytes": 1434140,
-      "decoded_candidate_rows": 358535,
-      "unknown_or_data_rows": 0,
-      "direct_syscall_candidate_rows": 0,
-      "analysis_sha256": "78e3c4bcf61182761bbd4465e457eb87c3000e702b1bd7319a4860b9f758108a",
-      "native_code_cleared": false
-    },
-    {
-      "package": "@esbuild/darwin-x64",
-      "sha256": "dd53ccf32f9b5b3ab30d41388ef1fc8f81c44ca57ee7a32a7364a1753308d009",
-      "slices": 1,
-      "code_section_bytes": 5888713,
-      "decoded_candidate_rows": 1377598,
-      "unknown_or_data_rows": 1,
-      "direct_syscall_candidate_rows": 2,
-      "analysis_sha256": "86eecde1bc5927017c0d82a423c896771fa4bd81f44df96344ab2cf114328b26",
-      "native_code_cleared": false
-    },
-    {
-      "package": "@esbuild/darwin-arm64",
-      "sha256": "e2dc9a52440a2a34f09434a2f4843cb1e30f84e40dcf238976ec61ef8cd7f36a",
-      "slices": 1,
-      "code_section_bytes": 4878328,
-      "decoded_candidate_rows": 1219582,
-      "unknown_or_data_rows": 18,
-      "direct_syscall_candidate_rows": 0,
-      "analysis_sha256": "7ef4694cfb2a080cf837312910567fcd5d9a405421aef5bcb504990b92a0d5a6",
-      "native_code_cleared": false
-    },
-    {
-      "package": "@rollup/rollup-linux-arm64-gnu",
-      "sha256": "eb4432a1a67718a3ec94ee89f01d0c383328986f90957bd27631cebc4365167f",
-      "slices": 1,
-      "code_section_bytes": 1466308,
-      "decoded_candidate_rows": 366577,
-      "unknown_or_data_rows": 0,
-      "direct_syscall_candidate_rows": 0,
-      "analysis_sha256": "d627294b493cc5336d8414c5ca39290e509d902872227d677d3ebe507e72ed6d",
-      "native_code_cleared": false
-    },
-    {
-      "package": "@rollup/rollup-linux-x64-gnu",
-      "sha256": "efbf7113cf8d127917b005207198700d61318c69fad364a2b15bc7bc184d4707",
-      "slices": 1,
-      "code_section_bytes": 1667491,
-      "decoded_candidate_rows": 395812,
-      "unknown_or_data_rows": 0,
-      "direct_syscall_candidate_rows": 0,
-      "analysis_sha256": "665e9bafce7a42fbbeb1d2955740ef7b9da80595f73b8b48ce270662ee5e2252",
-      "native_code_cleared": false
-    },
-    {
-      "package": "@rollup/rollup-android-arm64",
-      "sha256": "f7393232641e51f18262cf52bead751469f494f1643ee3bb72598fb50a988f68",
-      "slices": 1,
-      "code_section_bytes": 1489768,
-      "decoded_candidate_rows": 372442,
-      "unknown_or_data_rows": 0,
-      "direct_syscall_candidate_rows": 0,
-      "analysis_sha256": "952972176723b6985168b250c2d6eed816704d93e48f05c4839f02f1c540bef0",
-      "native_code_cleared": false
-    },
-    {
-      "package": "@tauri-apps/cli-darwin-x64",
-      "sha256": "fd8ceb948644e6222e7100e6d398288448d8261c6c8d59d91699866f0fef0d60",
-      "slices": 1,
-      "code_section_bytes": 11833754,
-      "decoded_candidate_rows": 2821895,
-      "unknown_or_data_rows": 24430,
-      "direct_syscall_candidate_rows": 78,
-      "analysis_sha256": "1fdb6d388bada4f751511190fcbe49909cade8a758b5d315404cf11a05844d0f",
       "native_code_cleared": false
     }
   ],
@@ -339,5 +372,6 @@
   "review_tool_hashes": {
     "review_native_code_ranges.py": "f286946dbc56c483002db3ee650d5d7e1eb989bff97dc335723fd5540f125c3e",
     "review_wasm_code_ranges.py": "966124087027a6216de6272d330841063b22117bdcbb3d77a45398eaec65b733"
-  }
+  },
+  "forced_disassembly_scope": "Three executable PLT sections were emitted as data by the default LLVM mode; disassemble-all over only those selected executable sections completed byte matching. This does not establish semantics."
 }
