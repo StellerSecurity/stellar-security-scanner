@@ -1,0 +1,77 @@
+{
+  "schema": 1,
+  "bindings": [
+    {
+      "member": "webview2-com-sys-0.39.1/x86/WebView2Loader.dll.lib",
+      "bytes": 2998,
+      "sha256": "a3ec0ee539d58fe72391f2e89cb814f96fab721c6d8d30953d152ea95dffad49",
+      "id": "webview2-com-sys-0.39.1-x86-imports",
+      "machine": "0x14c",
+      "review": {
+        "counts": {
+          "sections": 5,
+          "short_imports": 5,
+          "relocations": 3,
+          "objects": 8
+        },
+        "dlls": [
+          "WebView2Loader.dll"
+        ],
+        "unique_exports": 13,
+        "linker_symbols": 13
+      }
+    },
+    {
+      "member": "webview2-com-sys-0.39.1/x64/WebView2Loader.dll.lib",
+      "bytes": 2916,
+      "sha256": "bfc8ccaaa056be95243a5b66a827e5849d2bb39676fca4dcc2053796d8e15c6d",
+      "id": "webview2-com-sys-0.39.1-x64-imports",
+      "machine": "0x8664",
+      "review": {
+        "counts": {
+          "sections": 5,
+          "short_imports": 5,
+          "relocations": 3,
+          "objects": 8
+        },
+        "dlls": [
+          "WebView2Loader.dll"
+        ],
+        "unique_exports": 13,
+        "linker_symbols": 13
+      }
+    },
+    {
+      "member": "webview2-com-sys-0.39.1/arm64/WebView2Loader.dll.lib",
+      "bytes": 2916,
+      "sha256": "d70271daa44507865ca0696cd1c1ede5e58e694eec74cb2d06e17dbbe205e9a2",
+      "id": "webview2-com-sys-0.39.1-arm64-imports",
+      "machine": "0xaa64",
+      "review": {
+        "counts": {
+          "sections": 5,
+          "short_imports": 5,
+          "relocations": 3,
+          "objects": 8
+        },
+        "dlls": [
+          "WebView2Loader.dll"
+        ],
+        "unique_exports": 13,
+        "linker_symbols": 13
+      }
+    }
+  ],
+  "archive_sha256": "b3a07132775117d6065853d9d1178157b8c90e228de47129d6bce2c7edebedfb",
+  "review_reader_sha256": "4443c9d32919600611dd32aa640298f51f62577500e4b2520dc1f64903c7613e",
+  "target_executed": false,
+  "review": "All three import-only libraries pass the existing complete AR/COFF/import metadata reader. Each has five short imports, three COFF descriptor/null-thunk objects, matching dual symbol indexes and no executable section. No loader DLL or static implementation is reviewed by this metadata proof.",
+  "scope": "Exact three paths/lengths/hashes only. No generic library, Microsoft publisher, DLL or package clearance.",
+  "limitations": [
+    "The actual WebView2Loader DLL and Static.lib implementations remain blocked and require independent code review.",
+    "Original binaries are not committed, loaded or linked."
+  ],
+  "sources": [
+    "https://learn.microsoft.com/en-us/windows/win32/debug/pe-format"
+  ]
+}

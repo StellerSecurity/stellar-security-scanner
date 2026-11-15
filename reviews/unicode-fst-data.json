@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "bindings": [
+    {
+      "member": "unicode-ident-1.0.27/tests/fst/xid_start.fst",
+      "id": "unicode-ident-1.0.27-start-scalar-set",
+      "bytes": 69927,
+      "sha256": "5e177e91fdf0cc2f117bd66277803aa21bc4d563357f6d81a9d4250456f9fa2f",
+      "states": 130,
+      "transitions": 18885,
+      "keys": 158716,
+      "lowest_scalar": 65,
+      "highest_scalar": 261183,
+      "ordered_scalar_sha256": "356bcae99dbbda568041b9a768c589d7f6d02bb686eaf906810fb14212133fd9",
+      "crc32c_verified": true,
+      "all_bytes_accounted_for": true,
+      "target_executed": false
+    },
+    {
+      "member": "unicode-ident-1.0.27/tests/fst/xid_continue.fst",
+      "id": "unicode-ident-1.0.27-continue-scalar-set",
+      "bytes": 78779,
+      "sha256": "a4c8f6daf453fba6d12daeb5e10192839edf930250234309049b4325406b5979",
+      "states": 138,
+      "transitions": 22214,
+      "keys": 162081,
+      "lowest_scalar": 48,
+      "highest_scalar": 917999,
+      "ordered_scalar_sha256": "687a6f9ce1410c48cb2edb099fa20a13a6e5bd6902a5e8aeb8e7e95584e26d68",
+      "crc32c_verified": true,
+      "all_bytes_accounted_for": true,
+      "target_executed": false
+    }
+  ],
+  "archive_sha256": "a2c754d6c33795a1c324727428e5a7dedb5b06195f9890bdbcba760d3e246563",
+  "witness_source": {
+    "member": "unicode-ident-1.0.27/src/tables.rs",
+    "sha256": "88cc4f427e7335cda9549cf07e3068a78c53f54804ae3057f184295872eb40a4",
+    "review": "Literal integer arrays/constants only; independently enumerate every Unicode scalar via the shipped bitmap representation. Counts and ordered scalar hashes equal the complete FST traversal."
+  },
+  "review_reader_sha256": "680834b06e71f18c9a7c60140a4f4fb8a67da454339e4af5ba8abd35d57617da",
+  "target_executed": false,
+  "scope": "Exact two paths, lengths and hashes. No generic FST, data extension, package or execution waiver.",
+  "review": "Masked CRC32C, version/type/footer, every contiguous state/packed integer/label/index and backwards edge are verified. No overlaps, opaque tails, forward references, orphan states, nonzero outputs or invalid keys remain. Complete finite traversal yields only four-byte big-endian Unicode scalar numbers and agrees with a separate bitmap encoding.",
+  "limitations": [
+    "This establishes typed inert set data and consistency with the shipped tables, not independent authority for Unicode property correctness or downstream parser safety.",
+    "Only the reviewed zero-output FST-v3 set subset is supported.",
+    "No Rust source is compiled/evaluated and no third-party FST implementation is executed.",
+    "Original binary/table data is not committed; only typed counts, hashes and review evidence are recorded."
+  ],
+  "sources": [
+    "https://github.com/BurntSushi/fst/blob/0.4.7/src/raw/node.rs",
+    "https://github.com/BurntSushi/fst/blob/0.4.7/src/raw/mod.rs",
+    "https://github.com/BurntSushi/fst/blob/0.4.7/src/raw/crc32.rs"
+  ]
+}

@@ -951,6 +951,44 @@ def cargo_toml(raw):
         _fail('invalid-cargo-manifest')
 
 
+# Exact source-only transformation of the earlier reviewed graph. No execution waiver.
+CARGO_GRAPH_REVIEWS += ({'id': 'stellar-vpn-0.5.1-source-graph-no-vswhom-20261115',
+ 'repository': 'StellerSecurity/Stellar.UI.Desktop.VPNapp',
+ 'repository_id': 1111447739,
+ 'scope': 'Exact reviewed source-graph binding only; all dependency archives and vendored source remain '
+          'inspected. No compiled-code, advisory, installation or execution waiver.',
+ 'evidence': {'previous_review': 'stellar-vpn-0.5.1-source-graph-20261108',
+              'source_commit': '9a726e21a73e5aa1413efdebfbd9e4004b204027',
+              'approved_source_patch_plan_sha256': '32c2344d561eaefef9d3a09010b0158804a36e62fd2b63b219562f066728c289',
+              'original_embed_resource_archive_sha256': '6168487b5e7eb2673e6efe1200b1848016e436a6ca0b8031bf04bd9d493a249f',
+              'transformation': 'Remove exactly vswhom 0.1.0 and vswhom-sys 0.1.3; replace embed-resource '
+                                '3.0.12 registry source with the reviewed source-only patch. Other locked '
+                                'package records and all other source bindings unchanged.',
+              'source_verification': 'All seven vendored files match the user-approved source plan; original '
+                                     'archive, effective per-file hashes, preserved MIT license, public APIs '
+                                     'and SDK/RC branches independently verified. Full changed-source scan '
+                                     'has no gaps or blocking source findings.',
+              'compiled_graph_validation': 'Pending separately approved isolated Windows debug build; no '
+                                           'completed build or binary clearance claimed.',
+              'vendored_source': 'Existing glib inventory is unchanged; all embed-resource '
+                                 'source/license/provenance bytes are included in the bound and inspected '
+                                 'local corpus.'},
+ 'local_packages': [['stellar-vpn-desktop', '0.5.1'],
+                    ['stellar-core', '0.1.0'],
+                    ['stellar-vpn-helper', '0.1.0'],
+                    ['glib', '0.18.5'],
+                    ['embed-resource', '3.0.12']],
+ 'source_bindings': {**CARGO_GRAPH_REVIEWS[0]['source_bindings'], **{'Cargo.toml': 'a52d18f0e53e0f2f82634239c6078426c1d6d5652b8d0f065cf8c9395c81bfef',
+ 'Cargo.lock': '192bf14cc9c1772501a36a0ef7493e019e5d4ba954324bc9dd9aa71ddd100029',
+ 'vendor/embed-resource-3.0.12/Cargo.toml': '213d31f389a7e6cce3286c133ce7fb72281296f1e4bd045a3ce838f2e4a9fffe',
+ 'vendor/embed-resource-3.0.12/LICENSE': '1abdbbd4e3f95e56c79d4a8af190254c23ddb14db34aadadfafef9c3af041113',
+ 'vendor/embed-resource-3.0.12/src/lib.rs': '70b477c14b4705a5d8e738e00388641a8ff73f76d53f1843e1178309ea14fc6a',
+ 'vendor/embed-resource-3.0.12/src/non_windows.rs': 'e6deeb3ffd53378675d06bc60fab16a621ff946cf88dae149419517bac1010da',
+ 'vendor/embed-resource-3.0.12/src/windows_msvc.rs': 'b65e81f174a92fc42eaefeee27bba0346add7f252a353bbe1c33bcba9d523a46',
+ 'vendor/embed-resource-3.0.12/src/windows_not_msvc.rs': '496b73be5b72d8906cb88cf3b412a880599d6eb663ccbf6017d40dc790fdfd85',
+ 'vendor/embed-resource-3.0.12/stellar-patch.json': '49bd57112a147e13a3eea9fd8ddc9f1f1342774a21c0dcdd67cf0948dce829a9'}}},)
+
+
 def reviewed_cargo_graph(bundle, manifests):
     if not isinstance(bundle, dict):
         return None
@@ -958,7 +996,7 @@ def reviewed_cargo_graph(bundle, manifests):
         if bundle.get('repository') != review['repository'] or bundle.get('repository_id') != review['repository_id']:
             continue
         observed = {path for path in manifests if path.rsplit('/', 1)[-1].casefold() in ('cargo.toml', 'cargo.lock')
-                    or path.casefold().startswith('vendor/glib-0.18.5/') or cargo_config_path(path)}
+                    or path.casefold().startswith(('vendor/glib-0.18.5/', 'vendor/embed-resource-3.0.12/')) or cargo_config_path(path)}
         if observed != set(review['source_bindings']):
             continue
         if any(hashlib.sha256(manifests[path]).hexdigest() != digest for path, digest in review['source_bindings'].items()):

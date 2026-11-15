@@ -42,7 +42,16 @@ class CargoSourceBindingTests(unittest.TestCase):
             self.assertFalse(bridge.local_cargo_source(bundle, 'vendor/glib-0.18.5/src/lib.rs'))
     def test_published_record_matches_exact_readable_policy(self):
         evidence = json.loads((Path(__file__).resolve().parents[1] / 'reviews/stellar-vpn-cargo-source-20261108.json').read_text())
-        self.assertEqual(acquisition.CARGO_GRAPH_REVIEWS, (evidence,))
+        current = json.loads((Path(__file__).resolve().parents[1] / 'reviews/stellar-vpn-cargo-source-20261115.json').read_text())
+        self.assertEqual(acquisition.CARGO_GRAPH_REVIEWS, (evidence, current))
+        self.assertEqual(set(current['source_bindings']) - set(evidence['source_bindings']), {
+            'vendor/embed-resource-3.0.12/' + name for name in (
+                'Cargo.toml', 'LICENSE', 'stellar-patch.json', 'src/lib.rs',
+                'src/non_windows.rs', 'src/windows_msvc.rs', 'src/windows_not_msvc.rs')})
+        self.assertIn(['embed-resource', '3.0.12'], current['local_packages'])
+        for name, digest in evidence['source_bindings'].items():
+            if name not in ('Cargo.toml', 'Cargo.lock'):
+                self.assertEqual(current['source_bindings'][name], digest)
         self.assertGreater(len(evidence['source_bindings']), 100)
         self.assertIn('No compiled-code', evidence['scope'])
     def test_local_plan_accepts_only_reviewed_name_version_without_external_origin(self):
@@ -73,3 +82,70 @@ class CargoSourceBindingTests(unittest.TestCase):
         with patch.dict(sys.modules, {'tomllib': None}):
             with self.assertRaisesRegex(acquisition.AcquisitionError, 'cargo-standard-library-parser-unavailable'):
                 acquisition.cargo_toml(b'version=4\n')
+
+
+class ResourceSourceBindingTests(unittest.TestCase):
+    def setUp(self):
+        CargoSourceBindingTests.setUp(self)
+        self.files.update({'vendor/embed-resource-3.0.12/Cargo.toml': b'fixed resource manifest',
+                           'vendor/embed-resource-3.0.12/src/lib.rs': b'fixed resource source'})
+        self.review['source_bindings'] = {p: hashlib.sha256(b).hexdigest() for p, b in self.files.items()}
+
+    def reviewed(self, bundle=None, files=None):
+        return CargoSourceBindingTests.reviewed(self, bundle, files)
+
+    def test_new_vendor_requires_every_source_byte_and_rejects_additions(self):
+        self.assertIsNotNone(self.reviewed())
+        for name in ('vendor/embed-resource-3.0.12/src/lib.rs',
+                     'vendor/embed-resource-3.0.12/Cargo.toml'):
+            changed = dict(self.files); changed[name] += b'changed'
+            self.assertIsNone(self.reviewed(files=changed))
+            del changed[name]
+            self.assertIsNone(self.reviewed(files=changed))
+        for name in ('vendor/embed-resource-3.0.12/src/extra.rs',
+                     'vendor/EMBED-RESOURCE-3.0.12/extra.rs',
+                     'vendor/embed-resource-3.0.12/unknown.node'):
+            self.assertIsNone(self.reviewed(files={**self.files, name: b'extra'}))
+
+    def test_new_corpus_is_scoped_and_reaches_both_bridge_layers(self):
+        from test_repository_archives import bundle
+        context = bundle(self.files)
+        context.update(self.bundle)
+        found, gaps = guard.manifest_bundle(context, 'a' * 40, guard.LIMITS)
+        self.assertFalse(gaps)
+        self.assertEqual(found, self.files)
+        name = 'vendor/embed-resource-3.0.12/src/lib.rs'
+        self.assertTrue(guard.local_cargo_source(context, name))
+        self.assertTrue(bridge.local_cargo_source(context, name))
+        for wrong in ({**context, 'repository_id': 2}, {**context, 'repository': 'StellerSecurity/other'}):
+            self.assertFalse(guard.local_cargo_source(wrong, name))
+            self.assertFalse(bridge.local_cargo_source(wrong, name))
+
+    def scan_bound_source(self, name, raw):
+        import content_guard as content
+        import malware_advisories
+        from test_content_coverage import engine
+        from test_repository_archives import bundle
+        files = {'Cargo.toml': b'[package]\nname="local"\nversion="1.0.0"\n',
+                 'Cargo.lock': b'version=4\n[[package]]\nname="local"\nversion="1.0.0"\n', name: raw}
+        context = bundle(files); context.update(self.bundle)
+        review = {**self.review, 'local_packages': [['local', '1.0.0']],
+                  'source_bindings': {p: hashlib.sha256(b).hexdigest() for p, b in files.items()}}
+        inspector = content.Inspector
+        with patch.object(acquisition, 'CARGO_GRAPH_REVIEWS', (review,)), \
+                patch.object(content, 'Inspector', side_effect=lambda limits: inspector(engine=engine(), limits=limits)):
+            return guard.inspect(None, 'a' * 40, acquisition, content, manifests_input=context,
+                fetch=lambda *a: (_ for _ in ()).throw(AssertionError('network')),
+                advisories=malware_advisories,
+                advisory_request=lambda *a: (_ for _ in ()).throw(AssertionError('network')))
+
+    def test_source_identity_does_not_waive_malware_inspection(self):
+        result = self.scan_bound_source('vendor/embed-resource-3.0.12/src/test.js', b'reverse shell')
+        self.assertEqual(result['status'], 'blocked')
+        self.assertTrue(any(f['malware'] for f in result['findings']))
+        self.assertFalse(result['cargo_graph_review']['compiled_dependency_clearance'])
+
+    def test_source_identity_does_not_clear_native_code(self):
+        result = self.scan_bound_source('vendor/embed-resource-3.0.12/unknown.node', b'\x7fELF' + b'\0' * 64)
+        self.assertTrue(any(g['reason'] == 'executable-binary-needs-independent-review' for g in result['gaps']))
+        self.assertFalse(result['cargo_graph_review']['compiled_dependency_clearance'])

@@ -133,10 +133,14 @@ class ExactMetadataBindingTests(unittest.TestCase):
         evidence = json.loads((ROOT / 'reviews/windows-target-import-metadata.json').read_text())
         self.assertEqual(evidence['review_reader_sha256'], hashlib.sha256(
             (ROOT / 'tools/review_windows_import_metadata.py').read_bytes()).hexdigest())
-        self.assertEqual({(r['member'], r['bytes'], r['sha256'], r['id']) for r in evidence['bindings']},
+        webview = json.loads((ROOT / 'reviews/webview2-import-metadata.json').read_text())
+        self.assertEqual(webview['review_reader_sha256'], evidence['review_reader_sha256'])
+        rows = evidence['bindings'] + webview['bindings']
+        self.assertEqual(len(rows), 8)
+        self.assertEqual({(r['member'], r['bytes'], r['sha256'], r['id']) for r in rows},
                          set(guard.REVIEWED_WINDOWS_IMPORT_METADATA))
-        self.assertEqual(sum(r['review']['counts']['objects'] for r in evidence['bindings']), 90965)
-        self.assertEqual(sum(r['review']['counts']['short_imports'] for r in evidence['bindings']), 85805)
+        self.assertEqual(sum(r['review']['counts']['objects'] for r in rows), 90989)
+        self.assertEqual(sum(r['review']['counts']['short_imports'] for r in rows), 85820)
         self.assertFalse(evidence['target_executed'])
 
 

@@ -1,0 +1,259 @@
+{
+  "schema": 1,
+  "member": "package/fsevents.node",
+  "bytes": 163626,
+  "sha256": "40f2f51199e4f5fc46fa6b985fb3461bb63e6cd86c62bfa9bcee45ed4438d5fb",
+  "npm_archive_sha256": "c77e7a5d5ff31dd7acea7c44d4a0455e0528cdacbd24a8cb6c82b66d239b587e",
+  "source_commit": "2db891e51aa0f2975c5eaaf6aa30f13d720a830a",
+  "source_archive_sha256": "d3754c690774d4503c5f2df805ba10d3e3c7723178796f471beffe4054aed3dc",
+  "source_files": [
+    {
+      "path": "binding.gyp",
+      "bytes": 716,
+      "sha256": "ffa522d620815325a878f171c3048548e50baeb7929e8b1302e4a84cc6fd65ea",
+      "mode": "100644"
+    },
+    {
+      "path": "fsevents.js",
+      "bytes": 2483,
+      "sha256": "1d75660f48786792f0e98d6dabfd301883c8f2a8f61aa690cbf58fb4386c0f1a",
+      "mode": "100644"
+    },
+    {
+      "path": "package.json",
+      "bytes": 1348,
+      "sha256": "500839fcc76f6c5efcb454e6614b23c26775e75e1140619fff9ca64c291aec2b",
+      "mode": "100644"
+    },
+    {
+      "path": "src/constants.h",
+      "bytes": 3534,
+      "sha256": "a5f2b2142ae44f9cca3e4bcf072581eebde9a17a55bbc5a8726b736773af7876",
+      "mode": "100644"
+    },
+    {
+      "path": "src/fsevents.c",
+      "bytes": 9354,
+      "sha256": "0c24deee96ba8879cd0ae759260c8507da9a556b7c5e2196cf36536e400bc5eb",
+      "mode": "100644"
+    }
+  ],
+  "reader_sha256": "33385094d8c3abf0e890d365638e5b230af1278edc45b8012bf8911466aaff56",
+  "macho_reader_sha256": "7e8e55c7b9a2fe31dd1a96a826c09351a793eb21b0193ccab393e4d8dc18437a",
+  "disassembler_sha256": "dfc9b8179ea5e3af99064ac2b062d5237d09b5b92482f724b5ba98ca0dec9f55",
+  "slices": [
+    {
+      "cpu": 16777223,
+      "offset": 16384,
+      "bytes": 81088,
+      "sha256": "f73573a76542d52d5066b3dbff7b907c16416f22ae5db9a1585ebe568a0def93",
+      "executable_sections": [
+        {
+          "section": "__text",
+          "bytes": 7939,
+          "instructions": 1714,
+          "sha256": "ca8341ba0ce11678412790b8ba58fb37ef24dcbf81a8948aef8be507967c0cf4"
+        },
+        {
+          "section": "__stubs",
+          "bytes": 288,
+          "instructions": 48,
+          "sha256": "b9c63f9ba03b12cfaab6335685543c5eafd17c267f6a336ccc953159d795daaf"
+        },
+        {
+          "section": "__stub_helper",
+          "bytes": 496,
+          "instructions": 100,
+          "sha256": "3d5b460206fb445e56190b615af6317409f911bd3ecae8b2cefacd94c08aeea0"
+        }
+      ],
+      "function_symbols": 90,
+      "cold_assertion_functions": 74,
+      "direct_branches": 403,
+      "imports": [
+        "_CFArrayCreate",
+        "_CFArrayGetValueAtIndex",
+        "_CFRunLoopAddSource",
+        "_CFRunLoopGetCurrent",
+        "_CFRunLoopRun",
+        "_CFRunLoopSourceCreate",
+        "_CFRunLoopStop",
+        "_CFStringCreateWithCString",
+        "_CFStringGetCString",
+        "_FSEventStreamCreate",
+        "_FSEventStreamInvalidate",
+        "_FSEventStreamRelease",
+        "_FSEventStreamScheduleWithRunLoop",
+        "_FSEventStreamStart",
+        "_FSEventStreamStop",
+        "_FSEventStreamUnscheduleFromRunLoop",
+        "____chkstk_darwin",
+        "___assert_rtn",
+        "___stack_chk_fail",
+        "___stack_chk_guard",
+        "_free",
+        "_kCFRunLoopDefaultMode",
+        "_malloc",
+        "_napi_call_function",
+        "_napi_call_threadsafe_function",
+        "_napi_create_external",
+        "_napi_create_int32",
+        "_napi_create_int64",
+        "_napi_create_object",
+        "_napi_create_string_utf8",
+        "_napi_create_threadsafe_function",
+        "_napi_create_uint32",
+        "_napi_define_properties",
+        "_napi_get_cb_info",
+        "_napi_get_null",
+        "_napi_get_undefined",
+        "_napi_get_value_external",
+        "_napi_get_value_int64",
+        "_napi_get_value_string_utf8",
+        "_napi_ref_threadsafe_function",
+        "_napi_release_threadsafe_function",
+        "_napi_set_named_property",
+        "_napi_unref_threadsafe_function",
+        "_pthread_create",
+        "_pthread_join",
+        "_pthread_mutex_destroy",
+        "_pthread_mutex_init",
+        "_pthread_mutex_lock",
+        "_pthread_mutex_unlock",
+        "_strncpy",
+        "dyld_stub_binder"
+      ],
+      "libraries": [
+        "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+        "/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices",
+        "/usr/lib/libc++.1.dylib",
+        "/usr/lib/libSystem.B.dylib"
+      ],
+      "loader_metadata_sha256": "42fd9986328db1b05b3cbb097814fe480d257ff40abefbbfe82f7644c1d9614e",
+      "disassembly_sha256": "9a5db10747943f0951b32e4af53c59b04827b8361d0048f000c9a404f45a3d40",
+      "unexplained_strings": 0,
+      "initializers": []
+    },
+    {
+      "cpu": 16777228,
+      "offset": 98304,
+      "bytes": 65322,
+      "sha256": "60ecfd7939025ecf4228a83ffa27d9fc671469a8749075cf0fad10f276ffb651",
+      "executable_sections": [
+        {
+          "section": "__text",
+          "bytes": 6652,
+          "instructions": 1663,
+          "sha256": "3e40a7bffa0bd3542c63149c93594d606203bd96705a306985a729cd0a9ae189"
+        },
+        {
+          "section": "__stubs",
+          "bytes": 564,
+          "instructions": 141,
+          "sha256": "d3016985ba7f97a77c3a27084b59d9d69a4ceb3611d5daa71f119d46c6bbb837"
+        },
+        {
+          "section": "__stub_helper",
+          "bytes": 588,
+          "instructions": 147,
+          "sha256": "393cde08bb6cdeb96f851543ebbed463265d0a62c759cf076fa2d34ce168a0df"
+        }
+      ],
+      "function_symbols": 90,
+      "cold_assertion_functions": 74,
+      "direct_branches": 401,
+      "imports": [
+        "_CFArrayCreate",
+        "_CFArrayGetValueAtIndex",
+        "_CFRunLoopAddSource",
+        "_CFRunLoopGetCurrent",
+        "_CFRunLoopRun",
+        "_CFRunLoopSourceCreate",
+        "_CFRunLoopStop",
+        "_CFStringCreateWithCString",
+        "_CFStringGetCString",
+        "_FSEventStreamCreate",
+        "_FSEventStreamInvalidate",
+        "_FSEventStreamRelease",
+        "_FSEventStreamScheduleWithRunLoop",
+        "_FSEventStreamStart",
+        "_FSEventStreamStop",
+        "_FSEventStreamUnscheduleFromRunLoop",
+        "___assert_rtn",
+        "___chkstk_darwin",
+        "___stack_chk_fail",
+        "___stack_chk_guard",
+        "_free",
+        "_kCFRunLoopDefaultMode",
+        "_malloc",
+        "_napi_call_function",
+        "_napi_call_threadsafe_function",
+        "_napi_create_external",
+        "_napi_create_int32",
+        "_napi_create_int64",
+        "_napi_create_object",
+        "_napi_create_string_utf8",
+        "_napi_create_threadsafe_function",
+        "_napi_create_uint32",
+        "_napi_define_properties",
+        "_napi_get_cb_info",
+        "_napi_get_null",
+        "_napi_get_undefined",
+        "_napi_get_value_external",
+        "_napi_get_value_int64",
+        "_napi_get_value_string_utf8",
+        "_napi_ref_threadsafe_function",
+        "_napi_release_threadsafe_function",
+        "_napi_set_named_property",
+        "_napi_unref_threadsafe_function",
+        "_pthread_create",
+        "_pthread_join",
+        "_pthread_mutex_destroy",
+        "_pthread_mutex_init",
+        "_pthread_mutex_lock",
+        "_pthread_mutex_unlock",
+        "_strncpy",
+        "dyld_stub_binder"
+      ],
+      "libraries": [
+        "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+        "/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices",
+        "/usr/lib/libc++.1.dylib",
+        "/usr/lib/libSystem.B.dylib"
+      ],
+      "loader_metadata_sha256": "a60c4719042ce5dac78ef38eb555a1c58942becddff6311340e257d549e6e3a9",
+      "disassembly_sha256": "79935026653ac84d2f32b0ae5d28d3d322ffe5fbaabd8015f330c8b57d23964d",
+      "unexplained_strings": 0,
+      "initializers": []
+    }
+  ],
+  "static_code_review_complete": true,
+  "target_executed": false,
+  "execution_approved": false,
+  "manual_code_review": [
+    "The three source scheduling callbacks return directly. The environment functions allocate an 80-byte context, establish a mutex and process-lifetime run-loop thread, then stop/join/destroy/free it at finalization.",
+    "Start obtains only the caller-supplied N-API path, event cursor and callback, copies a bounded 1024-byte path, builds a CF path array and FSEventStream with flags 0x15 and latency 0.1, then returns an external handle with cleanup callback.",
+    "OS event paths/flags/IDs are copied into records and sent through the caller callback. Stop invalidates/releases the stream and callback; dispatch converts those three fields to JS values and frees event records. No file contents or credential stores are read by these functions.",
+    "Initialization exposes five properties, 24 event flag constants, SinceNow=-1, NAPI version 4 and a registration jump to Init. Both architectures match these source flows.",
+    "All 74 cold functions per architecture are assertion failures with one __assert_rtn call; linker stubs and helpers contain normal external binding sequences. All executable bytes are independently matched to the disassembly, with no unknown instructions or direct system calls.",
+    "All native C strings match source identifiers, literal strings or exact CHECK/CONSTANT expansions. Loader bindings equal the 51 symbol imports; four system libraries only, no automatic initializer functions."
+  ],
+  "limitations": [
+    "This is an exact static source/code/loader-data review, not a reproducible build or a proof of memory safety.",
+    "The source aborts on some invalid N-API inputs, does not check every allocation/thread result and may leak resources on exceptional shutdown. These reliability limits are not denied or turned into runtime guarantees.",
+    "The normal watcher worker thread ends with its process; this review creates no daemon, login item or OS persistence.",
+    "Registry metadata declares a node-gyp install hook. No hook, compiler, addon or crate is run, and this content review grants no execution/install/release approval.",
+    "Unknown files, other fsevents versions and changed bytes remain blocking. No third-party binary, disassembly text, decoded source or Markdown is committed."
+  ],
+  "sources": [
+    "https://llvm.org/docs/CommandGuide/llvm-objdump.html",
+    "https://github.com/fsevents/fsevents/tree/2db891e51aa0f2975c5eaaf6aa30f13d720a830a"
+  ],
+  "negative_controls": [
+    "changed native byte",
+    "changed source byte",
+    "missing architecture",
+    "unknown instruction",
+    "unexplained loader binding"
+  ]
+}

@@ -1,0 +1,985 @@
+{
+  "schema": 1,
+  "tool_sha256": "695eed882f4c5be8a132a384c5841e5ed709e033cc3acf674c38793a7da41fc5",
+  "artifacts": [
+    {
+      "package": "@esbuild/aix-ppc64",
+      "member": "package/bin/esbuild",
+      "sha256": "0dd860154344f94b7a9367e64ffc2bc5b89a4313b4a399e5127cdc4ff5000303",
+      "metadata": {
+        "native_sha256": "0dd860154344f94b7a9367e64ffc2bc5b89a4313b4a399e5127cdc4ff5000303",
+        "go_version_literal": "go1.26.4",
+        "module_text_sha256": "29b9fe1655a904e1cc32296ea205b0ae53ab3dfc6271347522b649560e91f93c",
+        "module_offset": 7005200,
+        "module_bytes": 762,
+        "main_path": "github.com/evanw/esbuild/cmd/esbuild",
+        "main": {
+          "name": "github.com/evanw/esbuild",
+          "version": "(devel)",
+          "checksum": ""
+        },
+        "dependencies": [],
+        "settings": {
+          "-buildmode": "exe",
+          "-compiler": "gc",
+          "-trimpath": "true",
+          "DefaultGODEBUG": "asynctimerchan=1,containermaxprocs=0,cryptocustomrand=1,decoratemappings=0,gotestjsonbuildtext=1,gotypesalias=0,httpcookiemaxnum=0,httplaxcontentlength=1,httpmuxgo121=1,httpservecontentkeepheaders=1,multipathtcp=0,netedns0=0,panicnil=1,randseednop=0,rsa1024min=0,tls10server=1,tls3des=1,tlsmlkem=0,tlsrsakex=1,tlssecpmlkem=0,tlssha1=1,tlsunsafeekm=1,updatemaxprocs=0,urlmaxqueryparams=0,urlstrictcolons=0,winreadlinkvolume=0,winsymlink=0,x509keypairleaf=0,x509negativeserial=1,x509rsacrt=0,x509sha256skid=0,x509usepolicies=0",
+          "CGO_ENABLED": "0",
+          "GOARCH": "ppc64",
+          "GOOS": "aix",
+          "GOPPC64": "power8"
+        },
+        "standard_buildinfo_header_found": false,
+        "evidence": "Descriptive module-data sentinel and separate version literal; neither is authenticated.",
+        "source_correspondence_verified": false,
+        "advisory_reachability_complete": false,
+        "native_code_cleared": false,
+        "target_executed": false
+      }
+    },
+    {
+      "package": "@esbuild/android-arm",
+      "member": "package/bin/esbuild",
+      "sha256": "b3cdaf234fd51a7908b2ffc4a84b3baa466656ccb2586498de4cc2f77b6f1e1e",
+      "unresolved": "missing or ambiguous Go version literal"
+    },
+    {
+      "package": "@esbuild/android-arm64",
+      "member": "package/bin/esbuild",
+      "sha256": "087671da02d323e7915fafc13567c0929192633ed544bd8adee9bc020fddf5b4",
+      "metadata": {
+        "native_sha256": "087671da02d323e7915fafc13567c0929192633ed544bd8adee9bc020fddf5b4",
+        "go_version_literal": "go1.26.4",
+        "module_text_sha256": "83d09b870808db7e8ec49be4687cbab093a57cb923c21f1824a72c0c1463c744",
+        "module_offset": 5165488,
+        "module_bytes": 868,
+        "main_path": "github.com/evanw/esbuild/cmd/esbuild",
+        "main": {
+          "name": "github.com/evanw/esbuild",
+          "version": "(devel)",
+          "checksum": ""
+        },
+        "dependencies": [
+          {
+            "name": "golang.org/x/sys",
+            "version": "v0.0.0-20220715151400-c0bba94af5f8",
+            "checksum": "h1:0A+M6Uqn+Eje4kHMK80dtF3JCXC4ykBgQG4Fe06QRhQ="
+          }
+        ],
+        "settings": {
+          "-buildmode": "exe",
+          "-compiler": "gc",
+          "-trimpath": "true",
+          "DefaultGODEBUG": "asynctimerchan=1,containermaxprocs=0,cryptocustomrand=1,decoratemappings=0,gotestjsonbuildtext=1,gotypesalias=0,httpcookiemaxnum=0,httplaxcontentlength=1,httpmuxgo121=1,httpservecontentkeepheaders=1,multipathtcp=0,netedns0=0,panicnil=1,randseednop=0,rsa1024min=0,tls10server=1,tls3des=1,tlsmlkem=0,tlsrsakex=1,tlssecpmlkem=0,tlssha1=1,tlsunsafeekm=1,updatemaxprocs=0,urlmaxqueryparams=0,urlstrictcolons=0,winreadlinkvolume=0,winsymlink=0,x509keypairleaf=0,x509negativeserial=1,x509rsacrt=0,x509sha256skid=0,x509usepolicies=0",
+          "CGO_ENABLED": "0",
+          "GOARCH": "arm64",
+          "GOOS": "android",
+          "GOARM64": "v8.0"
+        },
+        "standard_buildinfo_header_found": false,
+        "evidence": "Descriptive module-data sentinel and separate version literal; neither is authenticated.",
+        "source_correspondence_verified": false,
+        "advisory_reachability_complete": false,
+        "native_code_cleared": false,
+        "target_executed": false
+      }
+    },
+    {
+      "package": "@esbuild/android-x64",
+      "member": "package/bin/esbuild",
+      "sha256": "b3cdaf234fd51a7908b2ffc4a84b3baa466656ccb2586498de4cc2f77b6f1e1e",
+      "unresolved": "missing or ambiguous Go version literal"
+    },
+    {
+      "package": "@esbuild/darwin-arm64",
+      "member": "package/bin/esbuild",
+      "sha256": "e2dc9a52440a2a34f09434a2f4843cb1e30f84e40dcf238976ec61ef8cd7f36a",
+      "metadata": {
+        "native_sha256": "e2dc9a52440a2a34f09434a2f4843cb1e30f84e40dcf238976ec61ef8cd7f36a",
+        "go_version_literal": "go1.26.4",
+        "module_text_sha256": "743eda16237591721267c9b7f150a4df4e795bd2045fd06dbe8d715ce7207b59",
+        "module_offset": 5131184,
+        "module_bytes": 867,
+        "main_path": "github.com/evanw/esbuild/cmd/esbuild",
+        "main": {
+          "name": "github.com/evanw/esbuild",
+          "version": "(devel)",
+          "checksum": ""
+        },
+        "dependencies": [
+          {
+            "name": "golang.org/x/sys",
+            "version": "v0.0.0-20220715151400-c0bba94af5f8",
+            "checksum": "h1:0A+M6Uqn+Eje4kHMK80dtF3JCXC4ykBgQG4Fe06QRhQ="
+          }
+        ],
+        "settings": {
+          "-buildmode": "exe",
+          "-compiler": "gc",
+          "-trimpath": "true",
+          "DefaultGODEBUG": "asynctimerchan=1,containermaxprocs=0,cryptocustomrand=1,decoratemappings=0,gotestjsonbuildtext=1,gotypesalias=0,httpcookiemaxnum=0,httplaxcontentlength=1,httpmuxgo121=1,httpservecontentkeepheaders=1,multipathtcp=0,netedns0=0,panicnil=1,randseednop=0,rsa1024min=0,tls10server=1,tls3des=1,tlsmlkem=0,tlsrsakex=1,tlssecpmlkem=0,tlssha1=1,tlsunsafeekm=1,updatemaxprocs=0,urlmaxqueryparams=0,urlstrictcolons=0,winreadlinkvolume=0,winsymlink=0,x509keypairleaf=0,x509negativeserial=1,x509rsacrt=0,x509sha256skid=0,x509usepolicies=0",
+          "CGO_ENABLED": "0",
+          "GOARCH": "arm64",
+          "GOOS": "darwin",
+          "GOARM64": "v8.0"
+        },
+        "standard_buildinfo_header_found": false,
+        "evidence": "Descriptive module-data sentinel and separate version literal; neither is authenticated.",
+        "source_correspondence_verified": false,
+        "advisory_reachability_complete": false,
+        "native_code_cleared": false,
+        "target_executed": false
+      }
+    },
+    {
+      "package": "@esbuild/darwin-x64",
+      "member": "package/bin/esbuild",
+      "sha256": "dd53ccf32f9b5b3ab30d41388ef1fc8f81c44ca57ee7a32a7364a1753308d009",
+      "metadata": {
+        "native_sha256": "dd53ccf32f9b5b3ab30d41388ef1fc8f81c44ca57ee7a32a7364a1753308d009",
+        "go_version_literal": "go1.26.4",
+        "module_text_sha256": "ef1f4af432a6ede5f3fc0e56ae51d6bc399bc5379caace6937bad7c0e2b6c16b",
+        "module_offset": 6156272,
+        "module_bytes": 865,
+        "main_path": "github.com/evanw/esbuild/cmd/esbuild",
+        "main": {
+          "name": "github.com/evanw/esbuild",
+          "version": "(devel)",
+          "checksum": ""
+        },
+        "dependencies": [
+          {
+            "name": "golang.org/x/sys",
+            "version": "v0.0.0-20220715151400-c0bba94af5f8",
+            "checksum": "h1:0A+M6Uqn+Eje4kHMK80dtF3JCXC4ykBgQG4Fe06QRhQ="
+          }
+        ],
+        "settings": {
+          "-buildmode": "exe",
+          "-compiler": "gc",
+          "-trimpath": "true",
+          "DefaultGODEBUG": "asynctimerchan=1,containermaxprocs=0,cryptocustomrand=1,decoratemappings=0,gotestjsonbuildtext=1,gotypesalias=0,httpcookiemaxnum=0,httplaxcontentlength=1,httpmuxgo121=1,httpservecontentkeepheaders=1,multipathtcp=0,netedns0=0,panicnil=1,randseednop=0,rsa1024min=0,tls10server=1,tls3des=1,tlsmlkem=0,tlsrsakex=1,tlssecpmlkem=0,tlssha1=1,tlsunsafeekm=1,updatemaxprocs=0,urlmaxqueryparams=0,urlstrictcolons=0,winreadlinkvolume=0,winsymlink=0,x509keypairleaf=0,x509negativeserial=1,x509rsacrt=0,x509sha256skid=0,x509usepolicies=0",
+          "CGO_ENABLED": "0",
+          "GOARCH": "amd64",
+          "GOOS": "darwin",
+          "GOAMD64": "v1"
+        },
+        "standard_buildinfo_header_found": false,
+        "evidence": "Descriptive module-data sentinel and separate version literal; neither is authenticated.",
+        "source_correspondence_verified": false,
+        "advisory_reachability_complete": false,
+        "native_code_cleared": false,
+        "target_executed": false
+      }
+    },
+    {
+      "package": "@esbuild/freebsd-arm64",
+      "member": "package/bin/esbuild",
+      "sha256": "5fef5a5ef24d9660d7711b756be5ddeba1fb3ca8dd62d703682ebb9fab3b68b0",
+      "metadata": {
+        "native_sha256": "5fef5a5ef24d9660d7711b756be5ddeba1fb3ca8dd62d703682ebb9fab3b68b0",
+        "go_version_literal": "go1.26.4",
+        "module_text_sha256": "71f4a65998ddbae7e18e3bc276a603eb3d8aa19592dc0edb21a46f48b34ad036",
+        "module_offset": 6218416,
+        "module_bytes": 868,
+        "main_path": "github.com/evanw/esbuild/cmd/esbuild",
+        "main": {
+          "name": "github.com/evanw/esbuild",
+          "version": "(devel)",
+          "checksum": ""
+        },
+        "dependencies": [
+          {
+            "name": "golang.org/x/sys",
+            "version": "v0.0.0-20220715151400-c0bba94af5f8",
+            "checksum": "h1:0A+M6Uqn+Eje4kHMK80dtF3JCXC4ykBgQG4Fe06QRhQ="
+          }
+        ],
+        "settings": {
+          "-buildmode": "exe",
+          "-compiler": "gc",
+          "-trimpath": "true",
+          "DefaultGODEBUG": "asynctimerchan=1,containermaxprocs=0,cryptocustomrand=1,decoratemappings=0,gotestjsonbuildtext=1,gotypesalias=0,httpcookiemaxnum=0,httplaxcontentlength=1,httpmuxgo121=1,httpservecontentkeepheaders=1,multipathtcp=0,netedns0=0,panicnil=1,randseednop=0,rsa1024min=0,tls10server=1,tls3des=1,tlsmlkem=0,tlsrsakex=1,tlssecpmlkem=0,tlssha1=1,tlsunsafeekm=1,updatemaxprocs=0,urlmaxqueryparams=0,urlstrictcolons=0,winreadlinkvolume=0,winsymlink=0,x509keypairleaf=0,x509negativeserial=1,x509rsacrt=0,x509sha256skid=0,x509usepolicies=0",
+          "CGO_ENABLED": "0",
+          "GOARCH": "arm64",
+          "GOOS": "freebsd",
+          "GOARM64": "v8.0"
+        },
+        "standard_buildinfo_header_found": false,
+        "evidence": "Descriptive module-data sentinel and separate version literal; neither is authenticated.",
+        "source_correspondence_verified": false,
+        "advisory_reachability_complete": false,
+        "native_code_cleared": false,
+        "target_executed": false
+      }
+    },
+    {
+      "package": "@esbuild/freebsd-x64",
+      "member": "package/bin/esbuild",
+      "sha256": "4427a8cbfa0661943ccfef2606a65b35f3411ac73e447e86f7732aace61e4609",
+      "metadata": {
+        "native_sha256": "4427a8cbfa0661943ccfef2606a65b35f3411ac73e447e86f7732aace61e4609",
+        "go_version_literal": "go1.26.4",
+        "module_text_sha256": "bc2d826994123e68c2dcfcb2dc2817eb05eb0ea2b929e62955d592b9804269d1",
+        "module_offset": 7205328,
+        "module_bytes": 866,
+        "main_path": "github.com/evanw/esbuild/cmd/esbuild",
+        "main": {
+          "name": "github.com/evanw/esbuild",
+          "version": "(devel)",
+          "checksum": ""
+        },
+        "dependencies": [
+          {
+            "name": "golang.org/x/sys",
+            "version": "v0.0.0-20220715151400-c0bba94af5f8",
+            "checksum": "h1:0A+M6Uqn+Eje4kHMK80dtF3JCXC4ykBgQG4Fe06QRhQ="
+          }
+        ],
+        "settings": {
+          "-buildmode": "exe",
+          "-compiler": "gc",
+          "-trimpath": "true",
+          "DefaultGODEBUG": "asynctimerchan=1,containermaxprocs=0,cryptocustomrand=1,decoratemappings=0,gotestjsonbuildtext=1,gotypesalias=0,httpcookiemaxnum=0,httplaxcontentlength=1,httpmuxgo121=1,httpservecontentkeepheaders=1,multipathtcp=0,netedns0=0,panicnil=1,randseednop=0,rsa1024min=0,tls10server=1,tls3des=1,tlsmlkem=0,tlsrsakex=1,tlssecpmlkem=0,tlssha1=1,tlsunsafeekm=1,updatemaxprocs=0,urlmaxqueryparams=0,urlstrictcolons=0,winreadlinkvolume=0,winsymlink=0,x509keypairleaf=0,x509negativeserial=1,x509rsacrt=0,x509sha256skid=0,x509usepolicies=0",
+          "CGO_ENABLED": "0",
+          "GOARCH": "amd64",
+          "GOOS": "freebsd",
+          "GOAMD64": "v1"
+        },
+        "standard_buildinfo_header_found": false,
+        "evidence": "Descriptive module-data sentinel and separate version literal; neither is authenticated.",
+        "source_correspondence_verified": false,
+        "advisory_reachability_complete": false,
+        "native_code_cleared": false,
+        "target_executed": false
+      }
+    },
+    {
+      "package": "@esbuild/linux-arm",
+      "member": "package/bin/esbuild",
+      "sha256": "a2d93f7a8b1c9f91d47beec987888b4765c890501b6274f4bdff4061a5e0d9fd",
+      "metadata": {
+        "native_sha256": "a2d93f7a8b1c9f91d47beec987888b4765c890501b6274f4bdff4061a5e0d9fd",
+        "go_version_literal": "go1.26.4",
+        "module_text_sha256": "4538baac3c90ffbb1a05e584b98bd3ac84bac9a2fa01b31c3618a718526a836c",
+        "module_offset": 6935112,
+        "module_bytes": 859,
+        "main_path": "github.com/evanw/esbuild/cmd/esbuild",
+        "main": {
+          "name": "github.com/evanw/esbuild",
+          "version": "(devel)",
+          "checksum": ""
+        },
+        "dependencies": [
+          {
+            "name": "golang.org/x/sys",
+            "version": "v0.0.0-20220715151400-c0bba94af5f8",
+            "checksum": "h1:0A+M6Uqn+Eje4kHMK80dtF3JCXC4ykBgQG4Fe06QRhQ="
+          }
+        ],
+        "settings": {
+          "-buildmode": "exe",
+          "-compiler": "gc",
+          "-trimpath": "true",
+          "DefaultGODEBUG": "asynctimerchan=1,containermaxprocs=0,cryptocustomrand=1,decoratemappings=0,gotestjsonbuildtext=1,gotypesalias=0,httpcookiemaxnum=0,httplaxcontentlength=1,httpmuxgo121=1,httpservecontentkeepheaders=1,multipathtcp=0,netedns0=0,panicnil=1,randseednop=0,rsa1024min=0,tls10server=1,tls3des=1,tlsmlkem=0,tlsrsakex=1,tlssecpmlkem=0,tlssha1=1,tlsunsafeekm=1,updatemaxprocs=0,urlmaxqueryparams=0,urlstrictcolons=0,winreadlinkvolume=0,winsymlink=0,x509keypairleaf=0,x509negativeserial=1,x509rsacrt=0,x509sha256skid=0,x509usepolicies=0",
+          "CGO_ENABLED": "0",
+          "GOARCH": "arm",
+          "GOOS": "linux",
+          "GOARM": "7"
+        },
+        "standard_buildinfo_header_found": false,
+        "evidence": "Descriptive module-data sentinel and separate version literal; neither is authenticated.",
+        "source_correspondence_verified": false,
+        "advisory_reachability_complete": false,
+        "native_code_cleared": false,
+        "target_executed": false
+      }
+    },
+    {
+      "package": "@esbuild/linux-arm64",
+      "member": "package/bin/esbuild",
+      "sha256": "51e829ba36f36be6d9aea6e329ddc4f9350302339b16aaca96a3cb97f64a8ebb",
+      "metadata": {
+        "native_sha256": "51e829ba36f36be6d9aea6e329ddc4f9350302339b16aaca96a3cb97f64a8ebb",
+        "go_version_literal": "go1.26.4",
+        "module_text_sha256": "4022302f8f161b21116e5760e787ad0079c68243e6a6a0f3d88c786e7188127f",
+        "module_offset": 6220080,
+        "module_bytes": 866,
+        "main_path": "github.com/evanw/esbuild/cmd/esbuild",
+        "main": {
+          "name": "github.com/evanw/esbuild",
+          "version": "(devel)",
+          "checksum": ""
+        },
+        "dependencies": [
+          {
+            "name": "golang.org/x/sys",
+            "version": "v0.0.0-20220715151400-c0bba94af5f8",
+            "checksum": "h1:0A+M6Uqn+Eje4kHMK80dtF3JCXC4ykBgQG4Fe06QRhQ="
+          }
+        ],
+        "settings": {
+          "-buildmode": "exe",
+          "-compiler": "gc",
+          "-trimpath": "true",
+          "DefaultGODEBUG": "asynctimerchan=1,containermaxprocs=0,cryptocustomrand=1,decoratemappings=0,gotestjsonbuildtext=1,gotypesalias=0,httpcookiemaxnum=0,httplaxcontentlength=1,httpmuxgo121=1,httpservecontentkeepheaders=1,multipathtcp=0,netedns0=0,panicnil=1,randseednop=0,rsa1024min=0,tls10server=1,tls3des=1,tlsmlkem=0,tlsrsakex=1,tlssecpmlkem=0,tlssha1=1,tlsunsafeekm=1,updatemaxprocs=0,urlmaxqueryparams=0,urlstrictcolons=0,winreadlinkvolume=0,winsymlink=0,x509keypairleaf=0,x509negativeserial=1,x509rsacrt=0,x509sha256skid=0,x509usepolicies=0",
+          "CGO_ENABLED": "0",
+          "GOARCH": "arm64",
+          "GOOS": "linux",
+          "GOARM64": "v8.0"
+        },
+        "standard_buildinfo_header_found": false,
+        "evidence": "Descriptive module-data sentinel and separate version literal; neither is authenticated.",
+        "source_correspondence_verified": false,
+        "advisory_reachability_complete": false,
+        "native_code_cleared": false,
+        "target_executed": false
+      }
+    },
+    {
+      "package": "@esbuild/linux-ia32",
+      "member": "package/bin/esbuild",
+      "sha256": "9cd7515a75d6f96b0aa055861cf987498315428088cd6d18de5082f904ae5794",
+      "metadata": {
+        "native_sha256": "9cd7515a75d6f96b0aa055861cf987498315428088cd6d18de5082f904ae5794",
+        "go_version_literal": "go1.26.4",
+        "module_text_sha256": "a272e4d2805d4d28ba0f8740cf92a1d9c6e61203b23d4d45564b9a661e55d98d",
+        "module_offset": 6870672,
+        "module_bytes": 862,
+        "main_path": "github.com/evanw/esbuild/cmd/esbuild",
+        "main": {
+          "name": "github.com/evanw/esbuild",
+          "version": "(devel)",
+          "checksum": ""
+        },
+        "dependencies": [
+          {
+            "name": "golang.org/x/sys",
+            "version": "v0.0.0-20220715151400-c0bba94af5f8",
+            "checksum": "h1:0A+M6Uqn+Eje4kHMK80dtF3JCXC4ykBgQG4Fe06QRhQ="
+          }
+        ],
+        "settings": {
+          "-buildmode": "exe",
+          "-compiler": "gc",
+          "-trimpath": "true",
+          "DefaultGODEBUG": "asynctimerchan=1,containermaxprocs=0,cryptocustomrand=1,decoratemappings=0,gotestjsonbuildtext=1,gotypesalias=0,httpcookiemaxnum=0,httplaxcontentlength=1,httpmuxgo121=1,httpservecontentkeepheaders=1,multipathtcp=0,netedns0=0,panicnil=1,randseednop=0,rsa1024min=0,tls10server=1,tls3des=1,tlsmlkem=0,tlsrsakex=1,tlssecpmlkem=0,tlssha1=1,tlsunsafeekm=1,updatemaxprocs=0,urlmaxqueryparams=0,urlstrictcolons=0,winreadlinkvolume=0,winsymlink=0,x509keypairleaf=0,x509negativeserial=1,x509rsacrt=0,x509sha256skid=0,x509usepolicies=0",
+          "CGO_ENABLED": "0",
+          "GOARCH": "386",
+          "GOOS": "linux",
+          "GO386": "sse2"
+        },
+        "standard_buildinfo_header_found": false,
+        "evidence": "Descriptive module-data sentinel and separate version literal; neither is authenticated.",
+        "source_correspondence_verified": false,
+        "advisory_reachability_complete": false,
+        "native_code_cleared": false,
+        "target_executed": false
+      }
+    },
+    {
+      "package": "@esbuild/linux-loong64",
+      "member": "package/bin/esbuild",
+      "sha256": "73fa76af9b13f7a27fdb20673b8c2af927fe1511d14e51edeb4b7b71f7f03d0e",
+      "metadata": {
+        "native_sha256": "73fa76af9b13f7a27fdb20673b8c2af927fe1511d14e51edeb4b7b71f7f03d0e",
+        "go_version_literal": "go1.26.4",
+        "module_text_sha256": "722053764899b534f8f743920f89f4563f5d786abf6fd9b27cb9b610034ecc55",
+        "module_offset": 7006960,
+        "module_bytes": 849,
+        "main_path": "github.com/evanw/esbuild/cmd/esbuild",
+        "main": {
+          "name": "github.com/evanw/esbuild",
+          "version": "(devel)",
+          "checksum": ""
+        },
+        "dependencies": [
+          {
+            "name": "golang.org/x/sys",
+            "version": "v0.0.0-20220715151400-c0bba94af5f8",
+            "checksum": "h1:0A+M6Uqn+Eje4kHMK80dtF3JCXC4ykBgQG4Fe06QRhQ="
+          }
+        ],
+        "settings": {
+          "-buildmode": "exe",
+          "-compiler": "gc",
+          "-trimpath": "true",
+          "DefaultGODEBUG": "asynctimerchan=1,containermaxprocs=0,cryptocustomrand=1,decoratemappings=0,gotestjsonbuildtext=1,gotypesalias=0,httpcookiemaxnum=0,httplaxcontentlength=1,httpmuxgo121=1,httpservecontentkeepheaders=1,multipathtcp=0,netedns0=0,panicnil=1,randseednop=0,rsa1024min=0,tls10server=1,tls3des=1,tlsmlkem=0,tlsrsakex=1,tlssecpmlkem=0,tlssha1=1,tlsunsafeekm=1,updatemaxprocs=0,urlmaxqueryparams=0,urlstrictcolons=0,winreadlinkvolume=0,winsymlink=0,x509keypairleaf=0,x509negativeserial=1,x509rsacrt=0,x509sha256skid=0,x509usepolicies=0",
+          "CGO_ENABLED": "0",
+          "GOARCH": "loong64",
+          "GOOS": "linux"
+        },
+        "standard_buildinfo_header_found": false,
+        "evidence": "Descriptive module-data sentinel and separate version literal; neither is authenticated.",
+        "source_correspondence_verified": false,
+        "advisory_reachability_complete": false,
+        "native_code_cleared": false,
+        "target_executed": false
+      }
+    },
+    {
+      "package": "@esbuild/linux-mips64el",
+      "member": "package/bin/esbuild",
+      "sha256": "d734787abc3c99d95242805047fe32da85a5822f04bf33d766a966bf5fd85488",
+      "metadata": {
+        "native_sha256": "d734787abc3c99d95242805047fe32da85a5822f04bf33d766a966bf5fd85488",
+        "go_version_literal": "go1.26.4",
+        "module_text_sha256": "df2d2e9bf09c54766fb774c9102c758b26dbd2470b26d3de24ce1e60d818fad4",
+        "module_offset": 8362864,
+        "module_bytes": 875,
+        "main_path": "github.com/evanw/esbuild/cmd/esbuild",
+        "main": {
+          "name": "github.com/evanw/esbuild",
+          "version": "(devel)",
+          "checksum": ""
+        },
+        "dependencies": [
+          {
+            "name": "golang.org/x/sys",
+            "version": "v0.0.0-20220715151400-c0bba94af5f8",
+            "checksum": "h1:0A+M6Uqn+Eje4kHMK80dtF3JCXC4ykBgQG4Fe06QRhQ="
+          }
+        ],
+        "settings": {
+          "-buildmode": "exe",
+          "-compiler": "gc",
+          "-trimpath": "true",
+          "DefaultGODEBUG": "asynctimerchan=1,containermaxprocs=0,cryptocustomrand=1,decoratemappings=0,gotestjsonbuildtext=1,gotypesalias=0,httpcookiemaxnum=0,httplaxcontentlength=1,httpmuxgo121=1,httpservecontentkeepheaders=1,multipathtcp=0,netedns0=0,panicnil=1,randseednop=0,rsa1024min=0,tls10server=1,tls3des=1,tlsmlkem=0,tlsrsakex=1,tlssecpmlkem=0,tlssha1=1,tlsunsafeekm=1,updatemaxprocs=0,urlmaxqueryparams=0,urlstrictcolons=0,winreadlinkvolume=0,winsymlink=0,x509keypairleaf=0,x509negativeserial=1,x509rsacrt=0,x509sha256skid=0,x509usepolicies=0",
+          "CGO_ENABLED": "0",
+          "GOARCH": "mips64le",
+          "GOOS": "linux",
+          "GOMIPS64": "hardfloat"
+        },
+        "standard_buildinfo_header_found": false,
+        "evidence": "Descriptive module-data sentinel and separate version literal; neither is authenticated.",
+        "source_correspondence_verified": false,
+        "advisory_reachability_complete": false,
+        "native_code_cleared": false,
+        "target_executed": false
+      }
+    },
+    {
+      "package": "@esbuild/linux-ppc64",
+      "member": "package/bin/esbuild",
+      "sha256": "90709144617c2adf8f6c14937f03b114c259de0b9309666e3a9d89a1fb266d04",
+      "metadata": {
+        "native_sha256": "90709144617c2adf8f6c14937f03b114c259de0b9309666e3a9d89a1fb266d04",
+        "go_version_literal": "go1.26.4",
+        "module_text_sha256": "c2325ecd6dda6c28e5f0090228fff2b998776939e7fcc512dfa8b6146070f0f7",
+        "module_offset": 6923248,
+        "module_bytes": 870,
+        "main_path": "github.com/evanw/esbuild/cmd/esbuild",
+        "main": {
+          "name": "github.com/evanw/esbuild",
+          "version": "(devel)",
+          "checksum": ""
+        },
+        "dependencies": [
+          {
+            "name": "golang.org/x/sys",
+            "version": "v0.0.0-20220715151400-c0bba94af5f8",
+            "checksum": "h1:0A+M6Uqn+Eje4kHMK80dtF3JCXC4ykBgQG4Fe06QRhQ="
+          }
+        ],
+        "settings": {
+          "-buildmode": "exe",
+          "-compiler": "gc",
+          "-trimpath": "true",
+          "DefaultGODEBUG": "asynctimerchan=1,containermaxprocs=0,cryptocustomrand=1,decoratemappings=0,gotestjsonbuildtext=1,gotypesalias=0,httpcookiemaxnum=0,httplaxcontentlength=1,httpmuxgo121=1,httpservecontentkeepheaders=1,multipathtcp=0,netedns0=0,panicnil=1,randseednop=0,rsa1024min=0,tls10server=1,tls3des=1,tlsmlkem=0,tlsrsakex=1,tlssecpmlkem=0,tlssha1=1,tlsunsafeekm=1,updatemaxprocs=0,urlmaxqueryparams=0,urlstrictcolons=0,winreadlinkvolume=0,winsymlink=0,x509keypairleaf=0,x509negativeserial=1,x509rsacrt=0,x509sha256skid=0,x509usepolicies=0",
+          "CGO_ENABLED": "0",
+          "GOARCH": "ppc64le",
+          "GOOS": "linux",
+          "GOPPC64": "power8"
+        },
+        "standard_buildinfo_header_found": false,
+        "evidence": "Descriptive module-data sentinel and separate version literal; neither is authenticated.",
+        "source_correspondence_verified": false,
+        "advisory_reachability_complete": false,
+        "native_code_cleared": false,
+        "target_executed": false
+      }
+    },
+    {
+      "package": "@esbuild/linux-riscv64",
+      "member": "package/bin/esbuild",
+      "sha256": "86df35a46bedde8b756edb6565a1df7b5a832ad74dd0e179608cbf6509a2582a",
+      "metadata": {
+        "native_sha256": "86df35a46bedde8b756edb6565a1df7b5a832ad74dd0e179608cbf6509a2582a",
+        "go_version_literal": "go1.26.4",
+        "module_text_sha256": "b49352f1000b90e34255c923dbfa2703d2c48ff6b2c2c0723c9f25fa01b82871",
+        "module_offset": 5936720,
+        "module_bytes": 874,
+        "main_path": "github.com/evanw/esbuild/cmd/esbuild",
+        "main": {
+          "name": "github.com/evanw/esbuild",
+          "version": "(devel)",
+          "checksum": ""
+        },
+        "dependencies": [
+          {
+            "name": "golang.org/x/sys",
+            "version": "v0.0.0-20220715151400-c0bba94af5f8",
+            "checksum": "h1:0A+M6Uqn+Eje4kHMK80dtF3JCXC4ykBgQG4Fe06QRhQ="
+          }
+        ],
+        "settings": {
+          "-buildmode": "exe",
+          "-compiler": "gc",
+          "-trimpath": "true",
+          "DefaultGODEBUG": "asynctimerchan=1,containermaxprocs=0,cryptocustomrand=1,decoratemappings=0,gotestjsonbuildtext=1,gotypesalias=0,httpcookiemaxnum=0,httplaxcontentlength=1,httpmuxgo121=1,httpservecontentkeepheaders=1,multipathtcp=0,netedns0=0,panicnil=1,randseednop=0,rsa1024min=0,tls10server=1,tls3des=1,tlsmlkem=0,tlsrsakex=1,tlssecpmlkem=0,tlssha1=1,tlsunsafeekm=1,updatemaxprocs=0,urlmaxqueryparams=0,urlstrictcolons=0,winreadlinkvolume=0,winsymlink=0,x509keypairleaf=0,x509negativeserial=1,x509rsacrt=0,x509sha256skid=0,x509usepolicies=0",
+          "CGO_ENABLED": "0",
+          "GOARCH": "riscv64",
+          "GOOS": "linux",
+          "GORISCV64": "rva20u64"
+        },
+        "standard_buildinfo_header_found": false,
+        "evidence": "Descriptive module-data sentinel and separate version literal; neither is authenticated.",
+        "source_correspondence_verified": false,
+        "advisory_reachability_complete": false,
+        "native_code_cleared": false,
+        "target_executed": false
+      }
+    },
+    {
+      "package": "@esbuild/linux-s390x",
+      "member": "package/bin/esbuild",
+      "sha256": "f8cad0db35132e5ac3065c4345c36e7ffe18fdc98417a61bcf5a95a6c694e57c",
+      "metadata": {
+        "native_sha256": "f8cad0db35132e5ac3065c4345c36e7ffe18fdc98417a61bcf5a95a6c694e57c",
+        "go_version_literal": "go1.26.4",
+        "module_text_sha256": "422c9efc5ae3e3fdbd3c59762563ddf4944fc29b86989c80fdd6dbafdace382c",
+        "module_offset": 7394800,
+        "module_bytes": 847,
+        "main_path": "github.com/evanw/esbuild/cmd/esbuild",
+        "main": {
+          "name": "github.com/evanw/esbuild",
+          "version": "(devel)",
+          "checksum": ""
+        },
+        "dependencies": [
+          {
+            "name": "golang.org/x/sys",
+            "version": "v0.0.0-20220715151400-c0bba94af5f8",
+            "checksum": "h1:0A+M6Uqn+Eje4kHMK80dtF3JCXC4ykBgQG4Fe06QRhQ="
+          }
+        ],
+        "settings": {
+          "-buildmode": "exe",
+          "-compiler": "gc",
+          "-trimpath": "true",
+          "DefaultGODEBUG": "asynctimerchan=1,containermaxprocs=0,cryptocustomrand=1,decoratemappings=0,gotestjsonbuildtext=1,gotypesalias=0,httpcookiemaxnum=0,httplaxcontentlength=1,httpmuxgo121=1,httpservecontentkeepheaders=1,multipathtcp=0,netedns0=0,panicnil=1,randseednop=0,rsa1024min=0,tls10server=1,tls3des=1,tlsmlkem=0,tlsrsakex=1,tlssecpmlkem=0,tlssha1=1,tlsunsafeekm=1,updatemaxprocs=0,urlmaxqueryparams=0,urlstrictcolons=0,winreadlinkvolume=0,winsymlink=0,x509keypairleaf=0,x509negativeserial=1,x509rsacrt=0,x509sha256skid=0,x509usepolicies=0",
+          "CGO_ENABLED": "0",
+          "GOARCH": "s390x",
+          "GOOS": "linux"
+        },
+        "standard_buildinfo_header_found": false,
+        "evidence": "Descriptive module-data sentinel and separate version literal; neither is authenticated.",
+        "source_correspondence_verified": false,
+        "advisory_reachability_complete": false,
+        "native_code_cleared": false,
+        "target_executed": false
+      }
+    },
+    {
+      "package": "@esbuild/linux-x64",
+      "member": "package/bin/esbuild",
+      "sha256": "0c6588b092a2c291a72bab90659f3c9e0e25e0fe59c9ac12b4dae4d945e5548c",
+      "metadata": {
+        "native_sha256": "0c6588b092a2c291a72bab90659f3c9e0e25e0fe59c9ac12b4dae4d945e5548c",
+        "go_version_literal": "go1.26.4",
+        "module_text_sha256": "b39058a1a0d203fa425597048f8f94a15d3e1f1c5c2ce5017c629946c291c483",
+        "module_offset": 7235792,
+        "module_bytes": 864,
+        "main_path": "github.com/evanw/esbuild/cmd/esbuild",
+        "main": {
+          "name": "github.com/evanw/esbuild",
+          "version": "(devel)",
+          "checksum": ""
+        },
+        "dependencies": [
+          {
+            "name": "golang.org/x/sys",
+            "version": "v0.0.0-20220715151400-c0bba94af5f8",
+            "checksum": "h1:0A+M6Uqn+Eje4kHMK80dtF3JCXC4ykBgQG4Fe06QRhQ="
+          }
+        ],
+        "settings": {
+          "-buildmode": "exe",
+          "-compiler": "gc",
+          "-trimpath": "true",
+          "DefaultGODEBUG": "asynctimerchan=1,containermaxprocs=0,cryptocustomrand=1,decoratemappings=0,gotestjsonbuildtext=1,gotypesalias=0,httpcookiemaxnum=0,httplaxcontentlength=1,httpmuxgo121=1,httpservecontentkeepheaders=1,multipathtcp=0,netedns0=0,panicnil=1,randseednop=0,rsa1024min=0,tls10server=1,tls3des=1,tlsmlkem=0,tlsrsakex=1,tlssecpmlkem=0,tlssha1=1,tlsunsafeekm=1,updatemaxprocs=0,urlmaxqueryparams=0,urlstrictcolons=0,winreadlinkvolume=0,winsymlink=0,x509keypairleaf=0,x509negativeserial=1,x509rsacrt=0,x509sha256skid=0,x509usepolicies=0",
+          "CGO_ENABLED": "0",
+          "GOARCH": "amd64",
+          "GOOS": "linux",
+          "GOAMD64": "v1"
+        },
+        "standard_buildinfo_header_found": false,
+        "evidence": "Descriptive module-data sentinel and separate version literal; neither is authenticated.",
+        "source_correspondence_verified": false,
+        "advisory_reachability_complete": false,
+        "native_code_cleared": false,
+        "target_executed": false
+      }
+    },
+    {
+      "package": "@esbuild/netbsd-arm64",
+      "member": "package/bin/esbuild",
+      "sha256": "490cfdac2d96d5608d91cf55bdf4052bbde7013dafe87ec7adc7784778ad4d4c",
+      "metadata": {
+        "native_sha256": "490cfdac2d96d5608d91cf55bdf4052bbde7013dafe87ec7adc7784778ad4d4c",
+        "go_version_literal": "go1.26.4",
+        "module_text_sha256": "a90184db67ad7b4bbeb027c2f39dcff56ca2dc5b33a51cefd7dd98fac61cf4fa",
+        "module_offset": 6213040,
+        "module_bytes": 763,
+        "main_path": "github.com/evanw/esbuild/cmd/esbuild",
+        "main": {
+          "name": "github.com/evanw/esbuild",
+          "version": "(devel)",
+          "checksum": ""
+        },
+        "dependencies": [],
+        "settings": {
+          "-buildmode": "exe",
+          "-compiler": "gc",
+          "-trimpath": "true",
+          "DefaultGODEBUG": "asynctimerchan=1,containermaxprocs=0,cryptocustomrand=1,decoratemappings=0,gotestjsonbuildtext=1,gotypesalias=0,httpcookiemaxnum=0,httplaxcontentlength=1,httpmuxgo121=1,httpservecontentkeepheaders=1,multipathtcp=0,netedns0=0,panicnil=1,randseednop=0,rsa1024min=0,tls10server=1,tls3des=1,tlsmlkem=0,tlsrsakex=1,tlssecpmlkem=0,tlssha1=1,tlsunsafeekm=1,updatemaxprocs=0,urlmaxqueryparams=0,urlstrictcolons=0,winreadlinkvolume=0,winsymlink=0,x509keypairleaf=0,x509negativeserial=1,x509rsacrt=0,x509sha256skid=0,x509usepolicies=0",
+          "CGO_ENABLED": "0",
+          "GOARCH": "arm64",
+          "GOOS": "netbsd",
+          "GOARM64": "v8.0"
+        },
+        "standard_buildinfo_header_found": false,
+        "evidence": "Descriptive module-data sentinel and separate version literal; neither is authenticated.",
+        "source_correspondence_verified": false,
+        "advisory_reachability_complete": false,
+        "native_code_cleared": false,
+        "target_executed": false
+      }
+    },
+    {
+      "package": "@esbuild/netbsd-x64",
+      "member": "package/bin/esbuild",
+      "sha256": "c61e0e4c553a4986fd0e9d63a0425e93be831ff7b13bfb8a564368fb7590f85d",
+      "metadata": {
+        "native_sha256": "c61e0e4c553a4986fd0e9d63a0425e93be831ff7b13bfb8a564368fb7590f85d",
+        "go_version_literal": "go1.26.4",
+        "module_text_sha256": "f241551e9c18071238fb5789f5539a51d15aa2b6bfe1b76aac3259e4197cd844",
+        "module_offset": 7183664,
+        "module_bytes": 761,
+        "main_path": "github.com/evanw/esbuild/cmd/esbuild",
+        "main": {
+          "name": "github.com/evanw/esbuild",
+          "version": "(devel)",
+          "checksum": ""
+        },
+        "dependencies": [],
+        "settings": {
+          "-buildmode": "exe",
+          "-compiler": "gc",
+          "-trimpath": "true",
+          "DefaultGODEBUG": "asynctimerchan=1,containermaxprocs=0,cryptocustomrand=1,decoratemappings=0,gotestjsonbuildtext=1,gotypesalias=0,httpcookiemaxnum=0,httplaxcontentlength=1,httpmuxgo121=1,httpservecontentkeepheaders=1,multipathtcp=0,netedns0=0,panicnil=1,randseednop=0,rsa1024min=0,tls10server=1,tls3des=1,tlsmlkem=0,tlsrsakex=1,tlssecpmlkem=0,tlssha1=1,tlsunsafeekm=1,updatemaxprocs=0,urlmaxqueryparams=0,urlstrictcolons=0,winreadlinkvolume=0,winsymlink=0,x509keypairleaf=0,x509negativeserial=1,x509rsacrt=0,x509sha256skid=0,x509usepolicies=0",
+          "CGO_ENABLED": "0",
+          "GOARCH": "amd64",
+          "GOOS": "netbsd",
+          "GOAMD64": "v1"
+        },
+        "standard_buildinfo_header_found": false,
+        "evidence": "Descriptive module-data sentinel and separate version literal; neither is authenticated.",
+        "source_correspondence_verified": false,
+        "advisory_reachability_complete": false,
+        "native_code_cleared": false,
+        "target_executed": false
+      }
+    },
+    {
+      "package": "@esbuild/openbsd-arm64",
+      "member": "package/bin/esbuild",
+      "sha256": "f9d814698e26c09c3f90d4c103cbdf3832c9f2c841d64a93889d63d23da9b8cf",
+      "metadata": {
+        "native_sha256": "f9d814698e26c09c3f90d4c103cbdf3832c9f2c841d64a93889d63d23da9b8cf",
+        "go_version_literal": "go1.26.4",
+        "module_text_sha256": "1e38fb0b17856642a608cd0fe39b11027866c46805a0829cc3c077a5a40a0515",
+        "module_offset": 6216368,
+        "module_bytes": 764,
+        "main_path": "github.com/evanw/esbuild/cmd/esbuild",
+        "main": {
+          "name": "github.com/evanw/esbuild",
+          "version": "(devel)",
+          "checksum": ""
+        },
+        "dependencies": [],
+        "settings": {
+          "-buildmode": "exe",
+          "-compiler": "gc",
+          "-trimpath": "true",
+          "DefaultGODEBUG": "asynctimerchan=1,containermaxprocs=0,cryptocustomrand=1,decoratemappings=0,gotestjsonbuildtext=1,gotypesalias=0,httpcookiemaxnum=0,httplaxcontentlength=1,httpmuxgo121=1,httpservecontentkeepheaders=1,multipathtcp=0,netedns0=0,panicnil=1,randseednop=0,rsa1024min=0,tls10server=1,tls3des=1,tlsmlkem=0,tlsrsakex=1,tlssecpmlkem=0,tlssha1=1,tlsunsafeekm=1,updatemaxprocs=0,urlmaxqueryparams=0,urlstrictcolons=0,winreadlinkvolume=0,winsymlink=0,x509keypairleaf=0,x509negativeserial=1,x509rsacrt=0,x509sha256skid=0,x509usepolicies=0",
+          "CGO_ENABLED": "0",
+          "GOARCH": "arm64",
+          "GOOS": "openbsd",
+          "GOARM64": "v8.0"
+        },
+        "standard_buildinfo_header_found": false,
+        "evidence": "Descriptive module-data sentinel and separate version literal; neither is authenticated.",
+        "source_correspondence_verified": false,
+        "advisory_reachability_complete": false,
+        "native_code_cleared": false,
+        "target_executed": false
+      }
+    },
+    {
+      "package": "@esbuild/openbsd-x64",
+      "member": "package/bin/esbuild",
+      "sha256": "2e30dce11f7236aa362c1c57212cc696f51472169aa417f30e9b641f3b7dcade",
+      "metadata": {
+        "native_sha256": "2e30dce11f7236aa362c1c57212cc696f51472169aa417f30e9b641f3b7dcade",
+        "go_version_literal": "go1.26.4",
+        "module_text_sha256": "a8e83b0bd5bc2e047e9f897bc74d5a947f796839632615624f897036894ad51c",
+        "module_offset": 7191120,
+        "module_bytes": 762,
+        "main_path": "github.com/evanw/esbuild/cmd/esbuild",
+        "main": {
+          "name": "github.com/evanw/esbuild",
+          "version": "(devel)",
+          "checksum": ""
+        },
+        "dependencies": [],
+        "settings": {
+          "-buildmode": "exe",
+          "-compiler": "gc",
+          "-trimpath": "true",
+          "DefaultGODEBUG": "asynctimerchan=1,containermaxprocs=0,cryptocustomrand=1,decoratemappings=0,gotestjsonbuildtext=1,gotypesalias=0,httpcookiemaxnum=0,httplaxcontentlength=1,httpmuxgo121=1,httpservecontentkeepheaders=1,multipathtcp=0,netedns0=0,panicnil=1,randseednop=0,rsa1024min=0,tls10server=1,tls3des=1,tlsmlkem=0,tlsrsakex=1,tlssecpmlkem=0,tlssha1=1,tlsunsafeekm=1,updatemaxprocs=0,urlmaxqueryparams=0,urlstrictcolons=0,winreadlinkvolume=0,winsymlink=0,x509keypairleaf=0,x509negativeserial=1,x509rsacrt=0,x509sha256skid=0,x509usepolicies=0",
+          "CGO_ENABLED": "0",
+          "GOARCH": "amd64",
+          "GOOS": "openbsd",
+          "GOAMD64": "v1"
+        },
+        "standard_buildinfo_header_found": false,
+        "evidence": "Descriptive module-data sentinel and separate version literal; neither is authenticated.",
+        "source_correspondence_verified": false,
+        "advisory_reachability_complete": false,
+        "native_code_cleared": false,
+        "target_executed": false
+      }
+    },
+    {
+      "package": "@esbuild/openharmony-arm64",
+      "member": "package/bin/esbuild",
+      "sha256": "b3cdaf234fd51a7908b2ffc4a84b3baa466656ccb2586498de4cc2f77b6f1e1e",
+      "unresolved": "missing or ambiguous Go version literal"
+    },
+    {
+      "package": "@esbuild/sunos-x64",
+      "member": "package/bin/esbuild",
+      "sha256": "770e0d2bc930b1a1d19d3f43243ff8f393efddb599e7f5843160feacd253267d",
+      "metadata": {
+        "native_sha256": "770e0d2bc930b1a1d19d3f43243ff8f393efddb599e7f5843160feacd253267d",
+        "go_version_literal": "go1.26.4",
+        "module_text_sha256": "48c2564ba03ca06a614cb17360cc87aa2067e6b4bbab3b568b73762665f637b4",
+        "module_offset": 7197680,
+        "module_bytes": 762,
+        "main_path": "github.com/evanw/esbuild/cmd/esbuild",
+        "main": {
+          "name": "github.com/evanw/esbuild",
+          "version": "(devel)",
+          "checksum": ""
+        },
+        "dependencies": [],
+        "settings": {
+          "-buildmode": "exe",
+          "-compiler": "gc",
+          "-trimpath": "true",
+          "DefaultGODEBUG": "asynctimerchan=1,containermaxprocs=0,cryptocustomrand=1,decoratemappings=0,gotestjsonbuildtext=1,gotypesalias=0,httpcookiemaxnum=0,httplaxcontentlength=1,httpmuxgo121=1,httpservecontentkeepheaders=1,multipathtcp=0,netedns0=0,panicnil=1,randseednop=0,rsa1024min=0,tls10server=1,tls3des=1,tlsmlkem=0,tlsrsakex=1,tlssecpmlkem=0,tlssha1=1,tlsunsafeekm=1,updatemaxprocs=0,urlmaxqueryparams=0,urlstrictcolons=0,winreadlinkvolume=0,winsymlink=0,x509keypairleaf=0,x509negativeserial=1,x509rsacrt=0,x509sha256skid=0,x509usepolicies=0",
+          "CGO_ENABLED": "0",
+          "GOARCH": "amd64",
+          "GOOS": "illumos",
+          "GOAMD64": "v1"
+        },
+        "standard_buildinfo_header_found": false,
+        "evidence": "Descriptive module-data sentinel and separate version literal; neither is authenticated.",
+        "source_correspondence_verified": false,
+        "advisory_reachability_complete": false,
+        "native_code_cleared": false,
+        "target_executed": false
+      }
+    },
+    {
+      "package": "@esbuild/win32-arm64",
+      "member": "package/esbuild.exe",
+      "sha256": "bfb8798ab678f1ce4a723739f4a3eabab3244d7a04eeb12be2eb9f58095c13ef",
+      "metadata": {
+        "native_sha256": "bfb8798ab678f1ce4a723739f4a3eabab3244d7a04eeb12be2eb9f58095c13ef",
+        "go_version_literal": "go1.26.4",
+        "module_text_sha256": "512f747e3fc32bade0385c45f3c932247704ad64c71c767ed6a2de02fe6a8930",
+        "module_offset": 6244368,
+        "module_bytes": 764,
+        "main_path": "github.com/evanw/esbuild/cmd/esbuild",
+        "main": {
+          "name": "github.com/evanw/esbuild",
+          "version": "(devel)",
+          "checksum": ""
+        },
+        "dependencies": [],
+        "settings": {
+          "-buildmode": "exe",
+          "-compiler": "gc",
+          "-trimpath": "true",
+          "DefaultGODEBUG": "asynctimerchan=1,containermaxprocs=0,cryptocustomrand=1,decoratemappings=0,gotestjsonbuildtext=1,gotypesalias=0,httpcookiemaxnum=0,httplaxcontentlength=1,httpmuxgo121=1,httpservecontentkeepheaders=1,multipathtcp=0,netedns0=0,panicnil=1,randseednop=0,rsa1024min=0,tls10server=1,tls3des=1,tlsmlkem=0,tlsrsakex=1,tlssecpmlkem=0,tlssha1=1,tlsunsafeekm=1,updatemaxprocs=0,urlmaxqueryparams=0,urlstrictcolons=0,winreadlinkvolume=0,winsymlink=0,x509keypairleaf=0,x509negativeserial=1,x509rsacrt=0,x509sha256skid=0,x509usepolicies=0",
+          "CGO_ENABLED": "0",
+          "GOARCH": "arm64",
+          "GOOS": "windows",
+          "GOARM64": "v8.0"
+        },
+        "standard_buildinfo_header_found": false,
+        "evidence": "Descriptive module-data sentinel and separate version literal; neither is authenticated.",
+        "source_correspondence_verified": false,
+        "advisory_reachability_complete": false,
+        "native_code_cleared": false,
+        "target_executed": false
+      }
+    },
+    {
+      "package": "@esbuild/win32-ia32",
+      "member": "package/esbuild.exe",
+      "sha256": "8fa99b6e0945830fce8d7e208fdb21763aa4aea875751f4a0eec7f6e262af1dd",
+      "metadata": {
+        "native_sha256": "8fa99b6e0945830fce8d7e208fdb21763aa4aea875751f4a0eec7f6e262af1dd",
+        "go_version_literal": "go1.26.4",
+        "module_text_sha256": "4ba3207d7a37a8d3376301fb6e135c7094de860822ffff098d51d19160d007b1",
+        "module_offset": 6882576,
+        "module_bytes": 760,
+        "main_path": "github.com/evanw/esbuild/cmd/esbuild",
+        "main": {
+          "name": "github.com/evanw/esbuild",
+          "version": "(devel)",
+          "checksum": ""
+        },
+        "dependencies": [],
+        "settings": {
+          "-buildmode": "exe",
+          "-compiler": "gc",
+          "-trimpath": "true",
+          "DefaultGODEBUG": "asynctimerchan=1,containermaxprocs=0,cryptocustomrand=1,decoratemappings=0,gotestjsonbuildtext=1,gotypesalias=0,httpcookiemaxnum=0,httplaxcontentlength=1,httpmuxgo121=1,httpservecontentkeepheaders=1,multipathtcp=0,netedns0=0,panicnil=1,randseednop=0,rsa1024min=0,tls10server=1,tls3des=1,tlsmlkem=0,tlsrsakex=1,tlssecpmlkem=0,tlssha1=1,tlsunsafeekm=1,updatemaxprocs=0,urlmaxqueryparams=0,urlstrictcolons=0,winreadlinkvolume=0,winsymlink=0,x509keypairleaf=0,x509negativeserial=1,x509rsacrt=0,x509sha256skid=0,x509usepolicies=0",
+          "CGO_ENABLED": "0",
+          "GOARCH": "386",
+          "GOOS": "windows",
+          "GO386": "sse2"
+        },
+        "standard_buildinfo_header_found": false,
+        "evidence": "Descriptive module-data sentinel and separate version literal; neither is authenticated.",
+        "source_correspondence_verified": false,
+        "advisory_reachability_complete": false,
+        "native_code_cleared": false,
+        "target_executed": false
+      }
+    },
+    {
+      "package": "@esbuild/win32-x64",
+      "member": "package/esbuild.exe",
+      "sha256": "ec02ee9b14ab332416fedd10614dfb80eed5304d94f67745067c011934a8c3c3",
+      "metadata": {
+        "native_sha256": "ec02ee9b14ab332416fedd10614dfb80eed5304d94f67745067c011934a8c3c3",
+        "go_version_literal": "go1.26.4",
+        "module_text_sha256": "1a606e3460466947331a6adb7d88e1e82f1296d25073fcc076f173b5091e99e0",
+        "module_offset": 7271984,
+        "module_bytes": 762,
+        "main_path": "github.com/evanw/esbuild/cmd/esbuild",
+        "main": {
+          "name": "github.com/evanw/esbuild",
+          "version": "(devel)",
+          "checksum": ""
+        },
+        "dependencies": [],
+        "settings": {
+          "-buildmode": "exe",
+          "-compiler": "gc",
+          "-trimpath": "true",
+          "DefaultGODEBUG": "asynctimerchan=1,containermaxprocs=0,cryptocustomrand=1,decoratemappings=0,gotestjsonbuildtext=1,gotypesalias=0,httpcookiemaxnum=0,httplaxcontentlength=1,httpmuxgo121=1,httpservecontentkeepheaders=1,multipathtcp=0,netedns0=0,panicnil=1,randseednop=0,rsa1024min=0,tls10server=1,tls3des=1,tlsmlkem=0,tlsrsakex=1,tlssecpmlkem=0,tlssha1=1,tlsunsafeekm=1,updatemaxprocs=0,urlmaxqueryparams=0,urlstrictcolons=0,winreadlinkvolume=0,winsymlink=0,x509keypairleaf=0,x509negativeserial=1,x509rsacrt=0,x509sha256skid=0,x509usepolicies=0",
+          "CGO_ENABLED": "0",
+          "GOARCH": "amd64",
+          "GOOS": "windows",
+          "GOAMD64": "v1"
+        },
+        "standard_buildinfo_header_found": false,
+        "evidence": "Descriptive module-data sentinel and separate version literal; neither is authenticated.",
+        "source_correspondence_verified": false,
+        "advisory_reachability_complete": false,
+        "native_code_cleared": false,
+        "target_executed": false
+      }
+    }
+  ],
+  "binary_clearance": false,
+  "advisory_reachability_complete": false,
+  "target_executed": false,
+  "downloaded": false,
+  "extracted_to_disk": false,
+  "purpose": "Descriptive embedded Go component inventory and unresolved version-level advisory coverage; no native/content waiver",
+  "format_references": [
+    "https://go.dev/src/runtime/debug/mod.go",
+    "https://go.dev/src/cmd/go/internal/modload/build.go",
+    "https://go.dev/src/debug/buildinfo/buildinfo.go"
+  ],
+  "upstream_source_commit": "bb9db84c02433fbe37b3509f53f9f3e3cc48725e",
+  "upstream_declared_go_version": "1.26.4",
+  "retrieved_on": "2026-11-15",
+  "advisory_result_scope": "OSV package/version candidates. No symbol, platform or executable reachability certification. No absence of findings is a safety declaration.",
+  "version_level_advisories": [
+    {
+      "query": {
+        "package": {
+          "name": "stdlib",
+          "ecosystem": "Go"
+        },
+        "version": "1.26.4"
+      },
+      "metadata_sha256": "486b262b210dd6e48e01acf95a526c0948dfe5dd3d4e98155a3484b2f2a9f971",
+      "ids": [
+        "GO-2026-4970",
+        "GO-2026-5026",
+        "GO-2026-5856",
+        "GO-2026-5942",
+        "GO-2026-5972",
+        "GO-2026-6088",
+        "GO-2026-6089",
+        "GO-2026-6090",
+        "GO-2026-6091",
+        "GO-2026-6218",
+        "GO-2026-6599",
+        "GO-2026-6600",
+        "GO-2026-6603",
+        "GO-2026-6604",
+        "GO-2026-6605",
+        "GO-2026-6607",
+        "GO-2026-6608",
+        "GO-2026-6609",
+        "GO-2026-6610",
+        "GO-2026-6611",
+        "GO-2026-6612",
+        "GO-2026-6613",
+        "GO-2026-6617",
+        "GO-2026-6809",
+        "GO-2026-6859"
+      ],
+      "applicability_proven": false,
+      "unresolved": true,
+      "pagination_present": false
+    },
+    {
+      "query": {
+        "package": {
+          "ecosystem": "Go",
+          "name": "golang.org/x/sys"
+        },
+        "version": "v0.0.0-20220715151400-c0bba94af5f8"
+      },
+      "metadata_sha256": "af98362ef11328745a04b7d5e7d6a9f809a5d89e8452c5824285bdb56399624e",
+      "ids": [
+        "GO-2026-5024"
+      ],
+      "applicability_proven": false,
+      "unresolved": true,
+      "pagination_present": false
+    }
+  ],
+  "main_scanner_malware_lookup_scope": "Known-malware coordinates only; ordinary vulnerabilities require separate control. This offline metadata tool does not change that contract."
+}

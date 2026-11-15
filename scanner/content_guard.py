@@ -3698,11 +3698,21 @@ REVIEWED_WINDOWS_IMPORT_METADATA = (
     ('windows_i686_msvc-0.42.2/lib/windows.lib', 4653282,
      '4228aed5db35e1305ccdbdb767e7646bfdd047c4e710fffd29e1e56c1e1e000b',
      'windows_i686_msvc-0.42.2-metadata'),
+    ('webview2-com-sys-0.39.1/x86/WebView2Loader.dll.lib', 2998,
+     'a3ec0ee539d58fe72391f2e89cb814f96fab721c6d8d30953d152ea95dffad49',
+     'webview2-com-sys-0.39.1-x86-imports'),
+    ('webview2-com-sys-0.39.1/x64/WebView2Loader.dll.lib', 2916,
+     'bfc8ccaaa056be95243a5b66a827e5849d2bb39676fca4dcc2053796d8e15c6d',
+     'webview2-com-sys-0.39.1-x64-imports'),
+    ('webview2-com-sys-0.39.1/arm64/WebView2Loader.dll.lib', 2916,
+     'd70271daa44507865ca0696cd1c1ede5e58e694eec74cb2d06e17dbbe205e9a2',
+     'webview2-com-sys-0.39.1-arm64-imports'),
 )
 
 
 def reviewed_windows_import_metadata(path, data):
-    """Exact metadata-only reviews in windows-target-import-metadata.json.
+    """Exact metadata-only reviews in windows-target-import-metadata.json
+    and webview2-import-metadata.json.
 
     Complete AR/COFF/import/CodeView structures and both linker indexes were
     independently inspected. No executable sections, target loading or linking.
@@ -3712,6 +3722,27 @@ def reviewed_windows_import_metadata(path, data):
     for name, size, checksum, review_id in REVIEWED_WINDOWS_IMPORT_METADATA:
         if (member == name and len(data) == size and data.startswith(b'!<arch>\n')
                 and digest(data) == checksum):
+            return review_id
+    return None
+
+
+REVIEWED_COMPONENT_DECLARATIONS = (
+    ('wit-bindgen-0.57.1/wasi-cli@0.2.0.wasm', 25587,
+     '60b274319c9dce183269a0e3ad922b8ee4ead915f34d171de9da23a390863119',
+     'wit-bindgen-0.57.1-wasi-cli-type-declarations'),
+)
+
+
+def reviewed_component_declarations(path, data):
+    """Exact declaration-only artifact; evidence in wit-component-declarations.json.
+
+    Every nested declaration and custom field was parsed without instantiation.
+    This is code-absence proof, not a full nominal typechecker or engine approval.
+    """
+    member = path.rsplit('!', 1)[-1]
+    for name, size, checksum, review_id in REVIEWED_COMPONENT_DECLARATIONS:
+        if (member == name and len(data) == size
+                and data.startswith(b'\0asm\x0d\0\x01\0') and digest(data) == checksum):
             return review_id
     return None
 
@@ -3784,6 +3815,19 @@ def reviewed_native_code(path, data):
             and digest(data) == '8fdff52a7430dba14fb97239c7fe414710991f16da269374e0936a1385f3a318')
 
 
+def reviewed_fsevents_native(path, data):
+    """Exact two-architecture code review, not publisher or package trust.
+
+    Both slices' executable bytes, functions, assertions, loader bindings and
+    strings were compared with the pinned C source. Evidence and limitations:
+    reviews/fsevents-universal-native.json. No addon or install hook was run;
+    this content review does not grant execution or installation approval.
+    """
+    return (path.rsplit('!', 1)[-1] == 'package/fsevents.node'
+            and len(data) == 163626
+            and digest(data) == '40f2f51199e4f5fc46fa6b985fb3461bb63e6cd86c62bfa9bcee45ed4438d5fb')
+
+
 def reviewed_timezone_text(path, data):
     """Exact typed data review; not a generic .dat or TZif exemption.
 
@@ -3798,6 +3842,89 @@ def reviewed_timezone_text(path, data):
         return None
     # Inspect every printable string as well as the complete typed-data review.
     return '\n'.join(part.decode('ascii') for part in re.findall(rb'[\x20-\x7e]{3,}', data))
+
+
+REVIEWED_UNICODE_FST_DATA = (
+    ('unicode-ident-1.0.27/tests/fst/xid_start.fst', 69927,
+     '5e177e91fdf0cc2f117bd66277803aa21bc4d563357f6d81a9d4250456f9fa2f', 158716, 'unicode-ident-1.0.27-start-scalar-set'),
+    ('unicode-ident-1.0.27/tests/fst/xid_continue.fst', 78779,
+     'a4c8f6daf453fba6d12daeb5e10192839edf930250234309049b4325406b5979', 162081, 'unicode-ident-1.0.27-continue-scalar-set'),
+)
+
+
+def reviewed_unicode_fst_text(path, data):
+    """Exact fully enumerated scalar sets, not a generic FST data waiver.
+
+    Evidence: reviews/unicode-fst-data.json. Every byte, state, edge and key was
+    checked and the complete sets match a second literal bitmap encoding.
+    No target FST/Rust library or binary is executed.
+    """
+    member = path.rsplit('!', 1)[-1]
+    for name, size, checksum, keys, review_id in REVIEWED_UNICODE_FST_DATA:
+        if member == name and len(data) == size and digest(data) == checksum:
+            return str(keys) + ' four-byte Unicode scalar set elements; review ' + review_id
+    return None
+
+
+REVIEWED_DEFLATE_FIXTURE_DATA = (
+    ('fdeflate-0.3.7/tests/input-chunking-sensitivity-example1.zz', 207,
+     '215d6eafcce032f917f0559c3f35e575fdfcccd5548df8fed5092bc70cf24812', 'fdeflate-0.3.7-example-1'),
+    ('fdeflate-0.3.7/tests/input-chunking-sensitivity-example3.zz', 52,
+     'bf63f178c0c288e004339e2d3084adce4c43064697b860accf13bb81fa5fa1f2', 'fdeflate-0.3.7-example-3'),
+    ('fdeflate-0.3.7/tests/input-chunking-sensitivity-example2.zz', 41,
+     '9eafada86c8d8af16b90b280e77fd4aa750fa8fb54e31623dc3aaac8097d0c2f', 'fdeflate-0.3.7-example-2'),
+)
+
+
+def reviewed_deflate_fixture_text(path, data):
+    """Exact intentionally-invalid regression DATA, not generic error suppression.
+
+    Evidence: reviews/fdeflate-regression-data.json. Raw output and complete
+    Huffman declarations were independently inspected. Unknown malformed data
+    retain their normal coverage gaps.
+    """
+    member = path.rsplit('!', 1)[-1]
+    for name, size, checksum, review_id in REVIEWED_DEFLATE_FIXTURE_DATA:
+        if member == name and len(data) == size and digest(data) == checksum:
+            return 'Exact non-executable compression regression data; review ' + review_id
+    return None
+
+
+def reviewed_brotli_fixture_text(path, data):
+    """One fully decoded prose datum, revalidated with patched Node/Brotli.
+
+    The separate decoder's Apple publisher signature and notarization passed.
+    All compressed bytes were consumed and the complete plaintext hash matched.
+    No generic Brotli decoder or target crate executes in the scanner.
+    """
+    if (path.rsplit('!', 1)[-1] != 'brotli-decompressor-6.2.0/src/bin/ipsum.brotli'
+            or len(data) != 1752
+            or digest(data) != '74106184c7abce3075914e8147e664e6a0c6ee0184d8a4a585be557ad2f8aede'):
+        return None
+    return 'Exact compressed ASCII Lorem ipsum prose; revalidated decoded-data review brotli-6.2.0-ipsum'
+
+
+def reviewed_cfb_metadata_fixture_text(path, data):
+    """One fully read, fixed malformed metadata datum; never generic CFB trust."""
+    if (path.rsplit('!', 1)[-1] != 'cfb-0.14.0/tests/infinite_loops_fuzzed/loop_in_open_1'
+            or len(data) != 1049
+            or digest(data) != 'b587ad479a6bc028b26c93c9d53bce38d1d08f1a2294426e6c10003664158873'):
+        return None
+    if data[:8] != bytes.fromhex('d0cf11e0a1b11ae1'):
+        return None
+    if data[24:34] != bytes.fromhex('3e000300feff09000600'):
+        return None
+    expected = {40: 0, 44: 1, 48: 1, 56: 4096, 60: 2097154,
+                64: 512, 68: 0, 72: 4294966799, 76: 255}
+    if any(int.from_bytes(data[pos:pos+4], 'little') != value for pos, value in expected.items()):
+        return None
+    if data[1024:] != b'\0' + b'\xff' * 24 or re.search(rb'[ -~]{3,}', data):
+        return None
+    names = [s.decode('utf-16-le') for s in re.findall(rb'(?:[ -~]\x00){3,}', data)]
+    if names != ['VAA', 'ThisWorkbo', 'hisWorkbo', 'VAA']:
+        return None
+    return 'Exact malformed CFB header/directory regression data; no complete directory entry.\n' + '\n'.join(names)
+
 
 
 REVIEWED_SHA2_VECTORS = (
@@ -4113,6 +4240,12 @@ class Inspector:
                 self.exclusions.append({'path': path,
                     'reason': 'exact-native-import-metadata-review:' + metadata_review,
                     'sha256': digest(data)})
+            elif (component_review := reviewed_component_declarations(path, data)) is not None:
+                self.exclusions.append({'path': path,
+                    'reason': 'exact-component-declaration-review:' + component_review,
+                    'sha256': digest(data)})
+                text = '\n'.join(value.decode('ascii') for value in re.findall(rb'[\x20-\x7e]{3,}', data))
+                self.inspect_text(path, text)
             elif (wasm_review := reviewed_wasm_binary(path, data)) is not None:
                 self.files_scanned += 1
                 self.exclusions.append({'path': path,
@@ -4128,6 +4261,13 @@ class Inspector:
                 self.exclusions.append({'path': path,
                     'reason': 'exact-native-code-review:symfony-hiddeninput-20120325',
                     'sha256': digest(data)})
+            elif reviewed_fsevents_native(path, data):
+                self.exclusions.append({'path': path,
+                    'reason': 'exact-native-code-review:fsevents-2.3.3-universal',
+                    'sha256': digest(data)})
+                # Preserve string rules even for these exact reviewed bytes.
+                text = '\n'.join(value.decode('ascii') for value in re.findall(rb'[\x20-\x7e]{3,}', data))
+                self.inspect_text(path, text)
             else:
                 self.gap(path, 'executable-binary-needs-independent-review')
             return
@@ -4203,6 +4343,26 @@ class Inspector:
         vectors = reviewed_hash_vector_text(path, data)
         if vectors is not None:
             self.inspect_text(path, vectors)
+            return
+        deflate_fixture_text = reviewed_deflate_fixture_text(path, data)
+        if deflate_fixture_text is not None:
+            self.exclusions.append({'path': path, 'reason': 'exact-regression-data-review:fdeflate-0.3.7'})
+            self.inspect_text(path, deflate_fixture_text)
+            return
+        cfb_fixture_text = reviewed_cfb_metadata_fixture_text(path, data)
+        if cfb_fixture_text is not None:
+            self.exclusions.append({'path': path, 'reason': 'exact-metadata-regression-data-review:cfb-0.14.0-open-1'})
+            self.inspect_text(path, cfb_fixture_text)
+            return
+        brotli_fixture_text = reviewed_brotli_fixture_text(path, data)
+        if brotli_fixture_text is not None:
+            self.exclusions.append({'path': path, 'reason': 'exact-decoded-data-review:brotli-6.2.0-ipsum'})
+            self.inspect_text(path, brotli_fixture_text)
+            return
+        unicode_fst_text = reviewed_unicode_fst_text(path, data)
+        if unicode_fst_text is not None:
+            self.exclusions.append({'path': path, 'reason': 'exact-typed-data-review:unicode-ident-1.0.27-fst'})
+            self.inspect_text(path, unicode_fst_text)
             return
         timezone_text = reviewed_timezone_text(path, data)
         if timezone_text is not None:

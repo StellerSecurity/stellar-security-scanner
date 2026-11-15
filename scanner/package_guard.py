@@ -71,7 +71,7 @@ def local_cargo_source(context, path):
     return (isinstance(context, dict)
             and context.get('repository') == 'StellerSecurity/Stellar.UI.Desktop.VPNapp'
             and context.get('repository_id') == 1111447739
-            and path.casefold().startswith('vendor/glib-0.18.5/'))
+            and path.casefold().startswith(('vendor/glib-0.18.5/', 'vendor/embed-resource-3.0.12/')))
 
 
 def cargo_config_path(path):
@@ -687,7 +687,10 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
     except (Incomplete, content.Incomplete, OSError, ValueError, TypeError, KeyError, RecursionError) as exc:
         reason = str(exc) if isinstance(exc, (Incomplete, content.Incomplete)) else "dependency-inspection-failed"
         gap("dependencies", reason)
-    empty_dependency_inventory = not plans and not records and not repository_artifacts and not scanner.gaps
+    empty_dependency_inventory = (not plans and not records and not repository_artifacts and not scanner.gaps
+                                  and scanner.files_scanned == 0
+                                  and not scanner.finding_counts['error']
+                                  and not scanner.finding_counts['review'])
     result = scanner.report(source_sha, "dependency-archives")
     if empty_dependency_inventory:
         # No declared packages is a complete empty dependency inventory, not a
