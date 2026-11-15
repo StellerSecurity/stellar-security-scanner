@@ -47,10 +47,11 @@ def raw_payload(raw):
     return decoded, declared_adler
 
 
-def missing_eob(raw):
+def dynamic_declarations(raw):
     body, declared_adler = wrapper(raw)
     bits = Bits(body)
-    require(bits.read(1) == 1 and bits.read(2) == 2, 'final dynamic block required')
+    final = bits.read(1)
+    require(bits.read(2) == 2, 'dynamic block required')
     literals, distances, codes = bits.read(5) + 257, bits.read(5) + 1, bits.read(4) + 4
     require(literals <= 286 and distances <= 32 and codes <= 19, 'alphabet bounds')
     order = (16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15)
@@ -96,8 +97,14 @@ def missing_eob(raw):
             decoded.extend([0] * (bits.read(7) + 11))
         require(len(decoded) <= literals + distances, 'code-length repeat overflow')
     require(decoded[256] == 0, 'expected missing end-of-block symbol')
+    return bits, declared_adler, final, literals, distances, codes, decoded
+
+
+def missing_eob(raw):
+    bits, declared_adler, final, literals, distances, codes, decoded = dynamic_declarations(raw)
+    require(final == 1, 'final dynamic block required')
     consumed = bits.pos
-    remaining = len(body) * 8 - consumed
+    remaining = len(bits.raw) * 8 - consumed
     require(0 <= remaining <= 64, 'unreviewed remainder')
     require(all(bits.read(1) == 0 for _ in range(remaining)), 'nonzero unreviewed remainder')
     return dict(literal_count=literals, distance_count=distances, code_count=codes,
@@ -107,7 +114,37 @@ def missing_eob(raw):
                 all_bytes_accounted_for=True, valid_zlib_stream=False)
 
 
+def reviewed_nonfinal_fault(raw):
+    """Account for the exact rejected header and its unreachable trailing bits.
+
+    The missing EOB makes the first block invalid. The 42 trailing bits are NOT
+    called padding, decoded output, or a valid second block. Their full bit
+    value is separately bound; no general nonzero-tail exception is provided.
+    """
+    bits, adler, final, literals, distances, codes, decoded = dynamic_declarations(raw)
+    require(len(raw) == 41 and raw[:2] == b'\x58\x09', 'unexpected fixture wrapper')
+    require((final, literals, distances, codes, bits.pos) == (0, 286, 9, 18, 238),
+            'different nonfinal declaration geometry')
+    declaration_hash = hashlib.sha256(bytes(decoded)).hexdigest()
+    require(declaration_hash ==
+            'f2922e2ab53211fc935ffc2d3fb0c46d7d6c11d1cdfce9ec987dfb8ec31b0634',
+            'different code-length declarations')
+    remaining = len(bits.raw) * 8 - bits.pos
+    require(remaining == 42, 'different unreachable tail length')
+    tail = sum(bits.read(1) << i for i in range(remaining))
+    require(tail == 4397979402249 and adler == 4278239938,
+            'different unreachable tail or stored checksum')
+    return dict(final_block=False, literal_count=literals, distance_count=distances,
+                code_count=codes, header_bits=238, code_lengths_sha256=declaration_hash,
+                unreachable_tail_bits=remaining, unreachable_tail_integer=tail,
+                declared_adler32=adler, expected_error='BadLiteralLengthHuffmanTree',
+                valid_zlib_stream=False, tail_decoded=False,
+                all_bytes_accounted_for=True, target_executed=False)
+
+
 def review(raw, kind):
+    if kind == 'missing-eob-exact-nonfinal-tail':
+        return reviewed_nonfinal_fault(raw)
     if kind == 'payload-with-bad-checksum':
         payload, declared = raw_payload(raw)
         actual = zlib.adler32(payload)

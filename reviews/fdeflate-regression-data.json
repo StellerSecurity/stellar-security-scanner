@@ -37,24 +37,48 @@
         "valid_zlib_stream": false,
         "target_executed": false
       }
+    },
+    {
+      "member": "fdeflate-0.3.7/tests/input-chunking-sensitivity-example2.zz",
+      "bytes": 41,
+      "sha256": "9eafada86c8d8af16b90b280e77fd4aa750fa8fb54e31623dc3aaac8097d0c2f",
+      "kind": "missing-eob-exact-nonfinal-tail",
+      "id": "fdeflate-0.3.7-example-2",
+      "review": {
+        "final_block": false,
+        "literal_count": 286,
+        "distance_count": 9,
+        "code_count": 18,
+        "header_bits": 238,
+        "code_lengths_sha256": "f2922e2ab53211fc935ffc2d3fb0c46d7d6c11d1cdfce9ec987dfb8ec31b0634",
+        "unreachable_tail_bits": 42,
+        "unreachable_tail_integer": 4397979402249,
+        "declared_adler32": 4278239938,
+        "expected_error": "BadLiteralLengthHuffmanTree",
+        "valid_zlib_stream": false,
+        "tail_decoded": false,
+        "all_bytes_accounted_for": true,
+        "target_executed": false
+      }
     }
   ],
   "archive_sha256": "1e6853b52649d4ac5c0bd02320cddc5ba956bdb407c4b75a2c6b75bf51500f8c",
   "source_witness": {
     "member": "fdeflate-0.3.7/src/decompress.rs",
     "sha256": "26eea8e94c41422b29b50b83e8077ef8ee37e116f26fc810c15e7e7f0224bc5e",
-    "review": "cfg(test) input-chunking regressions only. Example 1 asserts 281 decoded bytes and Adler32 751299; the first-party standard-library raw decoder independently confirms both and a complete raw DEFLATE stream. Example 3 asserts BadLiteralLengthHuffmanTree; independent bit decoding confirms its absent EOB, complete Huffman declaration and 35 remaining zero bits."
+    "review": "cfg(test) input-chunking regressions only. Example 1 asserts 281 decoded bytes and Adler32 751299; the first-party standard-library raw decoder independently confirms both and a complete raw DEFLATE stream. Example 3 asserts BadLiteralLengthHuffmanTree; independent bit decoding confirms its absent EOB, complete Huffman declaration and 35 remaining zero bits. Example 2 is also a cfg(test) input-chunking regression expecting BadLiteralLengthHuffmanTree. Its nonfinal dynamic declaration lacks EOB; all 295 code lengths, 42 unreachable trailing bits and stored checksum are independently bound. The tail is not decoded or called padding."
   },
-  "review_reader_sha256": "cecdb402396c9f343db0eafe5946c4b371129be8e9a330885b82ded5727c4b23",
+  "review_reader_sha256": "2881475dd7c9458b7fc87fc7163e08f2264e4791a16888d88ca9260fa6b625e7",
   "target_executed": false,
-  "scope": "Only exact two regression-data paths, lengths and hashes. Both are intentionally NOT valid zlib streams. No generic broken-checksum, compression-error, archive or package waiver.",
+  "scope": "Only three exact regression-data paths, lengths and hashes. All intentionally invalid zlib streams. No generic broken-checksum, compression-error, archive or package waiver.",
   "limitations": [
-    "Example 2 has an unreviewed nonzero remainder and remains blocked.",
     "The original fdeflate crate/test suite is never imported, compiled or run. Python standard-library zlib decodes only the bounded raw payload for example 1.",
     "Malformed-input downstream parser safety is not certified. Generic bad checksum/DEFLATE data remains blocked.",
-    "No original compressed binary or encoded copy is committed."
+    "No original compressed binary or encoded copy is committed.",
+    "Example 2 has no valid DEFLATE block sequence or output. Its nonzero tail is only a fixed, unreachable bit sequence after an invalid first-block declaration; this does not prove downstream parser safety."
   ],
   "sources": [
     "https://www.rfc-editor.org/rfc/rfc1951.html"
-  ]
+  ],
+  "example2_single_bit_mutations_rejected": 328
 }

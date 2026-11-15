@@ -84,6 +84,19 @@ class DeflateDataReaderTests(unittest.TestCase):
         with self.assertRaises(reader.Invalid):
             reader.review(raw, 'unknown')
 
+    def test_nonfinal_review_is_not_a_generic_tail_exception(self):
+        raw = bytearray(missing_eob())
+        raw[2] &= 0xfe
+        # A different nonfinal malformed header must not inherit the exact review.
+        with self.assertRaises(reader.Invalid):
+            reader.review(bytes(raw), 'missing-eob-exact-nonfinal-tail')
+        raw[-5] |= 0x80
+        with self.assertRaises(reader.Invalid):
+            reader.review(bytes(raw), 'missing-eob-exact-nonfinal-tail')
+        # The old zero-tail reader continues rejecting nonfinal blocks.
+        with self.assertRaises(reader.Invalid):
+            reader.missing_eob(bytes(raw))
+
 
 class DeflateBindingTests(unittest.TestCase):
     def test_changed_and_unreviewed_inputs_and_malware_still_block(self):
@@ -104,7 +117,7 @@ class DeflateBindingTests(unittest.TestCase):
             self.assertTrue(report['gaps'])
             self.assertTrue(any(f['malware'] for f in report['findings']))
 
-    def test_exact_evidence_binds_only_two_reviewed_faults(self):
+    def test_exact_evidence_binds_only_three_reviewed_faults(self):
         evidence = json.loads((ROOT / 'reviews/fdeflate-regression-data.json').read_text())
         self.assertEqual(evidence['review_reader_sha256'], hashlib.sha256(
             (ROOT / 'tools/review_deflate_fixtures.py').read_bytes()).hexdigest())
@@ -113,7 +126,10 @@ class DeflateBindingTests(unittest.TestCase):
         self.assertTrue(all(not r['review']['valid_zlib_stream'] for r in evidence['bindings']))
         self.assertEqual(evidence['bindings'][0]['review']['decoded_bytes'], 281)
         self.assertEqual(evidence['bindings'][1]['review']['zero_remainder_bits'], 35)
-        self.assertFalse(any('example2' in r[0] for r in guard.REVIEWED_DEFLATE_FIXTURE_DATA))
+        self.assertEqual(len(guard.REVIEWED_DEFLATE_FIXTURE_DATA), 3)
+        self.assertEqual(evidence['bindings'][2]['review']['unreachable_tail_bits'], 42)
+        self.assertFalse(evidence['bindings'][2]['review']['tail_decoded'])
+        self.assertEqual(evidence['example2_single_bit_mutations_rejected'], 328)
         self.assertFalse(evidence['target_executed'])
 
 

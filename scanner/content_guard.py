@@ -3858,6 +3858,8 @@ REVIEWED_DEFLATE_FIXTURE_DATA = (
      '215d6eafcce032f917f0559c3f35e575fdfcccd5548df8fed5092bc70cf24812', 'fdeflate-0.3.7-example-1'),
     ('fdeflate-0.3.7/tests/input-chunking-sensitivity-example3.zz', 52,
      'bf63f178c0c288e004339e2d3084adce4c43064697b860accf13bb81fa5fa1f2', 'fdeflate-0.3.7-example-3'),
+    ('fdeflate-0.3.7/tests/input-chunking-sensitivity-example2.zz', 41,
+     '9eafada86c8d8af16b90b280e77fd4aa750fa8fb54e31623dc3aaac8097d0c2f', 'fdeflate-0.3.7-example-2'),
 )
 
 
