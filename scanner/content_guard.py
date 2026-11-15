@@ -3891,12 +3891,17 @@ def reviewed_deflate_fixture_text(path, data):
 
 
 def reviewed_brotli_fixture_text(path, data):
-    """Suspended pending independent revalidation with a patched decoder.
+    """One fully decoded prose datum, revalidated with patched Node/Brotli.
 
-    The historical decoder used Brotli 1.2.0, affected by CVE-2026-111497.
-    Preserve evidence, but do not use it as current content clearance.
+    The separate decoder's Apple publisher signature and notarization passed.
+    All compressed bytes were consumed and the complete plaintext hash matched.
+    No generic Brotli decoder or target crate executes in the scanner.
     """
-    return None
+    if (path.rsplit('!', 1)[-1] != 'brotli-decompressor-6.2.0/src/bin/ipsum.brotli'
+            or len(data) != 1752
+            or digest(data) != '74106184c7abce3075914e8147e664e6a0c6ee0184d8a4a585be557ad2f8aede'):
+        return None
+    return 'Exact compressed ASCII Lorem ipsum prose; revalidated decoded-data review brotli-6.2.0-ipsum'
 
 
 def reviewed_cfb_metadata_fixture_text(path, data):

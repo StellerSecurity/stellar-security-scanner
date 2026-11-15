@@ -13,7 +13,23 @@
     "sha256": "029cd4d675864c8633a355ce77e92287d35032ed3493cb6c5b6a97fabe6c195b",
     "review": "Regression tests include the exact compressed input and separate plaintext, then exercise chunked reads. No crate code or tests were run."
   },
-  "review": {
+  "synthetic_assertions": 8,
+  "decoded_content_review": "All 5018 decoded bytes are ASCII Lorem ipsum prose with ordinary punctuation and paragraph newlines. The full plaintext was read in memory and matches the separately shipped ipsum.raw byte for byte. No encoded script, command, archive or executable output.",
+  "limitations": [
+    "Only this exact member, length and compressed hash is accepted; unknown or changed Brotli data remains blocked.",
+    "The review uses only the existing Node standard-library zlib decoder; it does not load or execute the downloaded Brotli Rust crate.",
+    "No original compressed data, decoded plaintext, package hooks, target source or encoded copy is committed."
+  ],
+  "sources": [
+    "https://nodejs.org/api/zlib.html",
+    "https://developer.apple.com/videos/play/wwdc2019/703/?time=2009"
+  ],
+  "content_clearance_active": true,
+  "independent_decoder_revalidation_required": false,
+  "current_reader_sha256": "ede440f03ee7ce5575ffc68fdbef0bb14e7a490ee95ded5c41528019eb821fe4",
+  "runtime_advisory": "https://nodejs.org/en/blog/vulnerability/october-2026-security-releases",
+  "current_runtime_policy_sha256": "efaba73ee86195f1cb6b730ba369f29567f0c668da106424a09d57c7e5b8a71b",
+  "historical_decoder_review": {
     "compressed_bytes": 1752,
     "compressed_sha256": "74106184c7abce3075914e8147e664e6a0c6ee0184d8a4a585be557ad2f8aede",
     "decoded_bytes": 5018,
@@ -24,20 +40,30 @@
     "node": "24.20.0",
     "bundled_brotli": "1.2.0"
   },
-  "synthetic_assertions": 8,
-  "decoded_content_review": "All 5018 decoded bytes are ASCII Lorem ipsum prose with ordinary punctuation and paragraph newlines. The full plaintext was read in memory and matches the separately shipped ipsum.raw byte for byte. No encoded script, command, archive or executable output.",
-  "limitations": [
-    "Only this exact member, length and compressed hash is accepted; unknown or changed Brotli data remains blocked.",
-    "The review uses only the existing Node standard-library zlib decoder; it does not load or execute the downloaded Brotli Rust crate.",
-    "No original compressed data, decoded plaintext, package hooks, target source or encoded copy is committed."
-  ],
-  "sources": [
-    "https://nodejs.org/api/zlib.html"
-  ],
-  "content_clearance_active": false,
-  "independent_decoder_revalidation_required": true,
-  "current_reader_sha256": "ede440f03ee7ce5575ffc68fdbef0bb14e7a490ee95ded5c41528019eb821fe4",
-  "suspension_reason": "Historical Node 24.20.0 / Brotli 1.2.0 is affected by CVE-2026-111497; retain historical evidence but revalidate before restoring clearance.",
-  "runtime_advisory": "https://nodejs.org/en/blog/vulnerability/october-2026-security-releases",
-  "current_runtime_policy_sha256": "efaba73ee86195f1cb6b730ba369f29567f0c668da106424a09d57c7e5b8a71b"
+  "review": {
+    "compressed_bytes": 1752,
+    "compressed_sha256": "74106184c7abce3075914e8147e664e6a0c6ee0184d8a4a585be557ad2f8aede",
+    "decoded_bytes": 5018,
+    "decoded_sha256": "dd598301a25441eeb17800b4d4f6b16a36942586479d57d71863c7173390b5c4",
+    "input_fully_consumed": true,
+    "plaintext_witness_matches": true,
+    "target_executed": false,
+    "node": "26.13.1",
+    "bundled_brotli": "1.2.1"
+  },
+  "prior_suspension_reason": "Historical Node 24.20.0 / Brotli 1.2.0 is affected by CVE-2026-111497; retain historical evidence but revalidate before restoring clearance.",
+  "decoder_verification": {
+    "node_native_sha256": "266dec4dce3a6cdcf5cdc38722a00cf5ae6a12cc51068d2a227655bbb75751ec",
+    "node_version": "v26.13.1",
+    "code_signature_requirement_passed": true,
+    "apple_notarization_requirement_passed": true,
+    "gatekeeper_assessments_enabled": true,
+    "installed": false,
+    "downloaded": false,
+    "npm_or_hooks_executed": false,
+    "app_changed": false,
+    "scope": "Separately approved ephemeral version and fixture-only decode; exact native input, publisher and notarization checked before execution. No general Node execution approval.",
+    "notarization_method": "codesign --verify --strict --check-notarization with Apple anchor, node identifier, HX7739G8FX team AND notarized requirement"
+  },
+  "revalidation_result_sha256": "fe2596eb8bd99bf4b798d1dd84d19d54b4d4e2f8fd1b9a173a6f748898302613"
 }
