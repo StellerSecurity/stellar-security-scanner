@@ -3831,6 +3831,28 @@ def reviewed_timezone_text(path, data):
     return '\n'.join(part.decode('ascii') for part in re.findall(rb'[\x20-\x7e]{3,}', data))
 
 
+REVIEWED_UNICODE_FST_DATA = (
+    ('unicode-ident-1.0.27/tests/fst/xid_start.fst', 69927,
+     '5e177e91fdf0cc2f117bd66277803aa21bc4d563357f6d81a9d4250456f9fa2f', 158716, 'unicode-ident-1.0.27-start-scalar-set'),
+    ('unicode-ident-1.0.27/tests/fst/xid_continue.fst', 78779,
+     'a4c8f6daf453fba6d12daeb5e10192839edf930250234309049b4325406b5979', 162081, 'unicode-ident-1.0.27-continue-scalar-set'),
+)
+
+
+def reviewed_unicode_fst_text(path, data):
+    """Exact fully enumerated scalar sets, not a generic FST data waiver.
+
+    Evidence: reviews/unicode-fst-data.json. Every byte, state, edge and key was
+    checked and the complete sets match a second literal bitmap encoding.
+    No target FST/Rust library or binary is executed.
+    """
+    member = path.rsplit('!', 1)[-1]
+    for name, size, checksum, keys, review_id in REVIEWED_UNICODE_FST_DATA:
+        if member == name and len(data) == size and digest(data) == checksum:
+            return str(keys) + ' four-byte Unicode scalar set elements; review ' + review_id
+    return None
+
+
 REVIEWED_SHA2_VECTORS = (
     ('sha224', 178, '59b185972521af418fd49a079de3d5f5bed74cd76d80473da51cab3faee6c7d0'),
     ('sha256', 190, 'bb096934bb7e43e41ce143d211397afca6fcdfe243a39811688ea31aae6f800a'),
@@ -4240,6 +4262,11 @@ class Inspector:
         vectors = reviewed_hash_vector_text(path, data)
         if vectors is not None:
             self.inspect_text(path, vectors)
+            return
+        unicode_fst_text = reviewed_unicode_fst_text(path, data)
+        if unicode_fst_text is not None:
+            self.exclusions.append({'path': path, 'reason': 'exact-typed-data-review:unicode-ident-1.0.27-fst'})
+            self.inspect_text(path, unicode_fst_text)
             return
         timezone_text = reviewed_timezone_text(path, data)
         if timezone_text is not None:
