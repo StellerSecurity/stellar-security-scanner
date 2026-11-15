@@ -3853,6 +3853,28 @@ def reviewed_unicode_fst_text(path, data):
     return None
 
 
+REVIEWED_DEFLATE_FIXTURE_DATA = (
+    ('fdeflate-0.3.7/tests/input-chunking-sensitivity-example1.zz', 207,
+     '215d6eafcce032f917f0559c3f35e575fdfcccd5548df8fed5092bc70cf24812', 'fdeflate-0.3.7-example-1'),
+    ('fdeflate-0.3.7/tests/input-chunking-sensitivity-example3.zz', 52,
+     'bf63f178c0c288e004339e2d3084adce4c43064697b860accf13bb81fa5fa1f2', 'fdeflate-0.3.7-example-3'),
+)
+
+
+def reviewed_deflate_fixture_text(path, data):
+    """Exact intentionally-invalid regression DATA, not generic error suppression.
+
+    Evidence: reviews/fdeflate-regression-data.json. Raw output and complete
+    Huffman declarations were independently inspected. Unknown malformed data
+    and the unreviewed example 2 retain their normal coverage gaps.
+    """
+    member = path.rsplit('!', 1)[-1]
+    for name, size, checksum, review_id in REVIEWED_DEFLATE_FIXTURE_DATA:
+        if member == name and len(data) == size and digest(data) == checksum:
+            return 'Exact non-executable compression regression data; review ' + review_id
+    return None
+
+
 REVIEWED_SHA2_VECTORS = (
     ('sha224', 178, '59b185972521af418fd49a079de3d5f5bed74cd76d80473da51cab3faee6c7d0'),
     ('sha256', 190, 'bb096934bb7e43e41ce143d211397afca6fcdfe243a39811688ea31aae6f800a'),
@@ -4262,6 +4284,11 @@ class Inspector:
         vectors = reviewed_hash_vector_text(path, data)
         if vectors is not None:
             self.inspect_text(path, vectors)
+            return
+        deflate_fixture_text = reviewed_deflate_fixture_text(path, data)
+        if deflate_fixture_text is not None:
+            self.exclusions.append({'path': path, 'reason': 'exact-regression-data-review:fdeflate-0.3.7'})
+            self.inspect_text(path, deflate_fixture_text)
             return
         unicode_fst_text = reviewed_unicode_fst_text(path, data)
         if unicode_fst_text is not None:
