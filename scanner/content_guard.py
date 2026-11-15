@@ -3890,6 +3890,32 @@ def reviewed_deflate_fixture_text(path, data):
     return None
 
 
+REVIEWED_ZLIB_RAW_DATA = (
+    ('zlib-rs-0.6.8/src/deflate/test-data/inflate_buf_error.dat', 67008,
+     '254f280f8f1e8914bd12d8bcd3813e5c08083b1b46d8d643c8e2ebe109e75cb8'),
+)
+
+
+def reviewed_zlib_raw_texts(path, data):
+    """One fully inspected raw ASCII compression-test input, not a PDF decoder.
+
+    Evidence: reviews/zlib-raw-regression-data.json. All 67008 bytes are ASCII
+    data passed only to compression/decompression in a cfg(test) regression.
+    Preserve scanning of every byte and scan again with NUL/controls removed
+    so interleaved text cannot hide behind the exact data classification.
+    Other corpus files, versions and even single-byte changes remain blocked.
+    """
+    member = path.rsplit('!', 1)[-1]
+    for name, size, checksum in REVIEWED_ZLIB_RAW_DATA:
+        if member == name and len(data) == size and digest(data) == checksum:
+            try:
+                text = data.decode('ascii')
+            except UnicodeDecodeError:
+                return None
+            return (text, text.replace('\0', ''), ''.join(c for c in text if ord(c) >= 32))
+    return None
+
+
 def reviewed_brotli_fixture_text(path, data):
     """One fully decoded prose datum, revalidated with patched Node/Brotli.
 
@@ -4348,6 +4374,12 @@ class Inspector:
         if deflate_fixture_text is not None:
             self.exclusions.append({'path': path, 'reason': 'exact-regression-data-review:fdeflate-0.3.7'})
             self.inspect_text(path, deflate_fixture_text)
+            return
+        zlib_raw_texts = reviewed_zlib_raw_texts(path, data)
+        if zlib_raw_texts is not None:
+            self.exclusions.append({'path': path, 'reason': 'exact-raw-ascii-regression-data-review:zlib-rs-0.6.8'})
+            for index, text in enumerate(zlib_raw_texts):
+                self.inspect_text(path, text, counted=index == 0)
             return
         cfb_fixture_text = reviewed_cfb_metadata_fixture_text(path, data)
         if cfb_fixture_text is not None:
