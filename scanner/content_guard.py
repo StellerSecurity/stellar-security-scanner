@@ -3868,13 +3868,27 @@ def reviewed_deflate_fixture_text(path, data):
 
     Evidence: reviews/fdeflate-regression-data.json. Raw output and complete
     Huffman declarations were independently inspected. Unknown malformed data
-    and the unreviewed example 2 retain their normal coverage gaps.
+    retain their normal coverage gaps.
     """
     member = path.rsplit('!', 1)[-1]
     for name, size, checksum, review_id in REVIEWED_DEFLATE_FIXTURE_DATA:
         if member == name and len(data) == size and digest(data) == checksum:
             return 'Exact non-executable compression regression data; review ' + review_id
     return None
+
+
+def reviewed_brotli_fixture_text(path, data):
+    """One fully decoded prose fixture, not a generic Brotli exclusion.
+
+    The bounded independent standard-library review consumes the entire input
+    and matches all 5018 decoded bytes to the separate plaintext witness.
+    Evidence: reviews/brotli-lorem-data.json. No target crate code is run.
+    """
+    if (path.rsplit('!', 1)[-1] != 'brotli-decompressor-6.2.0/src/bin/ipsum.brotli'
+            or len(data) != 1752
+            or digest(data) != '74106184c7abce3075914e8147e664e6a0c6ee0184d8a4a585be557ad2f8aede'):
+        return None
+    return 'Exact compressed ASCII Lorem ipsum prose; full decoded-data review brotli-6.2.0-ipsum'
 
 
 REVIEWED_SHA2_VECTORS = (
@@ -4291,6 +4305,11 @@ class Inspector:
         if deflate_fixture_text is not None:
             self.exclusions.append({'path': path, 'reason': 'exact-regression-data-review:fdeflate-0.3.7'})
             self.inspect_text(path, deflate_fixture_text)
+            return
+        brotli_fixture_text = reviewed_brotli_fixture_text(path, data)
+        if brotli_fixture_text is not None:
+            self.exclusions.append({'path': path, 'reason': 'exact-decoded-data-review:brotli-6.2.0-ipsum'})
+            self.inspect_text(path, brotli_fixture_text)
             return
         unicode_fst_text = reviewed_unicode_fst_text(path, data)
         if unicode_fst_text is not None:
