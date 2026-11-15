@@ -1,0 +1,634 @@
+{
+  "schema": 1,
+  "member": "zlib-rs-0.6.8/src/deflate/test-data/paper-100k.pdf",
+  "bytes": 102400,
+  "sha256": "60f73a051b7ca35bfec44734b2eed7736cb5c0b7f728beb7b97ade6c5e44849b",
+  "archive_sha256": "b268e58e7c693d7c271f93ffc4ba3b380412554231c85bf61ca7af91042a4112",
+  "official_git_blob_sha1": "b3325e4a2bb578419d6c7fa412aaa78d493ff274",
+  "reader_sha256": "4b21938db67e29dad5118e4cc46589d50d9d5e7e190ae2ef41e10329e1e47a46",
+  "ranges": [
+    {
+      "start": 0,
+      "end": 18643,
+      "role": "xmp-prefix"
+    },
+    {
+      "start": 18643,
+      "end": 19109,
+      "role": "structure"
+    },
+    {
+      "start": 19109,
+      "end": 28043,
+      "role": "compressed-stream-3"
+    },
+    {
+      "start": 28043,
+      "end": 28415,
+      "role": "structure"
+    },
+    {
+      "start": 28415,
+      "end": 35966,
+      "role": "compressed-stream-6"
+    },
+    {
+      "start": 35966,
+      "end": 36411,
+      "role": "structure"
+    },
+    {
+      "start": 36411,
+      "end": 40729,
+      "role": "compressed-stream-9"
+    },
+    {
+      "start": 40729,
+      "end": 40855,
+      "role": "structure"
+    },
+    {
+      "start": 40855,
+      "end": 41069,
+      "role": "compressed-stream-11"
+    },
+    {
+      "start": 41069,
+      "end": 41153,
+      "role": "structure"
+    },
+    {
+      "start": 41153,
+      "end": 41270,
+      "role": "compressed-stream-12"
+    },
+    {
+      "start": 41270,
+      "end": 41647,
+      "role": "structure"
+    },
+    {
+      "start": 41647,
+      "end": 102400,
+      "role": "compressed-stream-14"
+    }
+  ],
+  "streams": [
+    {
+      "object": 3,
+      "compressed_bytes": 8934,
+      "declared_compressed_bytes": 8934,
+      "decoded_bytes": 22330,
+      "decoded_sha256": "c6d723d737afff64891499203c4f9e1dffc3a3647b2ff1742a8c8f55641962b5",
+      "complete_zlib_stream": true,
+      "all_present_compressed_bytes_consumed": true,
+      "structural_review": {
+        "operators": [
+          "R",
+          "endobj",
+          "endstream",
+          "obj",
+          "stream"
+        ],
+        "names": [
+          "ColorSpace",
+          "Contents",
+          "CropBox",
+          "Cs8",
+          "ExtGState",
+          "F10",
+          "F11",
+          "F12",
+          "F13",
+          "F2",
+          "F3",
+          "F6",
+          "F7",
+          "F8",
+          "F9",
+          "Filter",
+          "FlateDecode",
+          "Font",
+          "GS1",
+          "Length",
+          "MediaBox",
+          "Metadata",
+          "PDF",
+          "Page",
+          "Parent",
+          "ProcSet",
+          "Resources",
+          "Rotate",
+          "Text",
+          "Type"
+        ],
+        "bytes_accounted": 466
+      },
+      "review": {
+        "operators": [
+          "BT",
+          "ET",
+          "T*",
+          "TD",
+          "TJ",
+          "Tc",
+          "Tf",
+          "Tj",
+          "Tm",
+          "Tw",
+          "cs",
+          "f",
+          "gs",
+          "re",
+          "rg",
+          "scn"
+        ],
+        "names": [
+          "Cs8",
+          "F10",
+          "F11",
+          "F12",
+          "F13",
+          "F2",
+          "F3",
+          "F6",
+          "F7",
+          "F8",
+          "F9",
+          "GS1"
+        ],
+        "bytes_accounted": 22330
+      }
+    },
+    {
+      "object": 6,
+      "compressed_bytes": 7551,
+      "declared_compressed_bytes": 7551,
+      "decoded_bytes": 20465,
+      "decoded_sha256": "9d96f1a21ed33b52c78d84193ea0f5c3179ee475a2d63c77936c6f7e1c221c5d",
+      "complete_zlib_stream": true,
+      "all_present_compressed_bytes_consumed": true,
+      "structural_review": {
+        "operators": [
+          "R",
+          "endobj",
+          "endstream",
+          "obj",
+          "stream"
+        ],
+        "names": [
+          "Contents",
+          "CropBox",
+          "ExtGState",
+          "F10",
+          "F11",
+          "F12",
+          "F13",
+          "F3",
+          "F6",
+          "F7",
+          "Filter",
+          "FlateDecode",
+          "Font",
+          "GS1",
+          "Length",
+          "MediaBox",
+          "PDF",
+          "Page",
+          "Parent",
+          "ProcSet",
+          "Resources",
+          "Rotate",
+          "Text",
+          "Type"
+        ],
+        "bytes_accounted": 372
+      },
+      "review": {
+        "operators": [
+          "BT",
+          "ET",
+          "T*",
+          "TD",
+          "TJ",
+          "Tc",
+          "Tf",
+          "Tj",
+          "Tm",
+          "Tw",
+          "gs",
+          "rg"
+        ],
+        "names": [
+          "F10",
+          "F11",
+          "F12",
+          "F13",
+          "F3",
+          "F6",
+          "F7",
+          "GS1"
+        ],
+        "bytes_accounted": 20465
+      }
+    },
+    {
+      "object": 9,
+      "compressed_bytes": 4318,
+      "declared_compressed_bytes": 4318,
+      "decoded_bytes": 9924,
+      "decoded_sha256": "8521e5c4aaa9e68cd362a34a71ae1506e559691b333b144e313baad4ee45ae75",
+      "complete_zlib_stream": true,
+      "all_present_compressed_bytes_consumed": true,
+      "structural_review": {
+        "operators": [
+          "R",
+          "endobj",
+          "endstream",
+          "obj",
+          "stream"
+        ],
+        "names": [
+          "Contents",
+          "CropBox",
+          "ExtGState",
+          "F10",
+          "F11",
+          "F12",
+          "F13",
+          "F14",
+          "F15",
+          "F2",
+          "F3",
+          "F4",
+          "F6",
+          "F8",
+          "Filter",
+          "FlateDecode",
+          "Font",
+          "GS1",
+          "Im1",
+          "ImageC",
+          "Length",
+          "MediaBox",
+          "PDF",
+          "Page",
+          "Parent",
+          "ProcSet",
+          "Resources",
+          "Rotate",
+          "Text",
+          "Type",
+          "XObject"
+        ],
+        "bytes_accounted": 445
+      },
+      "review": {
+        "operators": [
+          "BT",
+          "Do",
+          "ET",
+          "Q",
+          "T*",
+          "TD",
+          "TJ",
+          "Tc",
+          "Tf",
+          "Tj",
+          "Tm",
+          "Tw",
+          "cm",
+          "gs",
+          "q",
+          "rg"
+        ],
+        "names": [
+          "F10",
+          "F11",
+          "F12",
+          "F13",
+          "F14",
+          "F15",
+          "F2",
+          "F3",
+          "F4",
+          "F6",
+          "F8",
+          "GS1",
+          "Im1"
+        ],
+        "bytes_accounted": 9924
+      }
+    },
+    {
+      "object": 11,
+      "compressed_bytes": 214,
+      "declared_compressed_bytes": 214,
+      "decoded_bytes": 320,
+      "decoded_sha256": "a78a59a9f56ace4ac38426c99c5a9fd58115735c3596e9b4eff2f677b19c8ee4",
+      "complete_zlib_stream": true,
+      "all_present_compressed_bytes_consumed": true,
+      "structural_review": {
+        "operators": [
+          "endobj",
+          "endstream",
+          "obj",
+          "stream"
+        ],
+        "names": [
+          "Differences",
+          "Encoding",
+          "Filter",
+          "FlateDecode",
+          "Length",
+          "Type",
+          "period"
+        ],
+        "bytes_accounted": 126
+      },
+      "review": {
+        "operators": [
+          "CMapName",
+          "begin",
+          "beginbfchar",
+          "begincmap",
+          "begincodespacerange",
+          "currentdict",
+          "def",
+          "defineresource",
+          "dict",
+          "end",
+          "endbfchar",
+          "endcmap",
+          "endcodespacerange",
+          "findresource",
+          "pop"
+        ],
+        "names": [
+          "CIDInit",
+          "CIDSystemInfo",
+          "CMap",
+          "CMapName",
+          "CMapType",
+          "F14+0",
+          "Ordering",
+          "ProcSet",
+          "Registry",
+          "Supplement"
+        ],
+        "bytes_accounted": 320
+      }
+    },
+    {
+      "object": 12,
+      "compressed_bytes": 117,
+      "declared_compressed_bytes": 117,
+      "decoded_bytes": 121,
+      "decoded_sha256": "99103908263d8fbfc3ea4c0748787af294c2f8f26d5b8e37d44f4aa06d955c56",
+      "complete_zlib_stream": true,
+      "all_present_compressed_bytes_consumed": true,
+      "structural_review": {
+        "operators": [
+          "endobj",
+          "endstream",
+          "obj",
+          "stream"
+        ],
+        "names": [
+          "Filter",
+          "FlateDecode",
+          "Length",
+          "Subtype",
+          "Type1C"
+        ],
+        "bytes_accounted": 84
+      },
+      "review": {
+        "bytes_accounted": 121,
+        "font_name": "MPJMPL+AdvP4C4E59",
+        "bbox": [
+          -31,
+          -250,
+          1000,
+          750
+        ],
+        "charset_sids": [
+          0,
+          1,
+          15
+        ],
+        "glyphs": [
+          [
+            {
+              "operator": "endchar",
+              "operands": []
+            }
+          ],
+          [
+            {
+              "operator": "rmoveto",
+              "operands": [
+                270,
+                262,
+                363
+              ]
+            },
+            {
+              "operator": "rlineto",
+              "operands": [
+                -11,
+                29,
+                -224,
+                -82,
+                10,
+                -30
+              ]
+            },
+            {
+              "operator": "endchar",
+              "operands": []
+            }
+          ],
+          [
+            {
+              "operator": "rmoveto",
+              "operands": [
+                270,
+                192,
+                53
+              ]
+            },
+            {
+              "operator": "vhcurveto",
+              "operands": [
+                29,
+                -24,
+                24,
+                -29,
+                -29,
+                -24,
+                -24,
+                -29,
+                -29,
+                24,
+                -24,
+                29,
+                29,
+                24,
+                24,
+                29
+              ]
+            },
+            {
+              "operator": "endchar",
+              "operands": []
+            }
+          ]
+        ],
+        "global_subroutines": 0,
+        "private_dictionary_bytes": 0,
+        "embedded_postscript": false,
+        "rendered": false
+      }
+    },
+    {
+      "object": 14,
+      "compressed_bytes": 60753,
+      "declared_compressed_bytes": 409790,
+      "decoded_bytes": 2620884,
+      "decoded_sha256": "7b8b0ef59336a417d049f7d8000a0b1788218f6ebf94fcfe3b93b16918108553",
+      "complete_zlib_stream": false,
+      "all_present_compressed_bytes_consumed": true,
+      "structural_review": {
+        "operators": [
+          "R",
+          "endobj",
+          "endstream",
+          "obj",
+          "stream"
+        ],
+        "names": [
+          "Ascent",
+          "BitsPerComponent",
+          "CapHeight",
+          "CharSet",
+          "ColorSpace",
+          "Descent",
+          "DeviceRGB",
+          "Filter",
+          "Flags",
+          "FlateDecode",
+          "FontBBox",
+          "FontDescriptor",
+          "FontFile3",
+          "FontName",
+          "Height",
+          "Image",
+          "ItalicAngle",
+          "Length",
+          "MPJMPL+AdvP4C4E59",
+          "StemV",
+          "Subtype",
+          "Type",
+          "Width",
+          "XHeight",
+          "XObject"
+        ],
+        "bytes_accounted": 377
+      },
+      "review": {
+        "width": 2032,
+        "height": 1612,
+        "components": 3,
+        "bits_per_component": 8,
+        "declared_raster_bytes": 9826752,
+        "complete_raster": false,
+        "rendered": false
+      }
+    }
+  ],
+  "all_present_input_bytes_accounted": true,
+  "inspection": {
+    "schema": 1,
+    "scanner_version": "1.0.1",
+    "scanner_sha256": "a61f5a4792c4cc2ae01b6c6ec1497a4970a19c9a1a5971f1e8b7a2795af47854",
+    "engine_sha256": "065e9b91bda86fa63ee2e5c9ae3a5754e5a1d49c914670cab24f3598f1a65481",
+    "source_sha": "0254e07204884bfc902d6ebb68c8b703d0ea49cf",
+    "status": "passed",
+    "input": {
+      "kind": "exact-pdf-fragment-data-review",
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "digest_scope": "inspected-file-manifest"
+    },
+    "inspected_manifest_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "files_scanned": 4088,
+    "findings": [],
+    "gaps": [],
+    "exclusions": [],
+    "finding_counts": {},
+    "omitted_warning_findings": 0,
+    "omitted_blocking_findings": 0,
+    "limits": {
+      "archive_bytes": 268435456,
+      "text_bytes": 16777216,
+      "expanded_bytes": 1073741824,
+      "members": 100000,
+      "archive_depth": 3,
+      "findings": 1000,
+      "seconds": 180,
+      "compression_ratio": 1000
+    },
+    "scope": "Static text/lifecycle patterns, JVM constant strings, recorded exact-byte native reviews and finding-specific exact-byte source reviews; JVM code still requires independent review; opaque assets receive string checks only; sensitive files excluded. No code execution or full binary malware analysis.",
+    "installed_or_executed_packages": false,
+    "network_requests": 0
+  },
+  "complete_pdf": false,
+  "complete_image": false,
+  "target_executed": false,
+  "rendered": false,
+  "native_code_cleared": false,
+  "full_package_clearance": false,
+  "sources": [
+    "https://adobe-type-tools.github.io/font-tech-notes/pdfs/5176.CFF.pdf",
+    "https://adobe-type-tools.github.io/font-tech-notes/pdfs/5177.Type2.pdf",
+    "https://opensource.adobe.com/dc-acrobat-sdk-docs/pdfstandards/pdfreference1.7old.pdf"
+  ],
+  "limitations": [
+    "This exact incomplete compression/checksum-test fragment only; no generic PDF or truncated-stream clearance.",
+    "The final RGB stream is intentionally incomplete. All 60753 present bytes are consumed; no missing image suffix is invented or accepted for other files.",
+    "No PDF viewer, font engine, target crate, JavaScript or PostScript interpreter is executed."
+  ],
+  "consumer_sources": [
+    {
+      "path": "zlib-rs-0.6.8/src/adler32/avx2.rs",
+      "sha256": "7aaa38f49d28d2a2259356e99538a77d4e945ab64822fa500fa7d1ed3c03740f",
+      "references": 1,
+      "test_only": true
+    },
+    {
+      "path": "zlib-rs-0.6.8/src/adler32/avx512.rs",
+      "sha256": "66c7c7764d6c39ce40af65af38d247ace48fec16bf1d0a6e39c1c2f15710e248",
+      "references": 1,
+      "test_only": true
+    },
+    {
+      "path": "zlib-rs-0.6.8/src/adler32/avx512_vnni.rs",
+      "sha256": "8b3d068c0d456581966fad39e7f1befa98be5b80e95365ebd65330cdafc9ea2c",
+      "references": 1,
+      "test_only": true
+    },
+    {
+      "path": "zlib-rs-0.6.8/src/adler32/lsx.rs",
+      "sha256": "5e13e8ad0844ed11966a45bb4556db3e896bb29235d84182d2f7afdd605586ca",
+      "references": 1,
+      "test_only": true
+    },
+    {
+      "path": "zlib-rs-0.6.8/src/adler32/neon.rs",
+      "sha256": "6c7d5b4680cdbb68c9bcd5392edda612d918cb92b2cebd5c23d18c912ca464c7",
+      "references": 1,
+      "test_only": true
+    }
+  ],
+  "consuming_context": "Five cfg(test) large_input functions pass these bytes only to Adler-32 checksum implementations; no document/font renderer or interpreter."
+}

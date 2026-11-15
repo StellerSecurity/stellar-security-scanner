@@ -71,7 +71,7 @@ def inspect_archive(raw):
                 consuming_context='Only cfg(test) insufficient_compress_space: compress_slice input and round-trip comparison; no interpreter, document renderer, loader or application runtime include.',
                 other_inputs_cleared=False,
                 limitations=['No generic ASCII-with-controls exception.',
-                             'No PDF/CFB parser or native code clearance. The separate paper-100k.pdf fragment remains blocked.',
+                             'No PDF/CFB parser or native code clearance. The separate paper-100k.pdf fragment is outside this raw-data review and requires its own independent review.',
                              'Absence of magic bytes alone is not a safety proof; exact source identity and test-only consumption were independently reviewed.'],
                 source_url='https://github.com/trifectatechfoundation/zlib-rs/tree/'+COMMIT+'/zlib-rs/src/deflate/test-data')
 
