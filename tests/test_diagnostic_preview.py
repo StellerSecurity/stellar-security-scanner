@@ -6,6 +6,35 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'scanner'))
 import dependency_worker as d
 
 class DiagnosticPreviewTests(unittest.TestCase):
+    def test_contained_source_summary_keeps_native_clearance_false(self):
+        report = self.report()
+        report['reviewed_npm_source'] = dict(id='reviewed-source', source_files_sha256={str(i): 'a' * 64 for i in range(7)},
+            native_executable_clearance=False, runtime_advisory_review_required=True)
+        report['reviewed_runtime_advisories'] = dict(complete=True, ordinary_vulnerability_alerts_included=True,
+            vulnerable=[dict(id='GO-2099-1234')])
+        document, preview = d.diagnostic_document({}, report, 'a' * 64, 'b' * 64, {})
+        for value in (document, preview):
+            summary = value['reviewed_npm_source_summary']
+            self.assertFalse(summary['native_executable_clearance'])
+            self.assertEqual(summary['source_file_count'], 7)
+            self.assertEqual(summary['vulnerability_count'], 1)
+            self.assertTrue(summary['ordinary_vulnerability_alerts_included'])
+
+    def test_missing_runtime_result_remains_incomplete_in_preview(self):
+        report = self.report()
+        report['reviewed_npm_source'] = dict(id='reviewed-source', source_files_sha256={str(i): 'a' * 64 for i in range(7)},
+            native_executable_clearance=False, runtime_advisory_review_required=True)
+        _, preview = d.diagnostic_document({}, report, 'a' * 64, 'b' * 64, {})
+        self.assertFalse(preview['reviewed_npm_source_summary']['runtime_advisory_complete'])
+        self.assertIsNone(preview['reviewed_npm_source_summary']['vulnerability_count'])
+
+    def test_native_clearance_cannot_be_forged_in_source_summary(self):
+        report = self.report()
+        report['reviewed_npm_source'] = dict(id='reviewed-source', source_files_sha256={str(i): 'a' * 64 for i in range(7)},
+            native_executable_clearance=True, runtime_advisory_review_required=True)
+        with self.assertRaises(d.WorkerError):
+            d.diagnostic_document({}, report, 'a' * 64, 'b' * 64, {})
+
     def report(self):
         findings=[{'path':'package-1/file'+str(i), 'rule':'routine','severity':'warning','malware':False} for i in range(40)]
         findings += [{'path':'package-1/review','rule':'capability','severity':'review','malware':False},

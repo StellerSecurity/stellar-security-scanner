@@ -1081,7 +1081,68 @@ def acquire_cargo(package, fetch, metadata_only):
                 'archive_url': url}}
 
 
-def plan_packages(lockpath, raw, *, composer_manifest=None, cargo_local_packages=None):
+
+REVIEWED_NPM_SOURCE = {'id': 'stellar-vpn-reviewed-esbuild-source-20261116',
+ 'repository': 'StellerSecurity/Stellar.UI.Desktop.VPNapp',
+ 'repository_id': 1111447739,
+ 'prefix': 'vendor/esbuild-reviewed/',
+ 'manifest_sha256': '6cce522f43ca3c351fbe25438d2d25c63f9c9ae62c01f7cc8dfbf7f6c07f5740',
+ 'lock_sha256': 'dc9dd42f55996e65357519643de1b49769ecef18090415b9e85e63f24a94c75a',
+ 'files': {'LICENSE': {'bytes': 1069,
+                       'sha256': 'b40ec5baec7bb34fa5b1c09521fa3cd52d5fad7adafed74932a2010d3612a681'},
+           'binary-review.json': {'bytes': 887,
+                                  'sha256': '6e3b77348fd273ec25b783187fc4d0c92ce2392eb334a0f95b4bbff0fd615f93'},
+           'lib/main.d.ts': {'bytes': 23392,
+                             'sha256': '161c8e0690c46021506e32fda85956d785b70f309ae97011fd27374c065cac9b'},
+           'lib/main.js': {'bytes': 89639,
+                           'sha256': '6e139ce946f944cc1915b1560b355b877cad093f0a139be07178b85d78854c65'},
+           'lib/reviewed-binary.cjs': {'bytes': 982,
+                                       'sha256': 'f5c8a3aa6b92772a5d1d21eebf2e5796fc27571c12df252e12bd751cb5238ce7'},
+           'package.json': {'bytes': 378,
+                            'sha256': 'e5fc4c4c3e6ec0f59df33a2187fcfc43042685e5224903356208fac4d9be1711'},
+           'stellar-patch.json': {'bytes': 624,
+                                  'sha256': '67c0da9a3f17b0a5bfae58918a04264db0ba167e8ff8786fab177aa10f5a240c'}},
+ 'upstream': {'name': 'esbuild',
+              'version': '0.28.1',
+              'resolved': 'https://registry.npmjs.org/esbuild/-/esbuild-0.28.1.tgz',
+              'integrity': 'sha512-HrJrvZv5ayxBzPfwphOoNzkzOIIlifzk0KJrGK2c8R4+LKpMtpYLQeUdjnwjWv/LZlkH2laZk+4w78pi99D4Vw=='},
+ 'upstream_archive_sha256': 'eb8ef756f8299d16d5c8b35678606d715ba29923f500db7b37c181310eed40a5'}
+
+
+def reviewed_npm_source(context, manifests):
+    """Bind only the exact public desktop source fork, never arbitrary file deps."""
+    review = REVIEWED_NPM_SOURCE
+    if (not isinstance(context, dict) or context.get('repository') != review['repository']
+            or context.get('repository_id') != review['repository_id']):
+        return None
+    present = {path for path in manifests if path.startswith(review['prefix'])}
+    if not present:
+        return None
+    expected = {review['prefix'] + name for name in review['files']}
+    if present != expected:
+        _fail('reviewed-local-npm-source-inventory-drift')
+    for name, expected_sha in (('package.json', review['manifest_sha256']),
+                               ('package-lock.json', review['lock_sha256'])):
+        raw = manifests.get(name)
+        if not isinstance(raw, bytes) or hashlib.sha256(raw).hexdigest() != expected_sha:
+            _fail('reviewed-local-npm-root-binding-drift')
+    for name, item in review['files'].items():
+        raw = manifests[review['prefix'] + name]
+        if not isinstance(raw, bytes) or len(raw) != item['bytes'] or hashlib.sha256(raw).hexdigest() != item['sha256']:
+            _fail('reviewed-local-npm-source-identity-drift')
+    manifest = _json(manifests[review['prefix'] + 'package.json'], LIMITS['lock_bytes'])
+    if ((manifest.get('name'), manifest.get('version')) != ('esbuild', '0.28.1-stellar.1')
+            or manifest.get('private') is not True
+            or any(field in manifest for field in ('scripts', 'bin', 'dependencies', 'optionalDependencies'))):
+        _fail('reviewed-local-npm-source-execution-metadata')
+    return dict(id=review['id'], lock_sha256=review['lock_sha256'],
+                local_package=['esbuild', '0.28.1-stellar.1'], source_prefix=review['prefix'],
+                source_files_sha256={name: item['sha256'] for name, item in review['files'].items()},
+                upstream_advisory_coordinate=['npm', 'esbuild', '0.28.1'],
+                required_runtime_advisory_coordinates=[['Go', 'stdlib', '1.26.11'], ['Go', 'golang.org/x/sys', '0.44.0']],
+                runtime_advisory_review_required=True, native_executable_clearance=False)
+
+def plan_packages(lockpath, raw, *, composer_manifest=None, cargo_local_packages=None, npm_source_review=None):
     """Return normalized package plans and coverage gaps without any network.
 
     Private/noncanonical origins are rejected before any package lookup. The
@@ -1143,6 +1204,14 @@ def plan_packages(lockpath, raw, *, composer_manifest=None, cargo_local_packages
         lock = _json(raw, LIMITS['lock_bytes'])
         count = 0
         if filename in ('package-lock.json', 'npm-shrinkwrap.json'):
+            contained = (str(lockpath) == 'package-lock.json' and isinstance(npm_source_review, dict)
+                         and npm_source_review.get('id') == REVIEWED_NPM_SOURCE['id']
+                         and npm_source_review.get('lock_sha256') == REVIEWED_NPM_SOURCE['lock_sha256']
+                         and hashlib.sha256(raw).hexdigest() == REVIEWED_NPM_SOURCE['lock_sha256'])
+            if npm_source_review is not None and not contained:
+                _fail('reviewed-local-npm-plan-binding-drift')
+            if contained:
+                add(_npm_row, 'esbuild', REVIEWED_NPM_SOURCE['upstream'])
             version = lock.get('lockfileVersion')
             if type(version) is not int or version not in (1, 2, 3):
                 _fail('unsupported-npm-lock-version')
@@ -1152,6 +1221,8 @@ def plan_packages(lockpath, raw, *, composer_manifest=None, cargo_local_packages
                 bundled = {}
                 for path, row in lock['packages'].items():
                     if path == '':
+                        continue
+                    if contained and path in ('node_modules/esbuild', 'vendor/esbuild-reviewed'):
                         continue
                     count += 1
                     if count > LIMITS['packages']:

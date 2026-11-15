@@ -200,6 +200,24 @@ def diagnostic_document(ctx, report, report_sha, manifest_sha, pins):
             'requests': advisory.get('requests') if type(advisory.get('requests')) is int else None,
             'gaps': [{'reason': safe_diagnostic(g.get('reason'))} for g in advisory.get('gaps', [])[:100] if isinstance(g, dict)],
         }
+    source_review = report.get('reviewed_npm_source')
+    if source_review is not None:
+        if (not isinstance(source_review, dict)
+                or source_review.get('native_executable_clearance') is not False
+                or source_review.get('runtime_advisory_review_required') is not True
+                or not isinstance(source_review.get('source_files_sha256'), dict)
+                or len(source_review['source_files_sha256']) != 7):
+            raise WorkerError('invalid-npm-source-review-diagnostic')
+        runtime = report.get('reviewed_runtime_advisories')
+        document['reviewed_npm_source_summary'] = {
+            'id': safe_diagnostic(source_review.get('id')),
+            'source_file_count': len(source_review['source_files_sha256']),
+            'native_executable_clearance': False,
+            'runtime_advisory_review_required': True,
+            'runtime_advisory_complete': isinstance(runtime, dict) and runtime.get('complete') is True,
+            'ordinary_vulnerability_alerts_included': isinstance(runtime, dict) and runtime.get('ordinary_vulnerability_alerts_included') is True,
+            'vulnerability_count': len(runtime['vulnerable']) if isinstance(runtime, dict) and isinstance(runtime.get('vulnerable'), list) else None,
+        }
     full_sha = digest(canonical(document))
     document['untruncated_sanitized_sha256'] = full_sha
     while len(canonical(document)) > DIAGNOSTICS_LIMIT:
