@@ -33,8 +33,8 @@
       }
     },
     "id": "stellar-vpn-reviewed-esbuild-source-20261116",
-    "lock_sha256": "dc9dd42f55996e65357519643de1b49769ecef18090415b9e85e63f24a94c75a",
-    "manifest_sha256": "6cce522f43ca3c351fbe25438d2d25c63f9c9ae62c01f7cc8dfbf7f6c07f5740",
+    "lock_sha256": "0f1f172239b3941f3d63086bdd81c0ec923e0d4cfd94a5e82eb0109e04b5ead0",
+    "manifest_sha256": "cb7170ce4c3b22660e8085676857828176ed8c859ea480cf236baf9426fd98fc",
     "prefix": "vendor/esbuild-reviewed/",
     "repository": "StellerSecurity/Stellar.UI.Desktop.VPNapp",
     "repository_id": 1111447739,
@@ -47,6 +47,13 @@
     "upstream_archive_sha256": "eb8ef756f8299d16d5c8b35678606d715ba29923f500db7b37c181310eed40a5"
   },
   "public_registry_coordinates_only": true,
+  "root_binding_update": {
+    "date": "2026-11-17",
+    "npm_offline_validation_run": "https://github.com/StellerSecurity/Stellar.UI.Desktop.VPNapp/actions/runs/43998141049",
+    "reason": "Require reviewed Vite7.3.8 security fix in immutable root binding; no other dependencies changed, all seven source-file identities unchanged",
+    "removed_esbuild_platform_packages": 26,
+    "unchanged_unrelated_lock_records": 57
+  },
   "scope": "Exact seven-file JavaScript source fork and immutable root dependency graph; no native binary clearance.",
   "source_content_inspection_required": true,
   "upstream_registry_archive_inspection_required": true
