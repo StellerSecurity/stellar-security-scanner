@@ -1,0 +1,23 @@
+{
+  "date": "2026-11-17",
+  "id": "GHSA-p4f5-76q4-ffq7",
+  "severity": "critical",
+  "source": "https://github.com/vitejs/vite/security/advisories/GHSA-p4f5-76q4-ffq7",
+  "published": "2026-11-10",
+  "affected_stable_ranges": [
+    ">=4.0.0 <=6.4.5",
+    ">=7.0.0 <=7.3.7",
+    ">=8.0.0 <=8.1.6",
+    ">=8.2.0 <=8.2.4",
+    ">=8.3.0 <=8.3.6"
+  ],
+  "patched_stable_versions": [
+    "6.4.6",
+    "7.3.8",
+    "8.1.7",
+    "8.2.5",
+    "8.3.7"
+  ],
+  "reason": "Exact API queries returned empty for known-affected 7.3.7. Vendor evidence takes precedence; preserve an independent blocking finding. This is not a full ordinary-vulnerability database, clean-version allowlist, or override of live checks.",
+  "no_execution_of_vulnerable_release": true
+}

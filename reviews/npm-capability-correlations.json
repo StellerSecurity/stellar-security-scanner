@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "date": "2026-10-27",
-  "scope": "Finding-specific static review of four exact source members. Original findings remain warnings. No package-wide exemption, installation/execution authorization, advisory override, or binary/coverage approval. Every other member and rule is inspected normally.",
-  "evidence": "Exact local source bytes of the lockfile-pinned packages, whose official registry archive integrity was verified in StellarVPN.Website.UI dependency check 122206770563. Official npm metadata, OSV and GitHub Advisory lookups on 2026-10-27 returned no advisories for these four coordinates; that is not proof of package safety.",
+  "scope": "Finding-specific static review of five exact source members. Original findings remain warnings. No package-wide exemption, installation/execution authorization, advisory override, or binary/coverage approval. Every other member and rule is inspected normally.",
+  "evidence": "Exact local source bytes of the lockfile-pinned packages, whose official registry archive integrity was verified in StellarVPN.Website.UI dependency check 122206770563. Official npm metadata, OSV and GitHub Advisory lookups on 2026-10-27 returned no advisories for these four coordinates; that is not proof of package safety. On 2026-11-17 the exact Vite 7.3.8 distribution was independently rechecked: 37 of 39 members are unchanged from 7.3.7, package.json changes only version, and config.js changes only four virtual-module escaping sites. New vendor advisory evidence blocks affected releases independently of empty API responses.",
   "reviews": [
     {
       "id": "angular-cli-21.2.28-package-metadata",
@@ -55,6 +55,20 @@
       "reason": "The four environment regex hits are DEBUG_ option-name filtering (1209), explicitly prefix-filtered environment selection (9417), and JSON.stringify(process.env.NODE_ENV || ...) (27698/32341). The latter serialize a selected mode, not process.env as a whole. Network code includes dev-server/WebSocket support and module-preload/WASM fetch helpers (23943/27730); co-occurrence is not evidence that environment data is uploaded to those helpers. Environment exposure depends on trusted Vite configuration. No blanket approval of Vite networking, plugins, subprocesses, or all source was inferred.",
       "upstream": "https://github.com/vitejs/vite",
       "publisher": "GitHub Actions"
+    },
+    {
+      "id": "vite-7.3.8-env-configuration",
+      "package": "vite",
+      "version": "7.3.8",
+      "member": "package/dist/node/chunks/config.js",
+      "bytes": 1342678,
+      "sha256": "8e3075d1575ec341b1455beacc73e2531f616e61658875eb15d74a45daf5874a",
+      "archive_sha256": "7d8597eab679d0833d9015f0f29ed145fe4fa1a956b7c80371f85bdd056362c3",
+      "rule": "environment-collection-and-network-review",
+      "reason": "The complete distribution diff changes only the package version and four virtual-module escaping sites to JSON.stringify constant assignment. The reviewed DEBUG_ and prefix-selected environment handling and NODE_ENV serialization are unchanged. Dev-server/WebSocket and module-preload/WASM network helpers remain distinct capabilities, not a demonstrated environment-to-network upload. This finding-specific warning retains all other rules, native gaps, advisories, and package execution controls.",
+      "upstream": "https://github.com/vitejs/vite",
+      "publisher": "GitHub Actions",
+      "review_date": "2026-11-17"
     }
   ],
   "limitations": [

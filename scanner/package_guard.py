@@ -46,6 +46,34 @@ def sha256(raw):
     return hashlib.sha256(raw).hexdigest()
 
 
+def reviewed_vendor_vulnerabilities(packages):
+    """Retain the verified vendor advisory when public index queries lag.
+
+    Blocking evidence only, never a clean-version allowlist or a substitute
+    for the existing live malware/runtime advisory checks. Stable release
+    bounds are transcribed from reviews/vite-2026-11-advisory.json.
+    """
+    findings = []
+    for package in packages:
+        if package.get('ecosystem') != 'npm' or package.get('name') != 'vite':
+            continue
+        raw = package.get('version', '')
+        match = re.fullmatch(r'v?(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)', raw)
+        if match is None:
+            raise Incomplete('reviewed-vendor-advisory-version-unparsed')
+        version = tuple(map(int, match.groups()))
+        affected = ((4, 0, 0) <= version <= (6, 4, 5)
+                    or (7, 0, 0) <= version <= (7, 3, 7)
+                    or (8, 0, 0) <= version <= (8, 1, 6)
+                    or (8, 2, 0) <= version <= (8, 2, 4)
+                    or (8, 3, 0) <= version <= (8, 3, 6))
+        if affected:
+            findings.append(dict(ecosystem='npm', name='vite', version=raw,
+                                 id='GHSA-p4f5-76q4-ffq7', severity='critical',
+                                 source='https://github.com/vitejs/vite/security/advisories/GHSA-p4f5-76q4-ffq7'))
+    return findings
+
+
 def load_reviewed(name, expected):
     path = Path(__file__).with_name(name + ".py")
     descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
@@ -436,6 +464,7 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
     cargo_graph_review = None
     npm_source_review = None
     runtime_advisory = None
+    vendor_vulnerabilities = []
     bundle_validated = False
     public_packages = []
     advisory = None
@@ -673,6 +702,14 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
                 except (acquisition.AcquisitionError, Incomplete) as exc:
                     gap(logical, str(exc))
                     record["status"] = "incomplete"
+        vendor_vulnerabilities = reviewed_vendor_vulnerabilities(public_packages)
+        for finding in vendor_vulnerabilities:
+            scanner.finding('dependencies', 'known-vendor-dependency-vulnerability', 'error', False)
+            for record in records:
+                if (record['ecosystem'], record['name'], record['version']) == (
+                        finding['ecosystem'], finding['name'], finding['version']):
+                    record['status'] = 'blocked'
+                    record.setdefault('vendor_vulnerability_advisories', []).append(finding['id'])
         if advisories is None:
             gap("dependencies", "known-malware-advisory-check-unavailable")
         else:
@@ -731,6 +768,7 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
                   acquisition_sha256=sha256(Path(acquisition.__file__).read_bytes()),
                   advisory_sha256=sha256(Path(advisories.__file__).read_bytes()) if advisories is not None else None,
                   malware_advisory_result=advisory,
+                  reviewed_vendor_vulnerabilities=vendor_vulnerabilities,
                   reviewed_npm_source=npm_source_review, reviewed_runtime_advisories=runtime_advisory,
                   input={"kind": "dependency-lock-manifest", "sha256": sha256(json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode()),
                          "digest_scope": "inspected-dependency-manifests"},
