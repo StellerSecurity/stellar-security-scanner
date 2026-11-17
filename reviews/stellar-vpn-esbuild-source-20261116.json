@@ -1,0 +1,64 @@
+{
+  "native_executable_clearance": false,
+  "ordinary_runtime_vulnerability_checks_required": true,
+  "profile": {
+    "files": {
+      "LICENSE": {
+        "bytes": 1069,
+        "sha256": "b40ec5baec7bb34fa5b1c09521fa3cd52d5fad7adafed74932a2010d3612a681"
+      },
+      "binary-review.json": {
+        "bytes": 887,
+        "sha256": "6e3b77348fd273ec25b783187fc4d0c92ce2392eb334a0f95b4bbff0fd615f93"
+      },
+      "lib/main.d.ts": {
+        "bytes": 23392,
+        "sha256": "161c8e0690c46021506e32fda85956d785b70f309ae97011fd27374c065cac9b"
+      },
+      "lib/main.js": {
+        "bytes": 89639,
+        "sha256": "6e139ce946f944cc1915b1560b355b877cad093f0a139be07178b85d78854c65"
+      },
+      "lib/reviewed-binary.cjs": {
+        "bytes": 982,
+        "sha256": "f5c8a3aa6b92772a5d1d21eebf2e5796fc27571c12df252e12bd751cb5238ce7"
+      },
+      "package.json": {
+        "bytes": 378,
+        "sha256": "e5fc4c4c3e6ec0f59df33a2187fcfc43042685e5224903356208fac4d9be1711"
+      },
+      "stellar-patch.json": {
+        "bytes": 624,
+        "sha256": "67c0da9a3f17b0a5bfae58918a04264db0ba167e8ff8786fab177aa10f5a240c"
+      }
+    },
+    "id": "stellar-vpn-reviewed-esbuild-source-20261116",
+    "lock_sha256": "0f1f172239b3941f3d63086bdd81c0ec923e0d4cfd94a5e82eb0109e04b5ead0",
+    "manifest_sha256": "7fd5de97515d8f4be876a8f36167eeb0cb6eab79123f4ed989429a65f7afc1e7",
+    "prefix": "vendor/esbuild-reviewed/",
+    "repository": "StellerSecurity/Stellar.UI.Desktop.VPNapp",
+    "repository_id": 1111447739,
+    "upstream": {
+      "integrity": "sha512-HrJrvZv5ayxBzPfwphOoNzkzOIIlifzk0KJrGK2c8R4+LKpMtpYLQeUdjnwjWv/LZlkH2laZk+4w78pi99D4Vw==",
+      "name": "esbuild",
+      "resolved": "https://registry.npmjs.org/esbuild/-/esbuild-0.28.1.tgz",
+      "version": "0.28.1"
+    },
+    "upstream_archive_sha256": "eb8ef756f8299d16d5c8b35678606d715ba29923f500db7b37c181310eed40a5"
+  },
+  "public_registry_coordinates_only": true,
+  "root_binding_update": {
+    "cross_host_reproduction": "All six expected output hashes reproduced on Darwin ARM64 and Linux AMD64 with Go1.26.11/x/sys0.44.0; no broad native clearance.",
+    "date": "2026-11-17",
+    "frontend_launcher_sha256": "71baaed6c609b35f018213d45b95c92a77d8ef65cc7aa46820af10a2463c5399",
+    "frontend_launcher_test": "https://github.com/StellerSecurity/Stellar.UI.Desktop.VPNapp/actions/runs/44011181093",
+    "npm_offline_validation_run": "https://github.com/StellerSecurity/Stellar.UI.Desktop.VPNapp/actions/runs/44010767738",
+    "reason": "Require Vite7.3.8 and fixed first-party build/dev/preview launch modes. Preserve the exact60record source-fork lock and all7 vendor source identities; no native binary exception.",
+    "removed_esbuild_platform_packages": 26,
+    "runtime_provisioning_controls": 8,
+    "unchanged_unrelated_lock_records": 57
+  },
+  "scope": "Exact seven-file JavaScript source fork and immutable root dependency graph; no native binary clearance.",
+  "source_content_inspection_required": true,
+  "upstream_registry_archive_inspection_required": true
+}

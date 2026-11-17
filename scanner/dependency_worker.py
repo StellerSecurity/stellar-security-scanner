@@ -145,6 +145,27 @@ def diagnostic_document(ctx, report, report_sha, manifest_sha, pins):
         sanitized=True, source_excerpts_included=False, truncated=False,
         omitted={'findings': 0, 'gaps': 0, 'named_packages': 0})
     document['coverage_summary'] = coverage_summary(report, gaps)
+    vendor = report.get('reviewed_vendor_vulnerabilities', [])
+    if not isinstance(vendor, list) or len(vendor) > 10000:
+        raise WorkerError('invalid-vendor-vulnerability-diagnostic')
+    if vendor:
+        identities = {(p.get('ecosystem'), p.get('name'), p.get('version')) for p in packages}
+        for row in vendor:
+            if (not isinstance(row, dict) or row.get('ecosystem') != 'npm' or row.get('name') != 'vite'
+                    or not isinstance(row.get('version'), str) or len(row['version']) > 80
+                    or not re.fullmatch(r'v?\d+\.\d+\.\d+', row['version'])
+                    or (row['ecosystem'], row['name'], row['version']) not in identities
+                    or row.get('id') != 'GHSA-p4f5-76q4-ffq7' or row.get('severity') != 'critical'
+                    or row.get('source') != 'https://github.com/vitejs/vite/security/advisories/GHSA-p4f5-76q4-ffq7'):
+                raise WorkerError('invalid-vendor-vulnerability-diagnostic')
+        document['reviewed_vendor_advisory_summary'] = {
+            'advisory_ids': ['GHSA-p4f5-76q4-ffq7'], 'severity': 'critical',
+            'affected_package_count': len(vendor),
+            'affected_package_examples': [{key: row[key] for key in ('ecosystem', 'name', 'version')}
+                                          for row in vendor[:10]],
+            'omitted_package_examples': max(0, len(vendor) - 10),
+            'comprehensive_ordinary_vulnerability_coverage': False,
+        }
     release_review = report.get('gradle_release_review')
     if release_review is not None:
         # The parent already binds this record to the immutable repository tree.
@@ -199,6 +220,24 @@ def diagnostic_document(ctx, report, report_sha, manifest_sha, pins):
             'complete': advisory.get('complete') is True,
             'requests': advisory.get('requests') if type(advisory.get('requests')) is int else None,
             'gaps': [{'reason': safe_diagnostic(g.get('reason'))} for g in advisory.get('gaps', [])[:100] if isinstance(g, dict)],
+        }
+    source_review = report.get('reviewed_npm_source')
+    if source_review is not None:
+        if (not isinstance(source_review, dict)
+                or source_review.get('native_executable_clearance') is not False
+                or source_review.get('runtime_advisory_review_required') is not True
+                or not isinstance(source_review.get('source_files_sha256'), dict)
+                or len(source_review['source_files_sha256']) != 7):
+            raise WorkerError('invalid-npm-source-review-diagnostic')
+        runtime = report.get('reviewed_runtime_advisories')
+        document['reviewed_npm_source_summary'] = {
+            'id': safe_diagnostic(source_review.get('id')),
+            'source_file_count': len(source_review['source_files_sha256']),
+            'native_executable_clearance': False,
+            'runtime_advisory_review_required': True,
+            'runtime_advisory_complete': isinstance(runtime, dict) and runtime.get('complete') is True,
+            'ordinary_vulnerability_alerts_included': isinstance(runtime, dict) and runtime.get('ordinary_vulnerability_alerts_included') is True,
+            'vulnerability_count': len(runtime['vulnerable']) if isinstance(runtime, dict) and isinstance(runtime.get('vulnerable'), list) else None,
         }
     full_sha = digest(canonical(document))
     document['untruncated_sanitized_sha256'] = full_sha
