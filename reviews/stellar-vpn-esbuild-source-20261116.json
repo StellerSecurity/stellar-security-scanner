@@ -34,7 +34,7 @@
     },
     "id": "stellar-vpn-reviewed-esbuild-source-20261116",
     "lock_sha256": "0f1f172239b3941f3d63086bdd81c0ec923e0d4cfd94a5e82eb0109e04b5ead0",
-    "manifest_sha256": "cb7170ce4c3b22660e8085676857828176ed8c859ea480cf236baf9426fd98fc",
+    "manifest_sha256": "011f22524bb2ab14bb8240f408b22ed9c2ce474a3c310d9d3466e5143c816048",
     "prefix": "vendor/esbuild-reviewed/",
     "repository": "StellerSecurity/Stellar.UI.Desktop.VPNapp",
     "repository_id": 1111447739,
@@ -48,10 +48,13 @@
   },
   "public_registry_coordinates_only": true,
   "root_binding_update": {
+    "cross_host_reproduction": "All six expected output hashes reproduced on Darwin ARM64 and Linux AMD64 with Go1.26.11/x/sys0.44.0; no broad native clearance.",
     "date": "2026-11-17",
+    "frontend_launcher_sha256": "2a0d292ca4cee84f81e1bf50d938cac7c3e4d41b4f0b9b9a393d2dcd52dfc16f",
     "npm_offline_validation_run": "https://github.com/StellerSecurity/Stellar.UI.Desktop.VPNapp/actions/runs/43998141049",
-    "reason": "Require reviewed Vite7.3.8 security fix in immutable root binding; no other dependencies changed, all seven source-file identities unchanged",
+    "reason": "Require patched Vite7.3.8 and the first-party verified frontend launcher. Lock graph unchanged from the offline source-fork candidate; all seven vendored source-file identities unchanged. The launcher selects an explicit or default Git-ignored local runtime and invokes the existing hash guard before Vite; no download/install hook.",
     "removed_esbuild_platform_packages": 26,
+    "runtime_provisioning_controls": 8,
     "unchanged_unrelated_lock_records": 57
   },
   "scope": "Exact seven-file JavaScript source fork and immutable root dependency graph; no native binary clearance.",
