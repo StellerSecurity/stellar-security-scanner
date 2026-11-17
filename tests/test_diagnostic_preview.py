@@ -6,6 +6,23 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'scanner'))
 import dependency_worker as d
 
 class DiagnosticPreviewTests(unittest.TestCase):
+    def test_vendor_advisory_identity_survives_warning_preview_limits(self):
+        report = self.report()
+        report['packages'][0].update(name='vite', version='7.3.7', vendor_vulnerability_advisories=['GHSA-p4f5-76q4-ffq7'])
+        report['reviewed_vendor_vulnerabilities'] = [dict(ecosystem='npm', name='vite', version='7.3.7',
+            id='GHSA-p4f5-76q4-ffq7', severity='critical',
+            source='https://github.com/vitejs/vite/security/advisories/GHSA-p4f5-76q4-ffq7')]
+        document, preview = d.diagnostic_document({}, report, 'a' * 64, 'b' * 64, {})
+        self.assertTrue(preview['preview_truncated'])
+        for value in (document, preview):
+            summary = value['reviewed_vendor_advisory_summary']
+            self.assertEqual(summary['advisory_ids'], ['GHSA-p4f5-76q4-ffq7'])
+            self.assertEqual(summary['affected_package_examples'][0]['version'], '7.3.7')
+            self.assertFalse(summary['comprehensive_ordinary_vulnerability_coverage'])
+        report['reviewed_vendor_vulnerabilities'][0]['source'] += '?token=untrusted'
+        with self.assertRaises(d.WorkerError):
+            d.diagnostic_document({}, report, 'a' * 64, 'b' * 64, {})
+
     def test_contained_source_summary_keeps_native_clearance_false(self):
         report = self.report()
         report['reviewed_npm_source'] = dict(id='reviewed-source', source_files_sha256={str(i): 'a' * 64 for i in range(7)},

@@ -145,6 +145,27 @@ def diagnostic_document(ctx, report, report_sha, manifest_sha, pins):
         sanitized=True, source_excerpts_included=False, truncated=False,
         omitted={'findings': 0, 'gaps': 0, 'named_packages': 0})
     document['coverage_summary'] = coverage_summary(report, gaps)
+    vendor = report.get('reviewed_vendor_vulnerabilities', [])
+    if not isinstance(vendor, list) or len(vendor) > 10000:
+        raise WorkerError('invalid-vendor-vulnerability-diagnostic')
+    if vendor:
+        identities = {(p.get('ecosystem'), p.get('name'), p.get('version')) for p in packages}
+        for row in vendor:
+            if (not isinstance(row, dict) or row.get('ecosystem') != 'npm' or row.get('name') != 'vite'
+                    or not isinstance(row.get('version'), str) or len(row['version']) > 80
+                    or not re.fullmatch(r'v?\d+\.\d+\.\d+', row['version'])
+                    or (row['ecosystem'], row['name'], row['version']) not in identities
+                    or row.get('id') != 'GHSA-p4f5-76q4-ffq7' or row.get('severity') != 'critical'
+                    or row.get('source') != 'https://github.com/vitejs/vite/security/advisories/GHSA-p4f5-76q4-ffq7'):
+                raise WorkerError('invalid-vendor-vulnerability-diagnostic')
+        document['reviewed_vendor_advisory_summary'] = {
+            'advisory_ids': ['GHSA-p4f5-76q4-ffq7'], 'severity': 'critical',
+            'affected_package_count': len(vendor),
+            'affected_package_examples': [{key: row[key] for key in ('ecosystem', 'name', 'version')}
+                                          for row in vendor[:10]],
+            'omitted_package_examples': max(0, len(vendor) - 10),
+            'comprehensive_ordinary_vulnerability_coverage': False,
+        }
     release_review = report.get('gradle_release_review')
     if release_review is not None:
         # The parent already binds this record to the immutable repository tree.
