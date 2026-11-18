@@ -58,6 +58,15 @@ SOURCE_CAPABILITY_REVIEWS = (
     ('libdbus-sys-0.2.7/vendor/dbus/doc/dbus-specification.xml', 323664,
      'a84933df0e498c962518b3c93780d6a229e3a019d1c1251531f04395dac3fdd3',
      'persistence-and-process-review', 'libdbus-sys-0.2.7-transport-documentation'),
+    ('package/sys/node/index.js', 194765,
+     'ddd3ca8106863e8ecc5656005a17f4b1fbbc0633167dc2b0278b928a68e98347',
+     'environment-collection-and-network-review', 'stencil-4.45.2-system-env-configuration'),
+    ('package/compiler/stencil.js', 13223173,
+     '31e6d332a91886959e0123de44bcf698163c8e31ceff88758dcc4d824bbadcdf',
+     'credential-access-and-network-review', 'stencil-4.45.2-compiler-dom-property-names'),
+    ('package/out/node-module-collector/nodeModulesCollector.js', 21617,
+     '490b05e03bb2276dea3e965213cb15d088fea796db733c995b1e4a8d67b814c3',
+     'environment-collection-and-network-review', 'app-builder-lib-26.15.3-collector-filtered-child-env'),
 )
 
 
