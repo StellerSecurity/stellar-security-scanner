@@ -26,6 +26,31 @@ class DiagnosticPreviewTests(unittest.TestCase):
         document,preview=d.diagnostic_document({},report,'a'*64,'b'*64,{})
         self.assertFalse(preview['preview_truncated'])
         self.assertEqual(0,sum(preview['preview_omitted'].values()))
+
+    def test_incomplete_packages_remain_named_after_file_gap_sampling(self):
+        report = self.report()
+        report['packages'].extend([
+            {'name': 'native-no-retained-file', 'version': '2', 'ecosystem': 'npm',
+             'status': 'incomplete', 'archive_sha256': 'c'*64, 'integrity_verified': True, 'lockfiles': ['package-lock.json']},
+            {'name': 'clean-no-findings', 'version': '3', 'ecosystem': 'npm', 'status': 'passed', 'lockfiles': []}])
+        report.update(coverage_gap_counts={'executable-binary-needs-independent-review': 2},
+                      coverage_gap_total=2, omitted_gap_details=2)
+        document, preview = d.diagnostic_document({}, report, 'a'*64, 'b'*64, {})
+        self.assertEqual(['example', 'native-no-retained-file'], [p['name'] for p in document['named_packages']])
+        self.assertEqual('incomplete', document['named_packages'][1]['status'])
+        self.assertEqual('c'*64, document['named_packages'][1]['archive_sha256'])
+        self.assertEqual(2, document['totals']['named_packages'])
+        self.assertEqual(2, document['coverage_summary']['observed_total'])
+        self.assertEqual(2, document['coverage_summary']['omitted_examples'])
+        self.assertEqual([], document['gaps'])
+
+    def test_incomplete_package_names_are_sanitized_before_publication(self):
+        report = self.report()
+        report['packages'].append({'name': 'https://example.invalid/?token=secret', 'version': '2',
+                                   'ecosystem': 'npm', 'status': 'incomplete', 'lockfiles': []})
+        document, preview = d.diagnostic_document({}, report, 'a'*64, 'b'*64, {})
+        self.assertTrue(document['named_packages'][-1]['name'].startswith('<redacted:'))
+        self.assertNotIn('token=secret', d.canonical(document).decode())
     def test_full_report_limit_preserves_blockers(self):
         original=d.DIAGNOSTICS_LIMIT
         try:
