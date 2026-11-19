@@ -1,0 +1,1577 @@
+{
+  "schema": 1,
+  "date": "2026-11-19",
+  "package": "electron-winstaller",
+  "version": "5.4.0",
+  "archive_sha256": "47af97b326224acce783b4bceb5b53e4bd275e76eaf08fe20ffe3eb19480adb1",
+  "reader_sha256": "17c71026eb5f69d333a324cd180f4d9518bbd32548cd5e3ae52553c2e94e461a",
+  "sources": [
+    "https://github.com/dotnet/runtime/blob/main/docs/design/specs/PortablePdb-Metadata.md",
+    "https://github.com/dotnet/roslyn/blob/main/src/Dependencies/CodeAnalysis.Debugging/PortableCustomDebugInfoKinds.cs",
+    "https://github.com/dotnet/roslyn/blob/main/src/Compilers/Core/Portable/PEWriter/MetadataWriter.PortablePdb.cs"
+  ],
+  "scope": "Exact three-file standalone debug-data review. Metadata stream boundaries, debug-only tables, heap records, all references and custom debug kinds are inspected without debugger, CLR, package or network execution. Document paths, variable names, source-link JSON, compilation option pairs, metadata-reference filenames/aliases and the integer constant are decoded as data. Source-link URLs are not fetched. Sequence/scope/async offsets, document hashes, dynamic bit vectors, GUIDs and signatures are typed metadata, not application code. No embedded-source/custom extension or unreferenced nonempty blob is accepted. All decoded textual fields remain subject to existing source rules. Unknown or changed files and every native binary remain unreviewed. This does not establish the safety of Squirrel, its update behavior or any associated executable.",
+  "reviews": [
+    {
+      "member": "package/vendor/Squirrel-Mono.pdb",
+      "bytes": 21328,
+      "sha256": "66c9bf8ad104e82a51ff1ccea9efaa906ad0974d1395d503475afcf09efbdf87",
+      "streams": {
+        "#Pdb": {
+          "offset": 124,
+          "bytes": 140
+        },
+        "#~": {
+          "offset": 264,
+          "bytes": 8960
+        },
+        "#Strings": {
+          "offset": 9224,
+          "bytes": 720
+        },
+        "#US": {
+          "offset": 9944,
+          "bytes": 4
+        },
+        "#GUID": {
+          "offset": 9948,
+          "bytes": 112
+        },
+        "#Blob": {
+          "offset": 10060,
+          "bytes": 11268
+        }
+      },
+      "tables": {
+        "48": 9,
+        "49": 394,
+        "50": 379,
+        "51": 149,
+        "52": 1,
+        "53": 17,
+        "54": 15,
+        "55": 27
+      },
+      "documents": [
+        "D:\\repos\\Squirrel.Windows\\build\\obj\\Update-Mono\\Release\\net45\\Update-Mono.Version.cs",
+        "D:\\repos\\Squirrel.Windows\\src\\Update\\Mono.Options\\Options.cs",
+        "D:\\repos\\Squirrel.Windows\\src\\Update\\AuthenticodeTools.cs",
+        "D:\\repos\\Squirrel.Windows\\src\\Update\\CopStache.cs",
+        "D:\\repos\\Squirrel.Windows\\src\\Update\\Program.cs",
+        "D:\\repos\\Squirrel.Windows\\src\\Update\\StartupOption.cs",
+        "D:\\repos\\Squirrel.Windows\\build\\obj\\Update-Mono\\Release\\net45\\.NETFramework,Version=v4.5.AssemblyAttributes.cs",
+        "D:\\repos\\Squirrel.Windows\\build\\obj\\Update-Mono\\Release\\net45\\Update-Mono.AssemblyInfo.cs",
+        "D:\\repos\\Squirrel.Windows\\src\\Update\\AnimatedGifWindow.cs"
+      ],
+      "source_links": [
+        {
+          "documents": {
+            "D:\\repos\\Squirrel.Windows\\*": "https://raw.githubusercontent.com/Squirrel/Squirrel.Windows/eef37460aef77b2f9de8cd2237c1e55b344a6554/*",
+            "D:\\repos\\Squirrel.Windows\\vendor\\nuget\\*": "https://raw.githubusercontent.com/paulcbetts/NuGet/50f8d9e438fe948d7109501bd10f6024d0585b70/*"
+          }
+        }
+      ],
+      "custom_kinds": {
+        "cc110556-a091-4d38-9fec-25ab9a351a6a": 1,
+        "b5feec05-8cd0-4a83-96da-466284bb4bd8": 1,
+        "7e4d4708-096e-4c5c-aeda-cb10ba6a740d": 1,
+        "6da9a61e-f8c7-4874-be62-68bc5630df71": 12,
+        "54fd2ac5-e925-401a-9c2a-f94f171072f8": 12
+      },
+      "blob_records": 392,
+      "unclassified_nonzero_bytes": 0,
+      "fields": [
+        {
+          "offset": 9224,
+          "bytes": 720,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 10063,
+          "bytes": 297,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 10362,
+          "bytes": 200,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 10564,
+          "bytes": 26,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 10617,
+          "bytes": 34,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 10678,
+          "bytes": 35,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 10740,
+          "bytes": 30,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 10797,
+          "bytes": 14,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 10838,
+          "bytes": 18,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 10883,
+          "bytes": 18,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 10928,
+          "bytes": 20,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 10975,
+          "bytes": 12,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 11014,
+          "bytes": 18,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 11059,
+          "bytes": 20,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 11106,
+          "bytes": 25,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 11158,
+          "bytes": 17,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 11202,
+          "bytes": 12,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 11241,
+          "bytes": 15,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 11283,
+          "bytes": 15,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 11325,
+          "bytes": 10,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 11362,
+          "bytes": 18,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 11407,
+          "bytes": 36,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 11470,
+          "bytes": 19,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 11516,
+          "bytes": 32,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 11575,
+          "bytes": 14,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 11616,
+          "bytes": 19,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 11662,
+          "bytes": 15,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 11704,
+          "bytes": 18,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 11750,
+          "bytes": 2,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 11753,
+          "bytes": 5,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 11759,
+          "bytes": 16,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 11776,
+          "bytes": 5,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 11782,
+          "bytes": 3,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 11786,
+          "bytes": 11,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 11798,
+          "bytes": 7,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 11806,
+          "bytes": 5,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 11812,
+          "bytes": 22,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 11895,
+          "bytes": 6,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 11902,
+          "bytes": 18,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 11921,
+          "bytes": 26,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 11948,
+          "bytes": 30,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 11979,
+          "bytes": 21,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 12001,
+          "bytes": 20,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 12022,
+          "bytes": 9,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 12032,
+          "bytes": 28,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 12061,
+          "bytes": 27,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 12089,
+          "bytes": 11,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 12101,
+          "bytes": 30,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 12166,
+          "bytes": 3,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 12170,
+          "bytes": 6,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 12177,
+          "bytes": 12,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 12190,
+          "bytes": 10,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 12316,
+          "bytes": 4,
+          "encoding": "utf-16-le"
+        },
+        {
+          "offset": 15423,
+          "bytes": 30,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 15461,
+          "bytes": 20,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 15935,
+          "bytes": 11,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 15947,
+          "bytes": 15,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 15963,
+          "bytes": 22,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 16005,
+          "bytes": 12,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 16134,
+          "bytes": 5,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 16140,
+          "bytes": 20,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 16161,
+          "bytes": 13,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 16175,
+          "bytes": 18,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 16194,
+          "bytes": 21,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 16216,
+          "bytes": 17,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 16234,
+          "bytes": 16,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 16297,
+          "bytes": 10,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 17626,
+          "bytes": 16,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 21077,
+          "bytes": 48,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 21179,
+          "bytes": 27,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 21260,
+          "bytes": 20,
+          "encoding": "utf-8"
+        }
+      ],
+      "sequence_points": 1461
+    },
+    {
+      "member": "package/vendor/Squirrel.pdb",
+      "bytes": 73176,
+      "sha256": "342c105c0aa5fab7ab38078aa4c4a4512a3e70b32a86e50adb13ee092b924f6c",
+      "streams": {
+        "#Pdb": {
+          "offset": 124,
+          "bytes": 144
+        },
+        "#~": {
+          "offset": 268,
+          "bytes": 32432
+        },
+        "#Strings": {
+          "offset": 32700,
+          "bytes": 3748
+        },
+        "#US": {
+          "offset": 36448,
+          "bytes": 4
+        },
+        "#GUID": {
+          "offset": 36452,
+          "bytes": 128
+        },
+        "#Blob": {
+          "offset": 36580,
+          "bytes": 36596
+        }
+      },
+      "tables": {
+        "48": 36,
+        "49": 1417,
+        "50": 1289,
+        "51": 813,
+        "52": 1,
+        "53": 76,
+        "54": 44,
+        "55": 72
+      },
+      "documents": [
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\build\\obj\\Squirrel\\Release\\net45\\Squirrel.Version.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\Squirrel\\MarkdownSharp.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\Squirrel\\ApplyReleasesProgress.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\Squirrel\\ContentType.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\Squirrel\\DeltaPackage.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\Squirrel\\EnumerableExtensions.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\Squirrel\\FileDownloader.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\Squirrel\\IUpdateManager.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\Squirrel\\NativeMethods.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\Squirrel\\ReleaseEntry.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\Squirrel\\ReleaseExtensions.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\Squirrel\\ReleasePackage.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\Squirrel\\SquirrelAwareApp.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\Squirrel\\SquirrelAwareExecutableDetector.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\Squirrel\\TrayHelper.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\Squirrel\\UpdateInfo.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\Squirrel\\UpdateManager.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\Squirrel\\Utility.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\Squirrel\\SimpleSplat\\AssemblyFinder.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\Squirrel\\SimpleSplat\\Logging.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\Squirrel\\SimpleSplat\\MemoizingMRUCache.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\Squirrel\\SimpleSplat\\ModeDetector.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\Squirrel\\SimpleSplat\\PlatformModeDetector.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\Squirrel\\SimpleSplat\\ServiceLocation.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\Squirrel\\SimpleJson\\SimpleJson.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\Squirrel\\ShellFile.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\Squirrel\\TaskbarHelper.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\Squirrel\\BinaryPatchUtility.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\Squirrel\\UpdateManager.ApplyReleases.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\Squirrel\\UpdateManager.CheckForUpdates.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\Squirrel\\UpdateManager.DownloadReleases.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\Squirrel\\UpdateManager.Factory.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\Squirrel\\UpdateManager.InstallHelpers.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\build\\obj\\Squirrel\\Release\\net45\\.NETFramework,Version=v4.5.AssemblyAttributes.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\build\\obj\\Squirrel\\Release\\net45\\Squirrel.AssemblyInfo.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\Squirrel\\Properties\\AssemblyInfo.cs"
+      ],
+      "source_links": [
+        {
+          "documents": {
+            "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\*": "https://raw.githubusercontent.com/squirrel/squirrel.windows/eef37460aef77b2f9de8cd2237c1e55b344a6554/*",
+            "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\vendor\\nuget\\*": "https://raw.githubusercontent.com/paulcbetts/NuGet/50f8d9e438fe948d7109501bd10f6024d0585b70/*"
+          }
+        }
+      ],
+      "custom_kinds": {
+        "cc110556-a091-4d38-9fec-25ab9a351a6a": 1,
+        "b5feec05-8cd0-4a83-96da-466284bb4bd8": 1,
+        "7e4d4708-096e-4c5c-aeda-cb10ba6a740d": 1,
+        "83c563c4-b4f3-47d5-b824-ba5441477ea8": 5,
+        "6da9a61e-f8c7-4874-be62-68bc5630df71": 25,
+        "54fd2ac5-e925-401a-9c2a-f94f171072f8": 39
+      },
+      "blob_records": 1213,
+      "unclassified_nonzero_bytes": 0,
+      "fields": [
+        {
+          "offset": 32700,
+          "bytes": 3748,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 36583,
+          "bytes": 339,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 36924,
+          "bytes": 207,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 37133,
+          "bytes": 26,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 37186,
+          "bytes": 34,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 37247,
+          "bytes": 35,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 37309,
+          "bytes": 20,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 37356,
+          "bytes": 30,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 37413,
+          "bytes": 14,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 37454,
+          "bytes": 18,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 37499,
+          "bytes": 18,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 37544,
+          "bytes": 20,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 37591,
+          "bytes": 12,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 37630,
+          "bytes": 18,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 37675,
+          "bytes": 17,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 37719,
+          "bytes": 15,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 37761,
+          "bytes": 15,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 37803,
+          "bytes": 10,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 37840,
+          "bytes": 18,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 37885,
+          "bytes": 36,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 37948,
+          "bytes": 19,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 37994,
+          "bytes": 19,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 38040,
+          "bytes": 32,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 38099,
+          "bytes": 14,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 38140,
+          "bytes": 14,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 38181,
+          "bytes": 19,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 38228,
+          "bytes": 2,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 38231,
+          "bytes": 5,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 38237,
+          "bytes": 3,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 38241,
+          "bytes": 4,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 38246,
+          "bytes": 8,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 38255,
+          "bytes": 16,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 38272,
+          "bytes": 5,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 38278,
+          "bytes": 3,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 38282,
+          "bytes": 8,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 38291,
+          "bytes": 7,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 38299,
+          "bytes": 5,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 38305,
+          "bytes": 19,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 38391,
+          "bytes": 3,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 38395,
+          "bytes": 16,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 38549,
+          "bytes": 6,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 38556,
+          "bytes": 26,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 38583,
+          "bytes": 20,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 38604,
+          "bytes": 11,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 38616,
+          "bytes": 30,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 41347,
+          "bytes": 24,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 41518,
+          "bytes": 11,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 41530,
+          "bytes": 10,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 41551,
+          "bytes": 14,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 41749,
+          "bytes": 28,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 41778,
+          "bytes": 9,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 41788,
+          "bytes": 20,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 41809,
+          "bytes": 30,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 41840,
+          "bytes": 21,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 41862,
+          "bytes": 15,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 41878,
+          "bytes": 22,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 41901,
+          "bytes": 26,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 41928,
+          "bytes": 21,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 41950,
+          "bytes": 20,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 41971,
+          "bytes": 21,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 41993,
+          "bytes": 33,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 42079,
+          "bytes": 15,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 43067,
+          "bytes": 23,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 43605,
+          "bytes": 10,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 43616,
+          "bytes": 22,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 43652,
+          "bytes": 17,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 43740,
+          "bytes": 17,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 43758,
+          "bytes": 16,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 43775,
+          "bytes": 15,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 43791,
+          "bytes": 5,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 43831,
+          "bytes": 17,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 43928,
+          "bytes": 18,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 43947,
+          "bytes": 30,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 44000,
+          "bytes": 16,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 44125,
+          "bytes": 15,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 44292,
+          "bytes": 28,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 44321,
+          "bytes": 29,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 45053,
+          "bytes": 20,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 45163,
+          "bytes": 28,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 45192,
+          "bytes": 20,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 45213,
+          "bytes": 25,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 45239,
+          "bytes": 13,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 45305,
+          "bytes": 17,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 46012,
+          "bytes": 19,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 46203,
+          "bytes": 10,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 46245,
+          "bytes": 34,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 46532,
+          "bytes": 13,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 47258,
+          "bytes": 13,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 47535,
+          "bytes": 14,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 47550,
+          "bytes": 29,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 47580,
+          "bytes": 14,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 47653,
+          "bytes": 16,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 48183,
+          "bytes": 15,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 48199,
+          "bytes": 23,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 48223,
+          "bytes": 13,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 48315,
+          "bytes": 28,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 48344,
+          "bytes": 25,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 48428,
+          "bytes": 10,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 50125,
+          "bytes": 11,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 50137,
+          "bytes": 17,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 50294,
+          "bytes": 10,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 51535,
+          "bytes": 20,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 51909,
+          "bytes": 15,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 52209,
+          "bytes": 23,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 52380,
+          "bytes": 18,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 53301,
+          "bytes": 23,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 53325,
+          "bytes": 18,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 53344,
+          "bytes": 23,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 53368,
+          "bytes": 31,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 53400,
+          "bytes": 14,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 53415,
+          "bytes": 24,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 53492,
+          "bytes": 10,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 53503,
+          "bytes": 13,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 58112,
+          "bytes": 12,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 59470,
+          "bytes": 16,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 59709,
+          "bytes": 25,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 59735,
+          "bytes": 31,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 59795,
+          "bytes": 21,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 64494,
+          "bytes": 30,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 65612,
+          "bytes": 32,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 65960,
+          "bytes": 33,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 66214,
+          "bytes": 24,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 66376,
+          "bytes": 31,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 72894,
+          "bytes": 48,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 73004,
+          "bytes": 24,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 73090,
+          "bytes": 10,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 73101,
+          "bytes": 15,
+          "encoding": "utf-8"
+        }
+      ],
+      "sequence_points": 5535
+    },
+    {
+      "member": "package/vendor/SyncReleases.pdb",
+      "bytes": 14152,
+      "sha256": "ea89e805a560775d6a14f3d235ca2fe6a64aaad14630ea1f45f822a93789728c",
+      "streams": {
+        "#Pdb": {
+          "offset": 124,
+          "bytes": 120
+        },
+        "#~": {
+          "offset": 244,
+          "bytes": 5496
+        },
+        "#Strings": {
+          "offset": 5740,
+          "bytes": 276
+        },
+        "#US": {
+          "offset": 6016,
+          "bytes": 4
+        },
+        "#GUID": {
+          "offset": 6020,
+          "bytes": 112
+        },
+        "#Blob": {
+          "offset": 6132,
+          "bytes": 8020
+        }
+      },
+      "tables": {
+        "48": 6,
+        "49": 249,
+        "50": 227,
+        "51": 89,
+        "52": 1,
+        "53": 9,
+        "54": 14,
+        "55": 22
+      },
+      "documents": [
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\build\\obj\\SyncReleases\\Release\\net45\\SyncReleases.Version.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\SyncReleases\\Program.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\SyncReleases\\SyncImplementations.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\src\\SyncReleases\\Mono.Options\\Options.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\build\\obj\\SyncReleases\\Release\\net45\\.NETFramework,Version=v4.5.AssemblyAttributes.cs",
+        "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\build\\obj\\SyncReleases\\Release\\net45\\SyncReleases.AssemblyInfo.cs"
+      ],
+      "source_links": [
+        {
+          "documents": {
+            "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\*": "https://raw.githubusercontent.com/squirrel/squirrel.windows/eef37460aef77b2f9de8cd2237c1e55b344a6554/*",
+            "C:\\Users\\ani\\code\\squirrel\\squirrel.windows\\vendor\\nuget\\*": "https://raw.githubusercontent.com/paulcbetts/NuGet/50f8d9e438fe948d7109501bd10f6024d0585b70/*"
+          }
+        }
+      ],
+      "custom_kinds": {
+        "cc110556-a091-4d38-9fec-25ab9a351a6a": 1,
+        "b5feec05-8cd0-4a83-96da-466284bb4bd8": 1,
+        "7e4d4708-096e-4c5c-aeda-cb10ba6a740d": 1,
+        "54fd2ac5-e925-401a-9c2a-f94f171072f8": 11,
+        "6da9a61e-f8c7-4874-be62-68bc5630df71": 8
+      },
+      "blob_records": 252,
+      "unclassified_nonzero_bytes": 0,
+      "fields": [
+        {
+          "offset": 5740,
+          "bytes": 276,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 6135,
+          "bytes": 339,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 6476,
+          "bytes": 195,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 6673,
+          "bytes": 26,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 6726,
+          "bytes": 34,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 6787,
+          "bytes": 35,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 6849,
+          "bytes": 30,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 6906,
+          "bytes": 14,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 6947,
+          "bytes": 18,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 6992,
+          "bytes": 18,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 7037,
+          "bytes": 20,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 7084,
+          "bytes": 12,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 7123,
+          "bytes": 18,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 7168,
+          "bytes": 11,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 7206,
+          "bytes": 17,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 7250,
+          "bytes": 12,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 7289,
+          "bytes": 15,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 7331,
+          "bytes": 15,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 7373,
+          "bytes": 10,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 7410,
+          "bytes": 18,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 7455,
+          "bytes": 36,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 7518,
+          "bytes": 19,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 7564,
+          "bytes": 19,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 7610,
+          "bytes": 32,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 7669,
+          "bytes": 14,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 7710,
+          "bytes": 19,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 7757,
+          "bytes": 2,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 7760,
+          "bytes": 5,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 7766,
+          "bytes": 3,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 7770,
+          "bytes": 4,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 7775,
+          "bytes": 8,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 7784,
+          "bytes": 16,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 7801,
+          "bytes": 5,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 7807,
+          "bytes": 3,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 7811,
+          "bytes": 12,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 7824,
+          "bytes": 7,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 7832,
+          "bytes": 5,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 7838,
+          "bytes": 23,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 7928,
+          "bytes": 6,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 7935,
+          "bytes": 26,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 7962,
+          "bytes": 20,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 7983,
+          "bytes": 9,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 7993,
+          "bytes": 11,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 8005,
+          "bytes": 10,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 8016,
+          "bytes": 15,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 8032,
+          "bytes": 17,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 8050,
+          "bytes": 11,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 8062,
+          "bytes": 22,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 8085,
+          "bytes": 12,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 8098,
+          "bytes": 7,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 8106,
+          "bytes": 20,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 8127,
+          "bytes": 8,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 8136,
+          "bytes": 13,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 8196,
+          "bytes": 3,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 8200,
+          "bytes": 10,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 8449,
+          "bytes": 22,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 8603,
+          "bytes": 18,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 8622,
+          "bytes": 30,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 8653,
+          "bytes": 21,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 8675,
+          "bytes": 28,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 8704,
+          "bytes": 27,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 8732,
+          "bytes": 30,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 8797,
+          "bytes": 10,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 8929,
+          "bytes": 4,
+          "encoding": "utf-16-le"
+        },
+        {
+          "offset": 13954,
+          "bytes": 48,
+          "encoding": "utf-8"
+        },
+        {
+          "offset": 14062,
+          "bytes": 28,
+          "encoding": "utf-8"
+        }
+      ],
+      "sequence_points": 948
+    }
+  ]
+}
