@@ -130,8 +130,11 @@ def diagnostic_document(ctx, report, report_sha, manifest_sha, pins):
         path = item.get('path')
         clean_gaps.append({'path': safe_diagnostic(path), 'reason': safe_diagnostic(item.get('reason')),
                            'package_id': package_for(path)})
+    # Sampling file gaps must not hide the identity of an incomplete package.
     # Known-malware records may use the shared "dependencies" logical path.
     for index, package in enumerate(packages):
+        if package.get('status') in ('incomplete', 'blocked'):
+            package_for('package-' + str(index + 1))
         if package.get('malware_advisories'):
             package_for('package-' + str(index + 1))
             named['package-' + str(index + 1)]['malware_advisories'] = [safe_diagnostic(x) for x in package['malware_advisories'][:100]]
