@@ -1,0 +1,534 @@
+{
+  "schema": 1,
+  "date": "2026-11-19",
+  "reader_sha256": "15f726e82e20f75723a90684a68275a292242375f19ecbc16e9fbe8c98dd2f57",
+  "scope": "Exact two-file typed-data review, not a SQLite or extension-wide exemption. All UTF-8 values and BLOB hex are inspected by existing source rules. Changed bytes/paths keep their prior coverage gaps; native binary requirements and malware rules remain unchanged.",
+  "reviews": [
+    {
+      "id": "angular-cli-21.2.26-sqlite-examples",
+      "package": "@angular/cli",
+      "version": "21.2.26",
+      "member": "package/lib/code-examples.db",
+      "bytes": 32768,
+      "sha256": "30ed7ff37e834a2dc7c5cb59fbde255c70d76454063122f34b1b5840f5b226b9",
+      "archive_sha256": "db631c32789e1b94cddbe86445e7bbe51bcc5df4fe8aec2defba220e4a2aa806",
+      "page_bytes": 4096,
+      "page_count": 8,
+      "record_count": 20,
+      "zero_padding_bytes": 25712,
+      "unaccounted_nonzero_bytes": 0,
+      "fields": [
+        {
+          "offset": 3925,
+          "bytes": 5,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3930,
+          "bytes": 8,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3938,
+          "bytes": 8,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3947,
+          "bytes": 92,
+          "kind": "utf8"
+        },
+        {
+          "offset": 4047,
+          "bytes": 5,
+          "kind": "utf8"
+        },
+        {
+          "offset": 4052,
+          "bytes": 27,
+          "kind": "utf8"
+        },
+        {
+          "offset": 4079,
+          "bytes": 8,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3598,
+          "bytes": 5,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3603,
+          "bytes": 8,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3611,
+          "bytes": 8,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3620,
+          "bytes": 296,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3295,
+          "bytes": 5,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3300,
+          "bytes": 12,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3312,
+          "bytes": 12,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3324,
+          "bytes": 264,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3177,
+          "bytes": 5,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3182,
+          "bytes": 17,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3199,
+          "bytes": 17,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3217,
+          "bytes": 68,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3040,
+          "bytes": 5,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3045,
+          "bytes": 16,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3061,
+          "bytes": 16,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3078,
+          "bytes": 90,
+          "kind": "utf8"
+        },
+        {
+          "offset": 2916,
+          "bytes": 5,
+          "kind": "utf8"
+        },
+        {
+          "offset": 2921,
+          "bytes": 20,
+          "kind": "utf8"
+        },
+        {
+          "offset": 2941,
+          "bytes": 20,
+          "kind": "utf8"
+        },
+        {
+          "offset": 2962,
+          "bytes": 68,
+          "kind": "utf8"
+        },
+        {
+          "offset": 2797,
+          "bytes": 5,
+          "kind": "utf8"
+        },
+        {
+          "offset": 2802,
+          "bytes": 19,
+          "kind": "utf8"
+        },
+        {
+          "offset": 2821,
+          "bytes": 19,
+          "kind": "utf8"
+        },
+        {
+          "offset": 2841,
+          "bytes": 66,
+          "kind": "utf8"
+        },
+        {
+          "offset": 2366,
+          "bytes": 7,
+          "kind": "utf8"
+        },
+        {
+          "offset": 2373,
+          "bytes": 21,
+          "kind": "utf8"
+        },
+        {
+          "offset": 2394,
+          "bytes": 8,
+          "kind": "utf8"
+        },
+        {
+          "offset": 2402,
+          "bytes": 386,
+          "kind": "utf8"
+        },
+        {
+          "offset": 8177,
+          "bytes": 14,
+          "kind": "utf8"
+        },
+        {
+          "offset": 8191,
+          "bytes": 1,
+          "kind": "utf8"
+        },
+        {
+          "offset": 8138,
+          "bytes": 10,
+          "kind": "utf8"
+        },
+        {
+          "offset": 8148,
+          "bytes": 24,
+          "kind": "utf8"
+        },
+        {
+          "offset": 12259,
+          "bytes": 10,
+          "kind": "utf8"
+        },
+        {
+          "offset": 12274,
+          "bytes": 14,
+          "kind": "utf8"
+        },
+        {
+          "offset": 13426,
+          "bytes": 43,
+          "kind": "utf8"
+        },
+        {
+          "offset": 13469,
+          "bytes": 147,
+          "kind": "utf8"
+        },
+        {
+          "offset": 13616,
+          "bytes": 64,
+          "kind": "utf8"
+        },
+        {
+          "offset": 13680,
+          "bytes": 2,
+          "kind": "utf8"
+        },
+        {
+          "offset": 13682,
+          "bytes": 30,
+          "kind": "utf8"
+        },
+        {
+          "offset": 13712,
+          "bytes": 13,
+          "kind": "utf8"
+        },
+        {
+          "offset": 13725,
+          "bytes": 2659,
+          "kind": "utf8"
+        },
+        {
+          "offset": 20454,
+          "bytes": 9,
+          "kind": "blob"
+        },
+        {
+          "offset": 20468,
+          "bytes": 12,
+          "kind": "blob"
+        },
+        {
+          "offset": 18477,
+          "bytes": 1972,
+          "kind": "blob"
+        },
+        {
+          "offset": 24575,
+          "bytes": 0,
+          "kind": "blob"
+        },
+        {
+          "offset": 28664,
+          "bytes": 8,
+          "kind": "blob"
+        },
+        {
+          "offset": 32760,
+          "bytes": 7,
+          "kind": "utf8"
+        }
+      ],
+      "scope": "All bytes are SQLite headers, bounded leaf records, a zeroed freeblock or zero padding. Stored SQL describes local example/metadata and FTS5 tables plus the local examples_after_insert FTS synchronization trigger. No ATTACH, extension loading or external/user credential path occurs. CLI data contains one Angular @if documentation example; forms has no example content. BLOBs are the corresponding FTS5 index/docsize/config data, with exact raw bytes pinned by the whole-file hash. The complete local decoded records were reviewed as data; SQL, examples and package code were not executed.",
+      "upstream": "https://github.com/angular/angular-cli"
+    },
+    {
+      "id": "angular-forms-21.2.25-sqlite-examples",
+      "package": "@angular/forms",
+      "version": "21.2.25",
+      "member": "package/resources/code-examples.db",
+      "bytes": 32768,
+      "sha256": "df7cb340cb538a1e72dd806d0c2cbb85715a606ce30dc43e3fff59b1005e7394",
+      "archive_sha256": "464a7330ef5b245f3d8b78326e9fb308122636d44488c513661dd820c2994bb9",
+      "page_bytes": 4096,
+      "page_count": 8,
+      "record_count": 16,
+      "zero_padding_bytes": 30711,
+      "unaccounted_nonzero_bytes": 0,
+      "fields": [
+        {
+          "offset": 3925,
+          "bytes": 5,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3930,
+          "bytes": 8,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3938,
+          "bytes": 8,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3947,
+          "bytes": 92,
+          "kind": "utf8"
+        },
+        {
+          "offset": 4047,
+          "bytes": 5,
+          "kind": "utf8"
+        },
+        {
+          "offset": 4052,
+          "bytes": 27,
+          "kind": "utf8"
+        },
+        {
+          "offset": 4079,
+          "bytes": 8,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3598,
+          "bytes": 5,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3603,
+          "bytes": 8,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3611,
+          "bytes": 8,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3620,
+          "bytes": 296,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3295,
+          "bytes": 5,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3300,
+          "bytes": 12,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3312,
+          "bytes": 12,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3324,
+          "bytes": 264,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3177,
+          "bytes": 5,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3182,
+          "bytes": 17,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3199,
+          "bytes": 17,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3217,
+          "bytes": 68,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3040,
+          "bytes": 5,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3045,
+          "bytes": 16,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3061,
+          "bytes": 16,
+          "kind": "utf8"
+        },
+        {
+          "offset": 3078,
+          "bytes": 90,
+          "kind": "utf8"
+        },
+        {
+          "offset": 2916,
+          "bytes": 5,
+          "kind": "utf8"
+        },
+        {
+          "offset": 2921,
+          "bytes": 20,
+          "kind": "utf8"
+        },
+        {
+          "offset": 2941,
+          "bytes": 20,
+          "kind": "utf8"
+        },
+        {
+          "offset": 2962,
+          "bytes": 68,
+          "kind": "utf8"
+        },
+        {
+          "offset": 2797,
+          "bytes": 5,
+          "kind": "utf8"
+        },
+        {
+          "offset": 2802,
+          "bytes": 19,
+          "kind": "utf8"
+        },
+        {
+          "offset": 2821,
+          "bytes": 19,
+          "kind": "utf8"
+        },
+        {
+          "offset": 2841,
+          "bytes": 66,
+          "kind": "utf8"
+        },
+        {
+          "offset": 2366,
+          "bytes": 7,
+          "kind": "utf8"
+        },
+        {
+          "offset": 2373,
+          "bytes": 21,
+          "kind": "utf8"
+        },
+        {
+          "offset": 2394,
+          "bytes": 8,
+          "kind": "utf8"
+        },
+        {
+          "offset": 2402,
+          "bytes": 386,
+          "kind": "utf8"
+        },
+        {
+          "offset": 8177,
+          "bytes": 14,
+          "kind": "utf8"
+        },
+        {
+          "offset": 8191,
+          "bytes": 1,
+          "kind": "utf8"
+        },
+        {
+          "offset": 8138,
+          "bytes": 10,
+          "kind": "utf8"
+        },
+        {
+          "offset": 8148,
+          "bytes": 24,
+          "kind": "utf8"
+        },
+        {
+          "offset": 12259,
+          "bytes": 10,
+          "kind": "utf8"
+        },
+        {
+          "offset": 12274,
+          "bytes": 14,
+          "kind": "utf8"
+        },
+        {
+          "offset": 20480,
+          "bytes": 0,
+          "kind": "blob"
+        },
+        {
+          "offset": 20468,
+          "bytes": 7,
+          "kind": "blob"
+        },
+        {
+          "offset": 32760,
+          "bytes": 7,
+          "kind": "utf8"
+        }
+      ],
+      "scope": "All bytes are SQLite headers, bounded leaf records, a zeroed freeblock or zero padding. Stored SQL describes local example/metadata and FTS5 tables plus the local examples_after_insert FTS synchronization trigger. No ATTACH, extension loading or external/user credential path occurs. CLI data contains one Angular @if documentation example; forms has no example content. BLOBs are the corresponding FTS5 index/docsize/config data, with exact raw bytes pinned by the whole-file hash. The complete local decoded records were reviewed as data; SQL, examples and package code were not executed.",
+      "upstream": "https://github.com/angular/angular"
+    }
+  ]
+}
