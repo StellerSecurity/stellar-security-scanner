@@ -46,6 +46,34 @@ def sha256(raw):
     return hashlib.sha256(raw).hexdigest()
 
 
+def reviewed_vendor_vulnerabilities(packages):
+    """Retain the verified vendor advisory when public index queries lag.
+
+    Blocking evidence only, never a clean-version allowlist or a substitute
+    for the existing live malware/runtime advisory checks. Stable release
+    bounds are transcribed from reviews/vite-2026-11-advisory.json.
+    """
+    findings = []
+    for package in packages:
+        if package.get('ecosystem') != 'npm' or package.get('name') != 'vite':
+            continue
+        raw = package.get('version', '')
+        match = re.fullmatch(r'v?(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)', raw)
+        if match is None:
+            raise Incomplete('reviewed-vendor-advisory-version-unparsed')
+        version = tuple(map(int, match.groups()))
+        affected = ((4, 0, 0) <= version <= (6, 4, 5)
+                    or (7, 0, 0) <= version <= (7, 3, 7)
+                    or (8, 0, 0) <= version <= (8, 1, 6)
+                    or (8, 2, 0) <= version <= (8, 2, 4)
+                    or (8, 3, 0) <= version <= (8, 3, 6))
+        if affected:
+            findings.append(dict(ecosystem='npm', name='vite', version=raw,
+                                 id='GHSA-p4f5-76q4-ffq7', severity='critical',
+                                 source='https://github.com/vitejs/vite/security/advisories/GHSA-p4f5-76q4-ffq7'))
+    return findings
+
+
 def load_reviewed(name, expected):
     path = Path(__file__).with_name(name + ".py")
     descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
@@ -66,12 +94,12 @@ def stable(info):
     return (info.st_dev, info.st_ino, info.st_mode, info.st_size, info.st_mtime_ns, info.st_ctime_ns)
 
 
-def local_cargo_source(context, path):
+def reviewed_local_source(context, path):
     # A bounded source-only corpus, not a general vendor exclusion or trust rule.
     return (isinstance(context, dict)
             and context.get('repository') == 'StellerSecurity/Stellar.UI.Desktop.VPNapp'
             and context.get('repository_id') == 1111447739
-            and path.casefold().startswith(('vendor/glib-0.18.5/', 'vendor/embed-resource-3.0.12/')))
+            and path.casefold().startswith(('vendor/glib-0.18.5/', 'vendor/embed-resource-3.0.12/', 'vendor/esbuild-reviewed/')))
 
 
 def cargo_config_path(path):
@@ -177,8 +205,8 @@ def manifest_bundle(value, source_sha, limits):
         path = row.get("path")
         if (not isinstance(path, str) or not path or len(path) > 4096 or "\\" in path
                 or any(ord(c) < 32 or ord(c) == 127 for c in path)
-                or any(part in ("", ".", "..") or (part in SKIP_DIRECTORIES and not local_cargo_source(value, path)) for part in path.split("/"))
-                or not (local_cargo_source(value, path) or recognized(path))):
+                or any(part in ("", ".", "..") or (part in SKIP_DIRECTORIES and not reviewed_local_source(value, path)) for part in path.split("/"))
+                or not (reviewed_local_source(value, path) or recognized(path))):
             raise Incomplete("dependency-bundle-file-path")
         canonical = unicodedata.normalize("NFC", path).casefold()
         if canonical in seen:
@@ -434,6 +462,9 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
     repository_artifacts = []
     gradle_release_review = None
     cargo_graph_review = None
+    npm_source_review = None
+    runtime_advisory = None
+    vendor_vulnerabilities = []
     bundle_validated = False
     public_packages = []
     advisory = None
@@ -493,13 +524,18 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
             gradle_release_review = acquisition.reviewed_gradle_release(manifests_input, manifests)
         if bundle_validated and hasattr(acquisition, 'reviewed_cargo_graph'):
             cargo_graph_review = acquisition.reviewed_cargo_graph(manifests_input, manifests)
+        if bundle_validated and hasattr(acquisition, 'reviewed_npm_source'):
+            try:
+                npm_source_review = acquisition.reviewed_npm_source(manifests_input, manifests)
+            except acquisition.AcquisitionError as exc:
+                gap('dependencies', str(exc))
         for item in discovery_gaps:
             gap(item["path"], item["reason"])
         for path, raw in sorted(manifests.items()):
             check_budget()
             name = path.rsplit("/", 1)[-1]
             prefix = path[:-len(name)]
-            if local_cargo_source(manifests_input, path):
+            if reviewed_local_source(manifests_input, path):
                 scanner.content('repository/' + path, raw)
             elif repository_archive(name):
                 origin = (acquisition.reviewed_repository_origin(path, raw)
@@ -553,6 +589,8 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
                 kwargs = {'composer_manifest': manifests.get(prefix + "composer.json")}
                 if name == 'Cargo.lock' and cargo_graph_review is not None:
                     kwargs['cargo_local_packages'] = cargo_graph_review['local_packages']
+                if path == 'package-lock.json' and npm_source_review is not None:
+                    kwargs['npm_source_review'] = npm_source_review
                 planned = acquisition.plan_packages(path, raw, **kwargs)
                 for item in planned["gaps"]:
                     if (gradle_release_review is not None and path == 'gradle/verification-metadata.xml'
@@ -664,6 +702,14 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
                 except (acquisition.AcquisitionError, Incomplete) as exc:
                     gap(logical, str(exc))
                     record["status"] = "incomplete"
+        vendor_vulnerabilities = reviewed_vendor_vulnerabilities(public_packages)
+        for finding in vendor_vulnerabilities:
+            scanner.finding('dependencies', 'known-vendor-dependency-vulnerability', 'error', False)
+            for record in records:
+                if (record['ecosystem'], record['name'], record['version']) == (
+                        finding['ecosystem'], finding['name'], finding['version']):
+                    record['status'] = 'blocked'
+                    record.setdefault('vendor_vulnerability_advisories', []).append(finding['id'])
         if advisories is None:
             gap("dependencies", "known-malware-advisory-check-unavailable")
         else:
@@ -684,6 +730,24 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
                     if (record["ecosystem"], record["name"], record["version"]) == identity:
                         record["status"] = "blocked"
                         record.setdefault("malware_advisories", []).append(finding.get("id"))
+        if npm_source_review is not None:
+            if advisories is None or not hasattr(advisories, 'check_reviewed_esbuild_runtime'):
+                gap('dependencies', 'reviewed-runtime-advisory-check-unavailable')
+            else:
+                runtime_advisory = advisories.check_reviewed_esbuild_runtime(request=bounded_advisory_request)
+                expected_coordinates = [npm_source_review['upstream_advisory_coordinate']] + npm_source_review['required_runtime_advisory_coordinates']
+                if (not isinstance(runtime_advisory, dict) or runtime_advisory.get('complete') is not True
+                        or runtime_advisory.get('gaps') != [] or runtime_advisory.get('coordinates') != expected_coordinates
+                        or runtime_advisory.get('advisory_module_sha256') != sha256(Path(advisories.__file__).read_bytes())
+                        or runtime_advisory.get('ordinary_vulnerability_alerts_included') is not True):
+                    gap('dependencies', 'reviewed-runtime-advisory-check-incomplete')
+                if not isinstance(runtime_advisory, dict) or not isinstance(runtime_advisory.get('vulnerable'), list):
+                    raise Incomplete('invalid-reviewed-runtime-advisory-report')
+                for finding in runtime_advisory['vulnerable']:
+                    identity = [finding.get(key) for key in ('ecosystem', 'name', 'version')]
+                    if identity not in expected_coordinates or not re.fullmatch('[A-Za-z0-9][A-Za-z0-9_.+-]{1,127}', finding.get('id', '')):
+                        raise Incomplete('reviewed-runtime-advisory-identity-mismatch')
+                    scanner.finding('repository/vendor/esbuild-reviewed', 'reviewed-runtime-vulnerability', 'error', finding['id'].startswith('MAL-'))
     except (Incomplete, content.Incomplete, OSError, ValueError, TypeError, KeyError, RecursionError) as exc:
         reason = str(exc) if isinstance(exc, (Incomplete, content.Incomplete)) else "dependency-inspection-failed"
         gap("dependencies", reason)
@@ -704,6 +768,8 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
                   acquisition_sha256=sha256(Path(acquisition.__file__).read_bytes()),
                   advisory_sha256=sha256(Path(advisories.__file__).read_bytes()) if advisories is not None else None,
                   malware_advisory_result=advisory,
+                  reviewed_vendor_vulnerabilities=vendor_vulnerabilities,
+                  reviewed_npm_source=npm_source_review, reviewed_runtime_advisories=runtime_advisory,
                   input={"kind": "dependency-lock-manifest", "sha256": sha256(json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode()),
                          "digest_scope": "inspected-dependency-manifests"},
                   packages=records, repository_artifacts=repository_artifacts,

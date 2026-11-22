@@ -322,12 +322,12 @@ def verified_tree(tree, expected, limits):
     return entries
 
 
-def local_cargo_source(context, path):
+def reviewed_local_source(context, path):
     # A bounded source-only corpus, not a general vendor exclusion or trust rule.
     return (isinstance(context, dict)
             and context.get('repository') == 'StellerSecurity/Stellar.UI.Desktop.VPNapp'
             and context.get('repository_id') == 1111447739
-            and path.casefold().startswith(('vendor/glib-0.18.5/', 'vendor/embed-resource-3.0.12/')))
+            and path.casefold().startswith(('vendor/glib-0.18.5/', 'vendor/embed-resource-3.0.12/', 'vendor/esbuild-reviewed/')))
 
 
 def cargo_config_path(path):
@@ -359,7 +359,7 @@ def collect(ctx, reader, limits=None):
         gaps.append({'path': path, 'reason': reason})
     for path, row in sorted(entries.items()):
         parts = path.split('/')
-        local_source = local_cargo_source(ctx, path)
+        local_source = reviewed_local_source(ctx, path)
         if any(p in SKIP_DIRECTORIES for p in parts[:-1]) and not local_source:
             continue
         if row['mode'] in ('120000', '160000'):

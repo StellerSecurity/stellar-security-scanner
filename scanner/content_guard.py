@@ -52,6 +52,9 @@ SOURCE_CAPABILITY_REVIEWS = (
     ('package/dist/node/chunks/config.js', 1342444,
      '2e71344450b7c25a7fe0848d5ee474fb7342614d900ab9168588986150cbb9f9',
      'environment-collection-and-network-review', 'vite-7.3.7-env-configuration'),
+    ('package/dist/node/chunks/config.js', 1342678,
+     '8e3075d1575ec341b1455beacc73e2531f616e61658875eb15d74a45daf5874a',
+     'environment-collection-and-network-review', 'vite-7.3.8-env-configuration'),
     ('libdbus-sys-0.2.7/vendor/dbus/dbus/dbus-sysdeps-unix.c', 140164,
      'd33c16198f83865438e253b7b7e946b10713eb6c034866aa5fa7e6174e74e3ae',
      'persistence-and-process-review', 'libdbus-sys-0.2.7-launchd-socket-lookup'),
@@ -4020,6 +4023,82 @@ def reviewed_deflate_fixture_text(path, data):
     return None
 
 
+REVIEWED_ZLIB_RAW_DATA = (
+    ('zlib-rs-0.6.8/src/deflate/test-data/inflate_buf_error.dat', 67008,
+     '254f280f8f1e8914bd12d8bcd3813e5c08083b1b46d8d643c8e2ebe109e75cb8'),
+)
+
+
+def reviewed_zlib_raw_texts(path, data):
+    """One fully inspected raw ASCII compression-test input, not a PDF decoder.
+
+    Evidence: reviews/zlib-raw-regression-data.json. All 67008 bytes are ASCII
+    data passed only to compression/decompression in a cfg(test) regression.
+    Preserve scanning of every byte and scan again with NUL/controls removed
+    so interleaved text cannot hide behind the exact data classification.
+    Other corpus files, versions and even single-byte changes remain blocked.
+    """
+    member = path.rsplit('!', 1)[-1]
+    for name, size, checksum in REVIEWED_ZLIB_RAW_DATA:
+        if member == name and len(data) == size and digest(data) == checksum:
+            try:
+                text = data.decode('ascii')
+            except UnicodeDecodeError:
+                return None
+            return (text, text.replace('\0', ''), ''.join(c for c in text if ord(c) >= 32))
+    return None
+
+
+REVIEWED_ZLIB_PDF_INPUT = (
+    'zlib-rs-0.6.8/src/deflate/test-data/paper-100k.pdf', 102400,
+    '60f73a051b7ca35bfec44734b2eed7736cb5c0b7f728beb7b97ade6c5e44849b',
+)
+REVIEWED_ZLIB_PDF_STREAMS = (
+    (19109, 8934, 22330, 'c6d723d737afff64891499203c4f9e1dffc3a3647b2ff1742a8c8f55641962b5', True, 'text'),
+    (28415, 7551, 20465, '9d96f1a21ed33b52c78d84193ea0f5c3179ee475a2d63c77936c6f7e1c221c5d', True, 'text'),
+    (36411, 4318, 9924, '8521e5c4aaa9e68cd362a34a71ae1506e559691b333b144e313baad4ee45ae75', True, 'text'),
+    (40855, 214, 320, 'a78a59a9f56ace4ac38426c99c5a9fd58115735c3596e9b4eff2f677b19c8ee4', True, 'text'),
+    (41153, 117, 121, '99103908263d8fbfc3ea4c0748787af294c2f8f26d5b8e37d44f4aa06d955c56', True, 'cff'),
+    (41647, 60753, 2620884, '7b8b0ef59336a417d049f7d8000a0b1788218f6ebf94fcfe3b93b16918108553', False, 'rgb-prefix'),
+)
+
+
+def reviewed_zlib_pdf_texts(path, data):
+    """Exact incomplete test DATA, with every present byte accounted for.
+
+    Independent reader/evidence: tools/review_zlib_pdf_fragment.py and
+    reviews/zlib-pdf-fragment-data.json. Three page streams and one CMap were
+    fully lexed/scanned, all 121 CFF bytes and three path-only glyphs reviewed,
+    and the final clipped image identified as RGB pixel data. This is NOT a
+    valid-PDF assertion, generic PDF parser, or generic truncated-zlib waiver.
+    """
+    name, size, checksum = REVIEWED_ZLIB_PDF_INPUT
+    if path.rsplit('!', 1)[-1] != name or len(data) != size or digest(data) != checksum:
+        return None
+    try:
+        cursor = 18643
+        texts = [data[:cursor].decode('utf-8')]
+        for start, compressed_size, decoded_size, decoded_sha, complete, kind in REVIEWED_ZLIB_PDF_STREAMS:
+            if start < cursor or start + compressed_size > len(data) or decoded_size > 16 * 1024**2:
+                return None
+            texts.append(data[cursor:start].decode('ascii'))
+            decoder = zlib.decompressobj()
+            decoded = decoder.decompress(data[start:start+compressed_size], decoded_size+1)
+            if (len(decoded) != decoded_size or digest(decoded) != decoded_sha or
+                    decoder.unused_data or decoder.unconsumed_tail or decoder.eof != complete):
+                return None
+            if kind == 'text':
+                texts.append(decoded.decode('latin1'))
+            elif kind not in ('cff', 'rgb-prefix'):
+                return None
+            cursor = start + compressed_size
+        if cursor != len(data):
+            return None
+        return texts
+    except (UnicodeDecodeError, zlib.error):
+        return None
+
+
 def reviewed_brotli_fixture_text(path, data):
     """One fully decoded prose datum, revalidated with patched Node/Brotli.
 
@@ -4482,6 +4561,18 @@ class Inspector:
         if deflate_fixture_text is not None:
             self.exclusions.append({'path': path, 'reason': 'exact-regression-data-review:fdeflate-0.3.7'})
             self.inspect_text(path, deflate_fixture_text)
+            return
+        zlib_raw_texts = reviewed_zlib_raw_texts(path, data)
+        if zlib_raw_texts is not None:
+            self.exclusions.append({'path': path, 'reason': 'exact-raw-ascii-regression-data-review:zlib-rs-0.6.8'})
+            for index, text in enumerate(zlib_raw_texts):
+                self.inspect_text(path, text, counted=index == 0)
+            return
+        zlib_pdf_texts = reviewed_zlib_pdf_texts(path, data)
+        if zlib_pdf_texts is not None:
+            self.exclusions.append({'path': path, 'reason': 'exact-pdf-fragment-data-review:zlib-rs-0.6.8'})
+            for index, text in enumerate(zlib_pdf_texts):
+                self.inspect_text(path, text, counted=index == 0)
             return
         cfb_fixture_text = reviewed_cfb_metadata_fixture_text(path, data)
         if cfb_fixture_text is not None:

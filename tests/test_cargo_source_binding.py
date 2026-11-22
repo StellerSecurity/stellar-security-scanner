@@ -38,12 +38,13 @@ class CargoSourceBindingTests(unittest.TestCase):
     def test_other_repository_or_identity_cannot_reuse_review(self):
         for bundle in [dict(self.bundle, repository_id=1), dict(self.bundle, repository='StellerSecurity/other')]:
             self.assertIsNone(self.reviewed(bundle=bundle))
-            self.assertFalse(guard.local_cargo_source(bundle, 'vendor/glib-0.18.5/src/lib.rs'))
-            self.assertFalse(bridge.local_cargo_source(bundle, 'vendor/glib-0.18.5/src/lib.rs'))
+            self.assertFalse(guard.reviewed_local_source(bundle, 'vendor/glib-0.18.5/src/lib.rs'))
+            self.assertFalse(bridge.reviewed_local_source(bundle, 'vendor/glib-0.18.5/src/lib.rs'))
     def test_published_record_matches_exact_readable_policy(self):
         evidence = json.loads((Path(__file__).resolve().parents[1] / 'reviews/stellar-vpn-cargo-source-20261108.json').read_text())
         current = json.loads((Path(__file__).resolve().parents[1] / 'reviews/stellar-vpn-cargo-source-20261115.json').read_text())
-        self.assertEqual(acquisition.CARGO_GRAPH_REVIEWS, (evidence, current))
+        documented = json.loads((Path(__file__).resolve().parents[1] / 'reviews/stellar-vpn-workspace-doc-inputs-20261115.json').read_text())
+        self.assertEqual(acquisition.CARGO_GRAPH_REVIEWS, (evidence, current, documented))
         self.assertEqual(set(current['source_bindings']) - set(evidence['source_bindings']), {
             'vendor/embed-resource-3.0.12/' + name for name in (
                 'Cargo.toml', 'LICENSE', 'stellar-patch.json', 'src/lib.rs',
@@ -54,6 +55,20 @@ class CargoSourceBindingTests(unittest.TestCase):
                 self.assertEqual(current['source_bindings'][name], digest)
         self.assertGreater(len(evidence['source_bindings']), 100)
         self.assertIn('No compiled-code', evidence['scope'])
+
+    def test_document_input_review_preserves_lock_packages_and_all_other_sources(self):
+        previous, corrected = acquisition.CARGO_GRAPH_REVIEWS[-2:]
+        self.assertEqual(previous['local_packages'], corrected['local_packages'])
+        before, after = previous['source_bindings'], corrected['source_bindings']
+        self.assertEqual(set(before), set(after))
+        self.assertEqual(before['Cargo.lock'], after['Cargo.lock'])
+        self.assertEqual({name for name in before if before[name] != after[name]}, {
+            'Cargo.toml', 'vendor/glib-0.18.5/Cargo.toml',
+            'vendor/glib-0.18.5/src/lib.rs', 'vendor/glib-0.18.5/stellar-backport.json',
+        })
+        self.assertEqual(before['vendor/glib-0.18.5/src/variant_iter.rs'],
+                         after['vendor/glib-0.18.5/src/variant_iter.rs'])
+        self.assertIn('No compiled-code', corrected['scope'])
     def test_local_plan_accepts_only_reviewed_name_version_without_external_origin(self):
         raw = b'version=4\n[[package]]\nname="local"\nversion="1.0.0"\n'
         self.assertEqual(acquisition.plan_packages('Cargo.lock', raw)['packages'], [])
@@ -115,11 +130,11 @@ class ResourceSourceBindingTests(unittest.TestCase):
         self.assertFalse(gaps)
         self.assertEqual(found, self.files)
         name = 'vendor/embed-resource-3.0.12/src/lib.rs'
-        self.assertTrue(guard.local_cargo_source(context, name))
-        self.assertTrue(bridge.local_cargo_source(context, name))
+        self.assertTrue(guard.reviewed_local_source(context, name))
+        self.assertTrue(bridge.reviewed_local_source(context, name))
         for wrong in ({**context, 'repository_id': 2}, {**context, 'repository': 'StellerSecurity/other'}):
-            self.assertFalse(guard.local_cargo_source(wrong, name))
-            self.assertFalse(bridge.local_cargo_source(wrong, name))
+            self.assertFalse(guard.reviewed_local_source(wrong, name))
+            self.assertFalse(bridge.reviewed_local_source(wrong, name))
 
     def scan_bound_source(self, name, raw):
         import content_guard as content
