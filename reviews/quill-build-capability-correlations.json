@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "date": "2026-11-19",
+  "scope": "Three finding-specific static correlation reviews. Exact member path, raw byte length, SHA256 and rule are required; original findings remain visible as warnings. No package exemption, execution permission, advisory override, binary clearance or coverage waiver.",
+  "evidence": "The existing npm cache archives match the desktop package-lock SHA512 integrity. Their SHA256 matches the published dependency scan evidence. Each member was read without extraction or execution and matches the installed local source byte-for-byte.",
+  "reviews": [
+    {
+      "id": "stencil-4.45.2-system-env-configuration",
+      "package": "@stencil/core",
+      "version": "4.45.2",
+      "member": "package/sys/node/index.js",
+      "bytes": 194765,
+      "sha256": "ddd3ca8106863e8ecc5656005a17f4b1fbbc0633167dc2b0278b928a68e98347",
+      "archive_sha256": "243f646c49bf3cfc519de2320d6324181e5abc99676f6323a1bdeca3e7042ca2",
+      "rule": "environment-collection-and-network-review",
+      "reason": "The two environment-collection pattern matches are process.env passed to the Yarn PATH-key chooser (line 9) and Object.keys(process.env).filter(/^debug_/i) for debug-formatting options (line 29). The former inspects the environment key spelling; the latter selects debugging keys. Neither match serializes/uploads the environment. The bundle also exposes explicit fetch and filesystem/compiler helpers, which are real build-tool capabilities and are not approved by this correlation review. Network/dynamic-execution findings remain visible and every other rule retains its original handling.",
+      "upstream": "https://github.com/ionic-team/stencil"
+    },
+    {
+      "id": "stencil-4.45.2-compiler-dom-property-names",
+      "package": "@stencil/core",
+      "version": "4.45.2",
+      "member": "package/compiler/stencil.js",
+      "bytes": 13223173,
+      "sha256": "31e6d332a91886959e0123de44bcf698163c8e31ceff88758dcc4d824bbadcdf",
+      "archive_sha256": "243f646c49bf3cfc519de2320d6324181e5abc99676f6323a1bdeca3e7042ca2",
+      "rule": "credential-access-and-network-review",
+      "reason": "The credential-path regex matches the string cookies in the minifier DOM-property-name table (line 268894), alongside cookie/cookieEnabled/cookieStore. It does not identify a browser cookie database read. Compiler filesystem helpers and module-fetch code are real, independent capabilities; their co-occurrence with that property-name string is not credential-to-network dataflow. This review covers only the exact correlation. Existing credential-file and network/dynamic warnings remain visible; it does not approve compiler plugins, downloads, subprocesses or changed source.",
+      "upstream": "https://github.com/ionic-team/stencil"
+    },
+    {
+      "id": "app-builder-lib-26.15.3-collector-filtered-child-env",
+      "package": "app-builder-lib",
+      "version": "26.15.3",
+      "member": "package/out/node-module-collector/nodeModulesCollector.js",
+      "bytes": 21617,
+      "sha256": "490b05e03bb2276dea3e965213cb15d088fea796db733c995b1e4a8d67b814c3",
+      "archive_sha256": "6dac5ca3c9b5d4437889fd70575254e7bee6ad13b91c89a7f7874e9ccdd08308",
+      "rule": "environment-collection-and-network-review",
+      "reason": "The environment-collection pattern matches stripSensitiveEnvVars(process.env) passed as the child-process environment (line 330). The dependency collector intentionally launches the selected local package-manager dependency-list command with argument arrays and the default shell:false setting; on Windows it uses the documented PowerShell argument-encoding wrapper, then parses its output. The network regex's fetch matches are prose describing dependency-tree collection rather than an HTTP API in this source. This is a reviewed false correlation, not permission to execute package managers or a guarantee about child processes. Credential filtering and every sibling member/rule remain independently inspected.",
+      "upstream": "https://github.com/electron-userland/electron-builder"
+    }
+  ],
+  "limitations": [
+    "Static correlation review, not a general malware audit or proof of package safety.",
+    "Every changed byte, path, other rule, decoded/lifecycle payload, advisory, native binary or incomplete coverage keeps its existing handling."
+  ]
+}

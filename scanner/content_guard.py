@@ -61,6 +61,15 @@ SOURCE_CAPABILITY_REVIEWS = (
     ('libdbus-sys-0.2.7/vendor/dbus/doc/dbus-specification.xml', 323664,
      'a84933df0e498c962518b3c93780d6a229e3a019d1c1251531f04395dac3fdd3',
      'persistence-and-process-review', 'libdbus-sys-0.2.7-transport-documentation'),
+    ('package/sys/node/index.js', 194765,
+     'ddd3ca8106863e8ecc5656005a17f4b1fbbc0633167dc2b0278b928a68e98347',
+     'environment-collection-and-network-review', 'stencil-4.45.2-system-env-configuration'),
+    ('package/compiler/stencil.js', 13223173,
+     '31e6d332a91886959e0123de44bcf698163c8e31ceff88758dcc4d824bbadcdf',
+     'credential-access-and-network-review', 'stencil-4.45.2-compiler-dom-property-names'),
+    ('package/out/node-module-collector/nodeModulesCollector.js', 21617,
+     '490b05e03bb2276dea3e965213cb15d088fea796db733c995b1e4a8d67b814c3',
+     'environment-collection-and-network-review', 'app-builder-lib-26.15.3-collector-filtered-child-env'),
 )
 
 
@@ -3831,6 +3840,127 @@ def reviewed_fsevents_native(path, data):
             and digest(data) == '40f2f51199e4f5fc46fa6b985fb3461bb63e6cd86c62bfa9bcee45ed4438d5fb')
 
 
+
+REVIEWED_SQLITE_EXAMPLES = (
+    ('package/lib/code-examples.db', 32768,
+     '30ed7ff37e834a2dc7c5cb59fbde255c70d76454063122f34b1b5840f5b226b9',
+     (
+         (3925, 5, 'utf8'),
+         (3930, 8, 'utf8'),
+         (3938, 8, 'utf8'),
+         (3947, 92, 'utf8'),
+         (4047, 5, 'utf8'),
+         (4052, 27, 'utf8'),
+         (4079, 8, 'utf8'),
+         (3598, 5, 'utf8'),
+         (3603, 8, 'utf8'),
+         (3611, 8, 'utf8'),
+         (3620, 296, 'utf8'),
+         (3295, 5, 'utf8'),
+         (3300, 12, 'utf8'),
+         (3312, 12, 'utf8'),
+         (3324, 264, 'utf8'),
+         (3177, 5, 'utf8'),
+         (3182, 17, 'utf8'),
+         (3199, 17, 'utf8'),
+         (3217, 68, 'utf8'),
+         (3040, 5, 'utf8'),
+         (3045, 16, 'utf8'),
+         (3061, 16, 'utf8'),
+         (3078, 90, 'utf8'),
+         (2916, 5, 'utf8'),
+         (2921, 20, 'utf8'),
+         (2941, 20, 'utf8'),
+         (2962, 68, 'utf8'),
+         (2797, 5, 'utf8'),
+         (2802, 19, 'utf8'),
+         (2821, 19, 'utf8'),
+         (2841, 66, 'utf8'),
+         (2366, 7, 'utf8'),
+         (2373, 21, 'utf8'),
+         (2394, 8, 'utf8'),
+         (2402, 386, 'utf8'),
+         (8177, 14, 'utf8'),
+         (8191, 1, 'utf8'),
+         (8138, 10, 'utf8'),
+         (8148, 24, 'utf8'),
+         (12259, 10, 'utf8'),
+         (12274, 14, 'utf8'),
+         (13426, 43, 'utf8'),
+         (13469, 147, 'utf8'),
+         (13616, 64, 'utf8'),
+         (13680, 2, 'utf8'),
+         (13682, 30, 'utf8'),
+         (13712, 13, 'utf8'),
+         (13725, 2659, 'utf8'),
+         (20454, 9, 'blob'),
+         (20468, 12, 'blob'),
+         (18477, 1972, 'blob'),
+         (24575, 0, 'blob'),
+         (28664, 8, 'blob'),
+         (32760, 7, 'utf8'),
+     ), 'angular-cli-21.2.26-sqlite-examples'),
+    ('package/resources/code-examples.db', 32768,
+     'df7cb340cb538a1e72dd806d0c2cbb85715a606ce30dc43e3fff59b1005e7394',
+     (
+         (3925, 5, 'utf8'),
+         (3930, 8, 'utf8'),
+         (3938, 8, 'utf8'),
+         (3947, 92, 'utf8'),
+         (4047, 5, 'utf8'),
+         (4052, 27, 'utf8'),
+         (4079, 8, 'utf8'),
+         (3598, 5, 'utf8'),
+         (3603, 8, 'utf8'),
+         (3611, 8, 'utf8'),
+         (3620, 296, 'utf8'),
+         (3295, 5, 'utf8'),
+         (3300, 12, 'utf8'),
+         (3312, 12, 'utf8'),
+         (3324, 264, 'utf8'),
+         (3177, 5, 'utf8'),
+         (3182, 17, 'utf8'),
+         (3199, 17, 'utf8'),
+         (3217, 68, 'utf8'),
+         (3040, 5, 'utf8'),
+         (3045, 16, 'utf8'),
+         (3061, 16, 'utf8'),
+         (3078, 90, 'utf8'),
+         (2916, 5, 'utf8'),
+         (2921, 20, 'utf8'),
+         (2941, 20, 'utf8'),
+         (2962, 68, 'utf8'),
+         (2797, 5, 'utf8'),
+         (2802, 19, 'utf8'),
+         (2821, 19, 'utf8'),
+         (2841, 66, 'utf8'),
+         (2366, 7, 'utf8'),
+         (2373, 21, 'utf8'),
+         (2394, 8, 'utf8'),
+         (2402, 386, 'utf8'),
+         (8177, 14, 'utf8'),
+         (8191, 1, 'utf8'),
+         (8138, 10, 'utf8'),
+         (8148, 24, 'utf8'),
+         (12259, 10, 'utf8'),
+         (12274, 14, 'utf8'),
+         (20480, 0, 'blob'),
+         (20468, 7, 'blob'),
+         (32760, 7, 'utf8'),
+     ), 'angular-forms-21.2.25-sqlite-examples'),
+)
+
+
+def reviewed_sqlite_examples_text(path, data):
+    """Read the exact reviewed example records; stored SQL is never executed."""
+    member = path.rsplit("!", 1)[-1]
+    for name, size, checksum, fields, review_id in REVIEWED_SQLITE_EXAMPLES:
+        if member == name and len(data) == size and digest(data) == checksum:
+            values = [data[start:start+length].decode("utf-8") if kind == "utf8"
+                      else data[start:start+length].hex() for start, length, kind in fields]
+            return "\n".join(values)
+    return None
+
 def reviewed_timezone_text(path, data):
     """Exact typed data review; not a generic .dat or TZif exemption.
 
@@ -4361,6 +4491,10 @@ class Inspector:
             return
         if data.startswith((b'PK\x03\x04', b'PK\x05\x06', b'\x1f\x8b')) or ARCHIVE_SUFFIX.search(path):
             self.archive(path, data, depth + 1)
+            return
+        sqlite_text = reviewed_sqlite_examples_text(path, data)
+        if sqlite_text is not None:
+            self.inspect_text(path, sqlite_text)
             return
         catalog_text = gettext_catalog_data(path, data)
         if catalog_text is not None:
