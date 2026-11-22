@@ -9,6 +9,7 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scanner'))
 import dependency_worker as worker
+from manifest_bridge import BridgeError
 
 
 class IncompleteDependencyChecksTests(unittest.TestCase):
@@ -83,6 +84,12 @@ class IncompleteDependencyChecksTests(unittest.TestCase):
         self.assertNotIn('failure_check_confirmed', result[0])
         self.assertEqual([c[0] for c in calls], ['POST', 'PATCH'])
         self.assertEqual(calls[-1][1]['conclusion'], 'success')
+
+    def test_only_fixed_first_party_failure_codes_are_exposed(self):
+        self.assertEqual(worker.safe_failure_code(BridgeError('github-read-budget-exceeded')),
+                         'github-read-budget-exceeded')
+        self.assertIsNone(worker.safe_failure_code(BridgeError('SECRET https://example.test/token')))
+        self.assertIsNone(worker.safe_failure_code(RuntimeError('github-read-budget-exceeded')))
 
 
 if __name__ == '__main__':

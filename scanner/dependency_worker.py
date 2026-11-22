@@ -430,6 +430,16 @@ def external_id(ctx):
     return 'dependency-content:' + ctx['request_id'] + ':' + str(ctx['run_id']) + ':' + str(ctx['run_attempt'])
 
 
+def safe_failure_code(error):
+    """Expose only fixed first-party error codes, never arbitrary exception text."""
+    if type(error).__name__ not in ('BridgeError', 'WorkerError') or len(error.args) != 1:
+        return None
+    code = error.args[0]
+    if not isinstance(code, str) or not re.fullmatch(r'[a-z][a-z0-9-]{0,79}', code):
+        return None
+    return code
+
+
 def check_identity(check, ctx, check_id=None):
     if (not isinstance(check, dict) or type(check.get('id')) is not int or check['id'] <= 0
             or (check_id is not None and check['id'] != check_id)
@@ -492,10 +502,13 @@ def scan(ctx, bridge, checks, pins, root, reader, command=None, github_advisory_
             raise WorkerError('check-result-not-confirmed')
         record.update(state='reported', proof=proof, conclusion=conclusion, summary_sha256=digest(summary.encode()))
         return record, 0 if conclusion == 'success' else 1, summary
-    except Exception:
+    except Exception as error:
         # Use only fixed phase names, never exception messages or package output:
         # errors can contain URLs, tokens, paths or untrusted package text.
         record['failure_phase'] = phase
+        code = safe_failure_code(error)
+        if code is not None:
+            record['failure_code'] = code
         summary = HEADER + ('Inspection incomplete during ' + phase +
                             '; no package-cleanliness result is asserted.\n')
         # Close an identity-verified check when scanning failed before publication.
