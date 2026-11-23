@@ -1249,8 +1249,8 @@ REVIEWED_NPM_SOURCE = {'id': 'stellar-vpn-reviewed-esbuild-source-20261116',
  'repository': 'StellerSecurity/Stellar.UI.Desktop.VPNapp',
  'repository_id': 1111447739,
  'prefix': 'vendor/esbuild-reviewed/',
- 'manifest_sha256': '7fd5de97515d8f4be876a8f36167eeb0cb6eab79123f4ed989429a65f7afc1e7',
- 'lock_sha256': '0f1f172239b3941f3d63086bdd81c0ec923e0d4cfd94a5e82eb0109e04b5ead0',
+ 'manifest_sha256': '46f99718a54524350c18d6f34b19847cc23bb80555294fcad89e06e0ad6a939d',
+ 'lock_sha256': '80afe5de8d301a9faab775743528599f87b8e9a8cf1b0192a751007b3061978d',
  'files': {'LICENSE': {'bytes': 1069,
                        'sha256': 'b40ec5baec7bb34fa5b1c09521fa3cd52d5fad7adafed74932a2010d3612a681'},
            'binary-review.json': {'bytes': 887,
@@ -1269,7 +1269,17 @@ REVIEWED_NPM_SOURCE = {'id': 'stellar-vpn-reviewed-esbuild-source-20261116',
               'version': '0.28.1',
               'resolved': 'https://registry.npmjs.org/esbuild/-/esbuild-0.28.1.tgz',
               'integrity': 'sha512-HrJrvZv5ayxBzPfwphOoNzkzOIIlifzk0KJrGK2c8R4+LKpMtpYLQeUdjnwjWv/LZlkH2laZk+4w78pi99D4Vw=='},
- 'upstream_archive_sha256': 'eb8ef756f8299d16d5c8b35678606d715ba29923f500db7b37c181310eed40a5'}
+ 'upstream_archive_sha256': 'eb8ef756f8299d16d5c8b35678606d715ba29923f500db7b37c181310eed40a5',
+ 'rollup': {
+     'prefix': 'vendor/rollup-wasm-reviewed/',
+     'patch_bytes': 5468,
+     'patch_sha256': '1369517f6097941f3cb9006831b23d7a72a4f3c2828819eea3259069f0d66de1',
+     'upstream': {
+         'name': '@rollup/wasm-node',
+         'version': '4.65.1',
+         'resolved': 'https://registry.npmjs.org/@rollup/wasm-node/-/wasm-node-4.65.1.tgz',
+         'integrity': 'sha512-Be9x0pnFS91wtAslz0fx3HnLbqQuV4EF2XLemwjz8BGqLjMrw9tCzu7vIuWgpjCEsMQgMtZ1FIWHJxX95ZwBkw=='},
+     'upstream_archive_sha256': '8fd2e64dfeaa6334a683ce198e4b6487df44c63f02f3b7843339300b3e5f459a'}}
 
 
 def reviewed_npm_source(context, manifests):
@@ -1298,9 +1308,53 @@ def reviewed_npm_source(context, manifests):
             or manifest.get('private') is not True
             or any(field in manifest for field in ('scripts', 'bin', 'dependencies', 'optionalDependencies'))):
         _fail('reviewed-local-npm-source-execution-metadata')
+    rollup_result = None
+    rollup = review.get('rollup')
+    rollup_present = ({path for path in manifests if isinstance(rollup, dict) and path.startswith(rollup['prefix'])}
+                      if isinstance(rollup, dict) else set())
+    if rollup_present:
+        patch_path = rollup['prefix'] + 'stellar-patch.json'
+        patch_raw = manifests.get(patch_path)
+        if (not isinstance(patch_raw, bytes) or len(patch_raw) != rollup['patch_bytes']
+                or hashlib.sha256(patch_raw).hexdigest() != rollup['patch_sha256']):
+            _fail('reviewed-local-npm-source-identity-drift')
+        patch = _json(patch_raw, LIMITS['lock_bytes'])
+        files = patch.get('files')
+        upstream = patch.get('upstream')
+        if (patch.get('schema') != 1 or not isinstance(files, dict)
+                or upstream != {'name': '@rollup/wasm-node', 'version': '4.65.1',
+                    'npm_sha512': '05ef71d299c54bdd70b40b25cf47f1dc79cb6ea42e578105d972de9b08f3f011aa2e332bc3db42ceeeef22e5a0a63084b0c42032d6751485872715fde59c0193',
+                    'npm_archive_sha256': rollup['upstream_archive_sha256'],
+                    'release_commit': '7879c65994dd591d287b177b8d0b88d7d76c2a49',
+                    'slsa_workflow': 'https://github.com/rollup/rollup/.github/workflows/build-and-tests.yml@refs/tags/v4.65.1'}):
+            _fail('reviewed-local-npm-source-provenance-drift')
+        expected_rollup = {rollup['prefix'] + name for name in files} | {patch_path}
+        if rollup_present != expected_rollup:
+            _fail('reviewed-local-npm-source-inventory-drift')
+        for name, item in files.items():
+            raw = manifests.get(rollup['prefix'] + name)
+            if (not isinstance(name, str) or not isinstance(item, dict)
+                    or type(item.get('bytes')) is not int or item['bytes'] < 0
+                    or not re.fullmatch('[a-f0-9]{64}', item.get('sha256', ''))
+                    or not isinstance(raw, bytes) or len(raw) != item['bytes']
+                    or hashlib.sha256(raw).hexdigest() != item['sha256']):
+                _fail('reviewed-local-npm-source-identity-drift')
+        rollup_manifest = _json(manifests[rollup['prefix'] + 'package.json'], LIMITS['lock_bytes'])
+        if ((rollup_manifest.get('name'), rollup_manifest.get('version')) != ('rollup', '4.65.1-stellar.1')
+                or rollup_manifest.get('private') is not True
+                or rollup_manifest.get('dependencies') != {'@types/estree': '1.0.9'}
+                or rollup_manifest.get('bin') != {'rollup': 'dist/bin/rollup'}
+                or any(field in rollup_manifest for field in ('scripts', 'optionalDependencies'))):
+            _fail('reviewed-local-npm-source-execution-metadata')
+        rollup_result = dict(prefix=rollup['prefix'], files=files,
+                             local_package=['rollup', '4.65.1-stellar.1'])
+    source_hashes = {name: item['sha256'] for name, item in review['files'].items()}
+    if rollup_result is not None:
+        source_hashes.update({'rollup/' + name: item['sha256'] for name, item in rollup_result['files'].items()})
+        source_hashes['rollup/stellar-patch.json'] = rollup['patch_sha256']
     return dict(id=review['id'], lock_sha256=review['lock_sha256'],
                 local_package=['esbuild', '0.28.1-stellar.1'], source_prefix=review['prefix'],
-                source_files_sha256={name: item['sha256'] for name, item in review['files'].items()},
+                source_files_sha256=source_hashes, rollup=rollup_result,
                 upstream_advisory_coordinate=['npm', 'esbuild', '0.28.1'],
                 required_runtime_advisory_coordinates=[['Go', 'stdlib', '1.26.11'], ['Go', 'golang.org/x/sys', '0.44.0']],
                 runtime_advisory_review_required=True, native_executable_clearance=False)
@@ -1375,6 +1429,8 @@ def plan_packages(lockpath, raw, *, composer_manifest=None, cargo_local_packages
                 _fail('reviewed-local-npm-plan-binding-drift')
             if contained:
                 add(_npm_row, 'esbuild', REVIEWED_NPM_SOURCE['upstream'])
+                if npm_source_review.get('rollup') is not None:
+                    add(_npm_row, '@rollup/wasm-node', REVIEWED_NPM_SOURCE['rollup']['upstream'])
             version = lock.get('lockfileVersion')
             if type(version) is not int or version not in (1, 2, 3):
                 _fail('unsupported-npm-lock-version')
@@ -1385,7 +1441,10 @@ def plan_packages(lockpath, raw, *, composer_manifest=None, cargo_local_packages
                 for path, row in lock['packages'].items():
                     if path == '':
                         continue
-                    if contained and path in ('node_modules/esbuild', 'vendor/esbuild-reviewed'):
+                    reviewed_local_paths = ('node_modules/esbuild', 'vendor/esbuild-reviewed')
+                    if contained and npm_source_review.get('rollup') is not None:
+                        reviewed_local_paths += ('node_modules/rollup', 'vendor/rollup-wasm-reviewed')
+                    if contained and path in reviewed_local_paths:
                         continue
                     count += 1
                     if count > LIMITS['packages']:

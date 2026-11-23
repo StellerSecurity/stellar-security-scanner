@@ -327,7 +327,8 @@ def reviewed_local_source(context, path):
     return (isinstance(context, dict)
             and context.get('repository') == 'StellerSecurity/Stellar.UI.Desktop.VPNapp'
             and context.get('repository_id') == 1111447739
-            and path.casefold().startswith(('vendor/glib-0.18.5/', 'vendor/embed-resource-3.0.12/', 'vendor/esbuild-reviewed/')))
+            and path.casefold().startswith(('vendor/glib-0.18.5/', 'vendor/embed-resource-3.0.12/',
+                                             'vendor/esbuild-reviewed/', 'vendor/rollup-wasm-reviewed/')))
 
 
 def cargo_config_path(path):
