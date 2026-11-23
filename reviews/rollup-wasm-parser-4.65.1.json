@@ -3,7 +3,7 @@
   "id": "rollup-wasm-node-4.65.1-parser",
   "package": "@rollup/wasm-node",
   "version": "4.65.1",
-  "member": "vendor/rollup-wasm-reviewed/dist/wasm-node/bindings_wasm_bg.wasm",
+  "member": "package/dist/wasm-node/bindings_wasm_bg.wasm",
   "bytes": 588077,
   "sha256": "7099c59e9da5c0d690356ba986bf02a89dd21b35e578684758ecbdac4aca0c8d",
   "archive_sha256": "8fd2e64dfeaa6334a683ce198e4b6487df44c63f02f3b7843339300b3e5f459a",
