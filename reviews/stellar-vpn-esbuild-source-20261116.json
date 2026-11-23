@@ -33,11 +33,23 @@
       }
     },
     "id": "stellar-vpn-reviewed-esbuild-source-20261116",
-    "lock_sha256": "0f1f172239b3941f3d63086bdd81c0ec923e0d4cfd94a5e82eb0109e04b5ead0",
-    "manifest_sha256": "7fd5de97515d8f4be876a8f36167eeb0cb6eab79123f4ed989429a65f7afc1e7",
+    "lock_sha256": "80afe5de8d301a9faab775743528599f87b8e9a8cf1b0192a751007b3061978d",
+    "manifest_sha256": "46f99718a54524350c18d6f34b19847cc23bb80555294fcad89e06e0ad6a939d",
     "prefix": "vendor/esbuild-reviewed/",
     "repository": "StellerSecurity/Stellar.UI.Desktop.VPNapp",
     "repository_id": 1111447739,
+    "rollup": {
+      "patch_bytes": 5468,
+      "patch_sha256": "1369517f6097941f3cb9006831b23d7a72a4f3c2828819eea3259069f0d66de1",
+      "prefix": "vendor/rollup-wasm-reviewed/",
+      "upstream": {
+        "integrity": "sha512-Be9x0pnFS91wtAslz0fx3HnLbqQuV4EF2XLemwjz8BGqLjMrw9tCzu7vIuWgpjCEsMQgMtZ1FIWHJxX95ZwBkw==",
+        "name": "@rollup/wasm-node",
+        "resolved": "https://registry.npmjs.org/@rollup/wasm-node/-/wasm-node-4.65.1.tgz",
+        "version": "4.65.1"
+      },
+      "upstream_archive_sha256": "8fd2e64dfeaa6334a683ce198e4b6487df44c63f02f3b7843339300b3e5f459a"
+    },
     "upstream": {
       "integrity": "sha512-HrJrvZv5ayxBzPfwphOoNzkzOIIlifzk0KJrGK2c8R4+LKpMtpYLQeUdjnwjWv/LZlkH2laZk+4w78pi99D4Vw==",
       "name": "esbuild",

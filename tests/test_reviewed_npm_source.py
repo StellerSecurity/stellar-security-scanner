@@ -75,6 +75,43 @@ class ReviewedNpmSourceTests(unittest.TestCase):
         self.assertEqual(result['packages'][0]['name'], 'esbuild')
         self.assertEqual(result['packages'][0]['version'], '0.28.1')
 
+    def test_exact_rollup_wasm_source_is_bound_and_planned_as_its_public_archive(self):
+        package = dict(name='rollup', version='4.65.1-stellar.1', private=True,
+                       dependencies={'@types/estree': '1.0.9'},
+                       bin={'rollup': 'dist/bin/rollup'})
+        package_raw = encoded(package)
+        files = {'package.json': {'bytes': len(package_raw),
+                                  'sha256': hashlib.sha256(package_raw).hexdigest()}}
+        patch_document = {
+            'schema': 1,
+            'upstream': {
+                'name': '@rollup/wasm-node', 'version': '4.65.1',
+                'npm_sha512': '05ef71d299c54bdd70b40b25cf47f1dc79cb6ea42e578105d972de9b08f3f011aa2e332bc3db42ceeeef22e5a0a63084b0c42032d6751485872715fde59c0193',
+                'npm_archive_sha256': self.profile['rollup']['upstream_archive_sha256'],
+                'release_commit': '7879c65994dd591d287b177b8d0b88d7d76c2a49',
+                'slsa_workflow': 'https://github.com/rollup/rollup/.github/workflows/build-and-tests.yml@refs/tags/v4.65.1'},
+            'files': files}
+        patch_raw = encoded(patch_document)
+        self.profile['rollup']['patch_bytes'] = len(patch_raw)
+        self.profile['rollup']['patch_sha256'] = hashlib.sha256(patch_raw).hexdigest()
+        prefix = self.profile['rollup']['prefix']
+        self.manifests[prefix + 'package.json'] = package_raw
+        self.manifests[prefix + 'stellar-patch.json'] = patch_raw
+        self.lock['packages'][''].setdefault('devDependencies', {})['rollup'] = 'file:vendor/rollup-wasm-reviewed'
+        self.lock['packages']['node_modules/rollup'] = dict(resolved='vendor/rollup-wasm-reviewed', link=True)
+        self.lock['packages']['vendor/rollup-wasm-reviewed'] = dict(package, dev=True)
+        self.manifests['package-lock.json'] = encoded(self.lock)
+        self.bind()
+        review = self.review()
+        self.assertEqual(review['rollup']['local_package'], ['rollup', '4.65.1-stellar.1'])
+        result = acquisition.plan_packages('package-lock.json', self.manifests['package-lock.json'],
+                                           npm_source_review=review)
+        self.assertEqual(result['gaps'], [])
+        self.assertEqual({row['name'] for row in result['packages']}, {'esbuild', '@rollup/wasm-node'})
+        with self.assertRaises(acquisition.AcquisitionError):
+            acquisition.reviewed_npm_source(self.context,
+                dict(self.manifests, **{prefix + 'package.json': package_raw + b' '}))
+
     def test_unreviewed_local_graph_remains_blocked(self):
         result = acquisition.plan_packages('package-lock.json', self.manifests['package-lock.json'])
         self.assertTrue(result['gaps'])
@@ -138,6 +175,7 @@ class ReviewedNpmSourceTests(unittest.TestCase):
     def test_transport_prefix_is_scoped_to_repository_and_not_general_vendor(self):
         for module in (guard, bridge):
             self.assertTrue(module.reviewed_local_source(self.context, self.prefix + 'lib/main.js'))
+            self.assertTrue(module.reviewed_local_source(self.context, 'vendor/rollup-wasm-reviewed/dist/rollup.js'))
             self.assertFalse(module.reviewed_local_source({}, self.prefix + 'lib/main.js'))
             self.assertFalse(module.reviewed_local_source(self.context, 'vendor/other/main.js'))
 
