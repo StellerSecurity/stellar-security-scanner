@@ -933,6 +933,34 @@ CARGO_GRAPH_REVIEWS = ({'evidence': {'approved_original_lock_sha256': '4319eceb2
                      'vendor/glib-0.18.5/tests/value.rs': 'c796ea2b30559e9c8ab6ebbb6c59c575d365a27b461c20f9ca0b1989dbe01d79'}},)
 
 
+_CFB_SOURCE_BINDINGS = {
+    'vendor/cfb-0.14.0/Cargo.toml': '0f8806463355e0d162aa203e437a72ba6c5ec8b6e4e43cbe1a31c554e7ce4a5c',
+    'vendor/cfb-0.14.0/LICENSE': 'ebaac853b53fec0ed475796f533ce676912a4df9ad9d8a621fa76d5060591e10',
+    'vendor/cfb-0.14.0/src/internal/alloc.rs': 'fe07845aafb877bb2e84a6ce73c4400c9fcf61018e7f3bb884f0b9a31472047e',
+    'vendor/cfb-0.14.0/src/internal/chain.rs': '17aee271635269501f764211c67678ea312a1e98fdf44e74973f56cda466ea9a',
+    'vendor/cfb-0.14.0/src/internal/color.rs': '3fc3490b8e0247c711d72db54c8730e04650718b1d1f9118f174c124eb74435e',
+    'vendor/cfb-0.14.0/src/internal/consts.rs': '227004a75831bcd81f8be135284c2aef965586f3f32937ddb1a7379e6d584d47',
+    'vendor/cfb-0.14.0/src/internal/directory.rs': '595c9dca907ce7019b3c5f232cc1e734a86ec5d1a00d3b7c005269e72579ec96',
+    'vendor/cfb-0.14.0/src/internal/direntry.rs': 'dabffca35b89fad0df7557956a4e89195cba87da585df45a08b6c7cef6c6c389',
+    'vendor/cfb-0.14.0/src/internal/entry.rs': '03347874e06e911545557b8965f6a7e454c29828128262c31c5eb02d8e5effc1',
+    'vendor/cfb-0.14.0/src/internal/header.rs': '4425af4fff42ba54b970b15c0bd6ad2ecbed137285b87968b8c6cc9f1dbe3cae',
+    'vendor/cfb-0.14.0/src/internal/macros.rs': '6de9179f363146e9b288a68b9457078564c521968e893dabeab5b629b4ec1b10',
+    'vendor/cfb-0.14.0/src/internal/minialloc.rs': '7e7043b6f1a9b7950b267e388b982981ed0307c18413ce045c2713ae3bbfd731',
+    'vendor/cfb-0.14.0/src/internal/minichain.rs': '8676a62449bff5d3ed7e4841844845060bdbfd45be8402ffcdd1558ddddc63fb',
+    'vendor/cfb-0.14.0/src/internal/mod.rs': '5d3d66abd315d091f0c826ba1f4557f5b36b82b09c15101c9a92fc98c080065b',
+    'vendor/cfb-0.14.0/src/internal/objtype.rs': '9c9fa154198cfc75dd5547c6b51f34db5c2a581c5a023e6d75692357b38b3232',
+    'vendor/cfb-0.14.0/src/internal/path.rs': 'ff35e74a21ad96330929c552b3963a67131709c756e96a8b84ebb0fc26ca05e0',
+    'vendor/cfb-0.14.0/src/internal/sector.rs': '5c075110f1c298a6d8421c18af40655cb5b9df2693f006218f3c6d35cd57f3e2',
+    'vendor/cfb-0.14.0/src/internal/stream.rs': '7e4b5e4c4cd32ffc95011286d5902add693a27616544c1624aa9d6197614d787',
+    'vendor/cfb-0.14.0/src/internal/stream_buffer.rs': 'ae42f1e1572b6ea019c3cd7047af0659e00c21e63482c95feb27432cde445c81',
+    'vendor/cfb-0.14.0/src/internal/timestamp.rs': '96868ab1facdadae53b1c001c2bb3590b62bfea35ebb61768208f5b177ee13a8',
+    'vendor/cfb-0.14.0/src/internal/uppercase.txt': '80cf923668b40ea692322624619b47d778075cef526fa6904f0e347a5afbd9e8',
+    'vendor/cfb-0.14.0/src/internal/validate.rs': '768002175f56b616e7da06208a6dff59e5997c4aedff981502c751bd21a4302f',
+    'vendor/cfb-0.14.0/src/internal/version.rs': '82790e31d416035b37ecdabf398c4af590d2abdbbbdbc7472cc49fcc54fb419e',
+    'vendor/cfb-0.14.0/src/lib.rs': 'ed5ff85ebe513398f5a28b0ca3378ccd82432f8b457503c807db9197f4ffc7a3',
+    'vendor/cfb-0.14.0/stellar-source-only.json': '4b1c0727a2262fdb05fe650f5c13903891edd3114b1dac54aa86a3b99963168e',
+}
+
 CARGO_SOURCE = 'registry+https://github.com/rust-lang/crates.io-index'
 CARGO_NAME = re.compile(r'[A-Za-z0-9][A-Za-z0-9_-]{0,63}')
 CARGO_VERSION = re.compile(r'[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9._-]+)?')
@@ -1151,6 +1179,21 @@ CARGO_GRAPH_REVIEWS += ({'id': 'stellar-vpn-0.5.1-workspace-doc-inputs-20261115'
                       'vendor/embed-resource-3.0.12/src/windows_not_msvc.rs': '496b73be5b72d8906cb88cf3b412a880599d6eb663ccbf6017d40dc790fdfd85',
                       'vendor/embed-resource-3.0.12/stellar-patch.json': '49bd57112a147e13a3eea9fd8ddc9f1f1342774a21c0dcdd67cf0948dce829a9'}},)
 
+_CFB_BASE_REVIEW = CARGO_GRAPH_REVIEWS[-1]
+CARGO_GRAPH_REVIEWS += ({
+    'id': 'stellar-vpn-cfb-source-graph-20261123',
+    'repository': _CFB_BASE_REVIEW['repository'],
+    'repository_id': _CFB_BASE_REVIEW['repository_id'],
+    'scope': ('Exact reviewed source-graph binding for the source-only cfb 0.14.0 replacement. '
+              'All registry archives, content, advisory and binary checks remain required; '
+              'no compiled-code clearance.'),
+    'local_packages': _CFB_BASE_REVIEW['local_packages'] + [['cfb', '0.14.0']],
+    'source_bindings': {**_CFB_BASE_REVIEW['source_bindings'],
+        'Cargo.lock': '04a5766c1d5914bb857907b93a14b6d193d2f49d07f6e781c42b1258d4ffb7d2',
+        'Cargo.toml': 'b5b5bf0c5893c7aea3fa4a83abd05ef9020d719e9c8ce65a2aa2ec4f454c9d4e',
+        **_CFB_SOURCE_BINDINGS},
+},)
+
 
 def reviewed_cargo_graph(bundle, manifests):
     if not isinstance(bundle, dict):
@@ -1159,7 +1202,8 @@ def reviewed_cargo_graph(bundle, manifests):
         if bundle.get('repository') != review['repository'] or bundle.get('repository_id') != review['repository_id']:
             continue
         observed = {path for path in manifests if path.rsplit('/', 1)[-1].casefold() in ('cargo.toml', 'cargo.lock')
-                    or path.casefold().startswith(('vendor/glib-0.18.5/', 'vendor/embed-resource-3.0.12/')) or cargo_config_path(path)}
+                    or path.casefold().startswith(('vendor/glib-0.18.5/', 'vendor/embed-resource-3.0.12/',
+                                                   'vendor/cfb-0.14.0/')) or cargo_config_path(path)}
         if observed != set(review['source_bindings']):
             continue
         if any(hashlib.sha256(manifests[path]).hexdigest() != digest for path, digest in review['source_bindings'].items()):

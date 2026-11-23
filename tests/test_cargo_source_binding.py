@@ -44,7 +44,13 @@ class CargoSourceBindingTests(unittest.TestCase):
         evidence = json.loads((Path(__file__).resolve().parents[1] / 'reviews/stellar-vpn-cargo-source-20261108.json').read_text())
         current = json.loads((Path(__file__).resolve().parents[1] / 'reviews/stellar-vpn-cargo-source-20261115.json').read_text())
         documented = json.loads((Path(__file__).resolve().parents[1] / 'reviews/stellar-vpn-workspace-doc-inputs-20261115.json').read_text())
-        self.assertEqual(acquisition.CARGO_GRAPH_REVIEWS, (evidence, current, documented))
+        cfb = json.loads((Path(__file__).resolve().parents[1] / 'reviews/stellar-vpn-cfb-source-20261123.json').read_text())
+        self.assertEqual(acquisition.CARGO_GRAPH_REVIEWS[:3], (evidence, current, documented))
+        final = acquisition.CARGO_GRAPH_REVIEWS[-1]
+        self.assertEqual(final['id'], cfb['id'])
+        self.assertEqual(final['source_bindings'], {
+            **documented['source_bindings'], **cfb['root_bindings'], **cfb['source_bindings']})
+        self.assertEqual(final['local_packages'], documented['local_packages'] + [cfb['local_package']])
         self.assertEqual(set(current['source_bindings']) - set(evidence['source_bindings']), {
             'vendor/embed-resource-3.0.12/' + name for name in (
                 'Cargo.toml', 'LICENSE', 'stellar-patch.json', 'src/lib.rs',
@@ -57,7 +63,7 @@ class CargoSourceBindingTests(unittest.TestCase):
         self.assertIn('No compiled-code', evidence['scope'])
 
     def test_document_input_review_preserves_lock_packages_and_all_other_sources(self):
-        previous, corrected = acquisition.CARGO_GRAPH_REVIEWS[-2:]
+        previous, corrected = acquisition.CARGO_GRAPH_REVIEWS[-3:-1]
         self.assertEqual(previous['local_packages'], corrected['local_packages'])
         before, after = previous['source_bindings'], corrected['source_bindings']
         self.assertEqual(set(before), set(after))
@@ -135,6 +141,13 @@ class ResourceSourceBindingTests(unittest.TestCase):
         for wrong in ({**context, 'repository_id': 2}, {**context, 'repository': 'StellerSecurity/other'}):
             self.assertFalse(guard.reviewed_local_source(wrong, name))
             self.assertFalse(bridge.reviewed_local_source(wrong, name))
+
+    def test_cfb_corpus_is_scoped_to_the_same_exact_repository(self):
+        name = 'vendor/cfb-0.14.0/src/lib.rs'
+        self.assertTrue(guard.reviewed_local_source(self.bundle, name))
+        self.assertTrue(bridge.reviewed_local_source(self.bundle, name))
+        self.assertFalse(guard.reviewed_local_source({**self.bundle, 'repository_id': 2}, name))
+        self.assertFalse(bridge.reviewed_local_source({**self.bundle, 'repository_id': 2}, name))
 
     def scan_bound_source(self, name, raw):
         import content_guard as content
