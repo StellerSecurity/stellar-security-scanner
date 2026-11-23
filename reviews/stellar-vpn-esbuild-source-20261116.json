@@ -33,8 +33,8 @@
       }
     },
     "id": "stellar-vpn-reviewed-esbuild-source-20261116",
-    "lock_sha256": "80afe5de8d301a9faab775743528599f87b8e9a8cf1b0192a751007b3061978d",
-    "manifest_sha256": "46f99718a54524350c18d6f34b19847cc23bb80555294fcad89e06e0ad6a939d",
+    "lock_sha256": "1bc77244942910ca8ba11de470732391576ef78445153ee4c2b19e258556eff5",
+    "manifest_sha256": "323f2a635dc6c6ed376629fa6b3998318b4210b9b443e07ed2f19465b986d37e",
     "prefix": "vendor/esbuild-reviewed/",
     "repository": "StellerSecurity/Stellar.UI.Desktop.VPNapp",
     "repository_id": 1111447739,
