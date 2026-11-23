@@ -1,0 +1,76 @@
+{
+  "schema": 1,
+  "id": "webview2-com-sys-0.39.1-exact-vendor-native",
+  "package": "webview2-com-sys",
+  "version": "0.39.1",
+  "archive_sha256": "b3a07132775117d6065853d9d1178157b8c90e228de47129d6bce2c7edebedfb",
+  "publisher": "Microsoft Corporation",
+  "product_version": "1.0.3800.47",
+  "risk_classification": "MEDIUM",
+  "scope": "Only the six exact member paths, sizes and hashes. No generic Microsoft, publisher, DLL, library, crate, architecture, version or release exception.",
+  "controls": {
+    "registry_archive_integrity_verified": true,
+    "complete_static_disassembly_recorded": true,
+    "target_executed_during_static_review": false,
+    "dll_authenticode_status": "Valid",
+    "dll_signer_certificate_sha256": "5edd84352db3d8a11accdd6ea17483e07a61162ddecb01611632823a21923027",
+    "dll_timestamp_present": true,
+    "changed_dll_byte_status": "HashMismatch",
+    "static_library_archive_structure_inspected": true,
+    "unknown_or_changed_files_blocked": true
+  },
+  "evidence_sha256": {
+    "native_disassembly_batch": "eedd31b6bf0e4c79faed2347e93c76fcac00c6f92e249bc2454ff812b1a99e19",
+    "windows_trust_result": "0da7f4082d26cbf9cee3eb41207d0e3b3d31944f27640c5b2e5eefce3e5b31b5"
+  },
+  "bindings": [
+    {
+      "member": "webview2-com-sys-0.39.1/arm64/WebView2Loader.dll",
+      "bytes": 146536,
+      "sha256": "a0de1844933a10c898f833771a85f0ab9a0e3c745d4715f63d2d9730f9416025",
+      "kind": "pe",
+      "analysis_sha256": "940bd9729306e7214ca1cff039c45c339695903c9b5e8837e4cfad0b8b326108"
+    },
+    {
+      "member": "webview2-com-sys-0.39.1/arm64/WebView2LoaderStatic.lib",
+      "bytes": 10505262,
+      "sha256": "4a1ca4b518337c508aa0d778b220c6e59558fce21f4fd0d79a6ea944dd9d5208",
+      "kind": "archive",
+      "analysis_sha256": "f64d7e3d9bf9a4cc832459ff33459445726b8b10d902c96bbd2dcd3d52ffc77c"
+    },
+    {
+      "member": "webview2-com-sys-0.39.1/x64/WebView2Loader.dll",
+      "bytes": 160880,
+      "sha256": "86545b66cdb0603bc26b626fb9ad610cb6e71f28d468f5ea66df23b03dda96d5",
+      "kind": "pe",
+      "analysis_sha256": "d6928548746d0158bfd94a430c5ce88916e8ee2fdab0fd76e97b6e7113587991"
+    },
+    {
+      "member": "webview2-com-sys-0.39.1/x64/WebView2LoaderStatic.lib",
+      "bytes": 10500472,
+      "sha256": "89c6b872783b8f6c3cedbff618adb42082d455c615453ae10cfc753f1e8f25d8",
+      "kind": "archive",
+      "analysis_sha256": "a17684faea9b85658b62e0bb40c01245a07f274878448f9f3accf4514efa803f"
+    },
+    {
+      "member": "webview2-com-sys-0.39.1/x86/WebView2Loader.dll",
+      "bytes": 121448,
+      "sha256": "161dc6673084a31f64670ace8e61cb0e1b55af815b6c7c8217a0cdd8503454e2",
+      "kind": "pe",
+      "analysis_sha256": "45a73115912402bdf48f8c71a83b059338591e3c3b31c5cb6ac4a0063b84f33a"
+    },
+    {
+      "member": "webview2-com-sys-0.39.1/x86/WebView2LoaderStatic.lib",
+      "bytes": 10465074,
+      "sha256": "0513f7e61304321f2d91e1851475be07e091042aa3640597e660608f72521e6c",
+      "kind": "archive",
+      "analysis_sha256": "2d74f9208368cf6e093df574dbd78215a75af4873cd33e15cad4f8e9ad0d56f5"
+    }
+  ],
+  "limitations": [
+    "Microsoft does not publish complete source corresponding to these exact native loader bytes.",
+    "Static disassembly and signed-vendor provenance do not prove absence of every implementation defect.",
+    "Independent online certificate revocation was not established by the recorded trust run.",
+    "Any changed byte, path, size, package version, archive or signer requires a new independent review."
+  ]
+}

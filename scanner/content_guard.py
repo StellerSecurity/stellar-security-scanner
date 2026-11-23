@@ -3798,6 +3798,36 @@ def reviewed_wasm_binary(path, data):
     return None
 
 
+REVIEWED_VENDOR_NATIVE_BINARIES = (
+    ('webview2-com-sys-0.39.1/arm64/WebView2Loader.dll', 146536,
+     'a0de1844933a10c898f833771a85f0ab9a0e3c745d4715f63d2d9730f9416025'),
+    ('webview2-com-sys-0.39.1/arm64/WebView2LoaderStatic.lib', 10505262,
+     '4a1ca4b518337c508aa0d778b220c6e59558fce21f4fd0d79a6ea944dd9d5208'),
+    ('webview2-com-sys-0.39.1/x64/WebView2Loader.dll', 160880,
+     '86545b66cdb0603bc26b626fb9ad610cb6e71f28d468f5ea66df23b03dda96d5'),
+    ('webview2-com-sys-0.39.1/x64/WebView2LoaderStatic.lib', 10500472,
+     '89c6b872783b8f6c3cedbff618adb42082d455c615453ae10cfc753f1e8f25d8'),
+    ('webview2-com-sys-0.39.1/x86/WebView2Loader.dll', 121448,
+     '161dc6673084a31f64670ace8e61cb0e1b55af815b6c7c8217a0cdd8503454e2'),
+    ('webview2-com-sys-0.39.1/x86/WebView2LoaderStatic.lib', 10465074,
+     '0513f7e61304321f2d91e1851475be07e091042aa3640597e660608f72521e6c'),
+)
+
+
+def reviewed_vendor_native_binary(path, data):
+    """Exact signed-vendor/disassembly exception for WebView2 loader 0.39.1.
+
+    Evidence and explicit limitations are recorded in
+    reviews/webview2-loader-vendor-native.json. This is never publisher-wide:
+    a changed path, size or byte remains blocked.
+    """
+    member = path.rsplit('!', 1)[-1]
+    for name, size, checksum in REVIEWED_VENDOR_NATIVE_BINARIES:
+        if member == name and len(data) == size and digest(data) == checksum:
+            return 'webview2-com-sys-0.39.1-exact-vendor-native'
+    return None
+
+
 REVIEWED_ORDINAL_TEST_DLLS = (
     ('libloading-0.7.4/tests/nagisa32.dll', 3072,
      '5c69b2bd9c8a6ad04165c221075fc9fade1dd66ca697399ace528a5a62328e36',
@@ -4465,6 +4495,13 @@ class Inspector:
                 self.exclusions.append({'path': path,
                     'reason': 'exact-wasm-code-review:' + wasm_review[0],
                     'sha256': digest(data)})
+            elif (vendor_review := reviewed_vendor_native_binary(path, data)) is not None:
+                self.files_scanned += 1
+                self.exclusions.append({'path': path,
+                    'reason': 'exact-vendor-native-review:' + vendor_review,
+                    'sha256': digest(data)})
+                text = '\n'.join(value.decode('ascii') for value in re.findall(rb'[\x20-\x7e]{3,}', data))
+                self.inspect_text(path, text)
             elif (ordinal_review := reviewed_ordinal_test_dll(path, data)) is not None:
                 self.files_scanned += 1
                 self.exclusions.append({'path': path,
