@@ -69,10 +69,12 @@ class WasmEvidenceTests(unittest.TestCase):
         root = Path(__file__).resolve().parents[1]
         wry = json.loads((root / 'reviews/wry-constant-wasm.json').read_text())
         wit = json.loads((root / 'reviews/wit-bindgen-wasm-runtime.json').read_text())
+        rollup = json.loads((root / 'reviews/rollup-wasm-parser-4.65.1.json').read_text())
         rows = [(wry['member'], wry['bytes'], wry['sha256'], wry['id'], 'core')]
         rows.extend((r['member'], r['bytes'], r['sha256'], r['id'], r['kind']) for r in wit['bindings'])
+        rows.append((rollup['member'], rollup['bytes'], rollup['sha256'], rollup['id'], 'core'))
         self.assertEqual(set(rows), set(guard.REVIEWED_WASM_BINARIES))
-        self.assertEqual(len(rows), 4)
+        self.assertEqual(len(rows), 5)
         self.assertFalse(wit['target_executed'])
         for row in wit['bindings'][:2]:
             self.assertEqual(row['sections'][-1]['end_offset'], row['bytes'])
@@ -82,6 +84,21 @@ class WasmEvidenceTests(unittest.TestCase):
         self.assertEqual([r['offset'] for r in archive['members']], [8, 110, 226, 538])
         self.assertEqual([r['sha256'] for r in archive['members'][2:]],
                          [r['sha256'] for r in wit['bindings'][:2]])
+        self.assertTrue(rollup['static_review']['byte_coverage_complete'])
+        self.assertTrue(rollup['static_review']['type_validation_complete'])
+        self.assertEqual(rollup['static_review']['unknown_rows'], 0)
+        self.assertEqual(rollup['bounded_behavior_review']['assertions'], 16)
+        self.assertFalse(rollup['bounded_behavior_review']['network_allowed'])
+        self.assertEqual(rollup['risk_classification'], 'MEDIUM')
+
+    def test_rollup_wasm_review_is_exact_and_changed_bytes_stay_blocked(self):
+        root = Path(__file__).resolve().parents[1]
+        evidence = json.loads((root / 'reviews/rollup-wasm-parser-4.65.1.json').read_text())
+        raw = b'\0asm\x01\0\0\0' + b'\0' * (evidence['bytes'] - 8)
+        # Synthetic bytes with the right framing and size cannot inherit the recorded review.
+        self.assertIsNone(guard.reviewed_wasm_binary(evidence['member'], raw))
+        self.assertIsNone(guard.reviewed_wasm_binary(evidence['member'] + '.changed', raw))
+        self.assertIn('Any changed byte', evidence['limitations'][-1])
 
     def test_generic_wasm_reviews_do_not_clear_component_declarations(self):
         member = 'wit-bindgen-0.57.1/wasi-cli@0.2.0.wasm'

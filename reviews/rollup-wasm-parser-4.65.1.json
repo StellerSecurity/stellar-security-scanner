@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "id": "rollup-wasm-node-4.65.1-parser",
+  "package": "@rollup/wasm-node",
+  "version": "4.65.1",
+  "member": "vendor/rollup-wasm-reviewed/dist/wasm-node/bindings_wasm_bg.wasm",
+  "bytes": 588077,
+  "sha256": "7099c59e9da5c0d690356ba986bf02a89dd21b35e578684758ecbdac4aca0c8d",
+  "archive_sha256": "8fd2e64dfeaa6334a683ce198e4b6487df44c63f02f3b7843339300b3e5f459a",
+  "archive_sha512": "05ef71d299c54bdd70b40b25cf47f1dc79cb6ea42e578105d972de9b08f3f011aa2e332bc3db42ceeeef22e5a0a63084b0c42032d6751485872715fde59c0193",
+  "release_commit": "7879c65994dd591d287b177b8d0b88d7d76c2a49",
+  "provenance": {
+    "verified": true,
+    "identity": "https://github.com/rollup/rollup/.github/workflows/build-and-tests.yml@refs/tags/v4.65.1",
+    "issuer": "https://token.actions.githubusercontent.com",
+    "negative_controls": 5
+  },
+  "static_review": {
+    "core_wasm_version": 1,
+    "functions": 2004,
+    "instruction_bytes": 514078,
+    "decoded_rows": 238502,
+    "distinct_mnemonics": 115,
+    "unknown_rows": 0,
+    "byte_coverage_complete": true,
+    "type_validation_complete": true,
+    "truncated_input_rejected": true
+  },
+  "bounded_behavior_review": {
+    "assertions": 16,
+    "sync_and_async_parser_paths": true,
+    "unicode_and_jsx_error_paths": true,
+    "deterministic_output_hashes": true,
+    "memory_cap_enforced": true,
+    "network_allowed": false,
+    "package_installed": false,
+    "lifecycle_hooks_executed": false,
+    "secrets_configured": false
+  },
+  "evidence_sha256": {
+    "instruction_coverage": "93e93a000b4c4333c46ead4e68cf7e9cefa4cf06eedf880e9de0bfcdc834be52",
+    "type_validation": "6bfec72fc321abb9e06e24e2c020dca369eb6442c3f552a833186b9f9dd812fc",
+    "parser_regressions": "35c16e15d6c03a0135eb2d625009e69a62d61b6426ece5db65fc4ba2005fc0dc",
+    "provenance": "1e7956cabcfc38d11c350063b34e779d8b8c70621f570f989538663800ef75e8"
+  },
+  "target_executed_for_static_review": false,
+  "target_executed_in_bounded_regression_test": true,
+  "risk_classification": "MEDIUM",
+  "scope": "Only the exact Rollup parser path, size and hash. No generic WebAssembly, package, engine, dependency, lifecycle, installation or release clearance.",
+  "limitations": [
+    "The bounded parser regressions are not an exhaustive proof of all parser behavior.",
+    "Host Node.js and WebAssembly engine vulnerabilities remain outside this exact artifact review.",
+    "Any changed byte, path, size, package version or provenance requires a new independent review."
+  ]
+}

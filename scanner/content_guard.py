@@ -3772,15 +3772,20 @@ REVIEWED_WASM_BINARIES = (
     ('wit-bindgen-0.57.1/src/rt/libwit_bindgen_cabi.a', 858,
      'a18a4de12821dd777e6003625cc33896984a91a55bbf03c70abc5675842c60c1',
      'wit-bindgen-0.57.1-two-object-container', 'ar'),
+    ('vendor/rollup-wasm-reviewed/dist/wasm-node/bindings_wasm_bg.wasm', 588077,
+     '7099c59e9da5c0d690356ba986bf02a89dd21b35e578684758ecbdac4aca0c8d',
+     'rollup-wasm-node-4.65.1-parser', 'core'),
 )
 
 
 def reviewed_wasm_binary(path, data):
     """Exact complete-code/declaration reviews, never generic Wasm trust.
 
-    Evidence: reviews/wry-constant-wasm.json and wit-bindgen-wasm-runtime.json.
-    No inspected module/object was instantiated or run. All other binaries,
-    changed bytes/paths, advisories and lifecycle rules retain their blockers.
+    Evidence: reviews/wry-constant-wasm.json, wit-bindgen-wasm-runtime.json and
+    rollup-wasm-parser-4.65.1.json.
+    Static inspection did not instantiate targets; the Rollup parser additionally
+    passed its recorded bounded regression run. All other binaries, changed
+    bytes/paths, advisories and lifecycle rules retain their blockers.
     """
     member = path.rsplit('!', 1)[-1]
     headers = {'core': b'\0asm\x01\0\0\0', 'ar': b'!<arch>\n'}
