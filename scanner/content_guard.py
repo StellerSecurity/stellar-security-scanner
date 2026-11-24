@@ -40,6 +40,15 @@ NON_RUNTIME_REVIEW_SUFFIX = re.compile(
 # Keep the original finding visible. Changed bytes/paths and every other rule
 # retain normal severity. Evidence: reviews/*-capability-correlations.json.
 SOURCE_CAPABILITY_REVIEWS = (
+    ('package/dist/ios/utils/simulator.js', 4362,
+     'a0053f6b3cacc46ffc089d1ce4620534dbdbfc5f32a4a55a89ed22b53acebee3',
+     'persistence-and-process-review', 'native-run-2.0.3-simulator-process-list'),
+    ('package/compiler/stencil.js', 13184133,
+     '4592a2aacb560939f2bf76bc43c824f01a57c09f863d6153112753017dd00f3c',
+     'credential-access-and-network-review', 'stencil-4.43.2-compiler-dom-property-names'),
+    ('package/sys/node/index.js', 190409,
+     'd244091f9979d139e85f0e7ca18edff70c294542a3eee54f854d4e881922b089',
+     'environment-collection-and-network-review', 'stencil-4.43.2-system-env-configuration'),
     ('package/src/utilities/package-metadata.js', 9958,
      '41e99e14a82e5776f7dd6ca59eb3abe0a2457b7c5ba4014aa3b8584b2fe1f70b',
      'environment-collection-and-network-review', 'angular-cli-21.2.28-package-metadata'),
