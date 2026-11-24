@@ -562,7 +562,8 @@ def _maven_plan(group, name, version, filename, hashes):
 
 # Published upstream checksum reviewed over HTTPS. This identifies one archive;
 # it never approves its executable members, or a different/modified wrapper.
-REPOSITORY_ORIGIN_REVIEWS = ({'path': 'gradle/wrapper/gradle-wrapper.jar', 'upstream': 'Gradle', 'version': '8.13', 'bytes': 43705, 'sha256': '81a82aaea5abcc8ff68b3dfcb58b3c3c429378efd98e7433460610fecd7ae45f', 'checksum_url': 'https://services.gradle.org/distributions/gradle-8.13-wrapper.jar.sha256', 'final_url': 'https://downloads.gradle.org/distributions/gradle-8.13-wrapper.jar.sha256', 'content_clearance': False},)
+REPOSITORY_ORIGIN_REVIEWS = ({'path': 'android/gradle/wrapper/gradle-wrapper.jar', 'upstream': 'Gradle', 'version': '8.9', 'bytes': 43504, 'sha256': '498495120a03b9a6ab5d155f5de3c8f0d986a449153702fb80fc80e134484f17', 'checksum_url': 'https://gradle.org/release-checksums/', 'final_url': 'https://gradle.org/release-checksums/', 'content_clearance': False},
+{'path': 'gradle/wrapper/gradle-wrapper.jar', 'upstream': 'Gradle', 'version': '8.13', 'bytes': 43705, 'sha256': '81a82aaea5abcc8ff68b3dfcb58b3c3c429378efd98e7433460610fecd7ae45f', 'checksum_url': 'https://services.gradle.org/distributions/gradle-8.13-wrapper.jar.sha256', 'final_url': 'https://downloads.gradle.org/distributions/gradle-8.13-wrapper.jar.sha256', 'content_clearance': False},)
 
 
 def reviewed_repository_origin(path, raw):
