@@ -94,9 +94,18 @@ def stable(info):
     return (info.st_dev, info.st_ino, info.st_mode, info.st_size, info.st_mtime_ns, info.st_ctime_ns)
 
 
+def notes_local_source(context, path):
+    # Collection only: exact source/graph binding and normal content inspection
+    # are mandatory downstream. No path, content or advisory waiver.
+    return (isinstance(context, dict)
+            and context.get('repository') == 'StellerSecurity/Steller.Phone.NotesApp'
+            and context.get('repository_id') == 678982406
+            and path.casefold().startswith('plugins/background-notes-sync/'))
+
+
 def reviewed_local_source(context, path):
     # A bounded source-only corpus, not a general vendor exclusion or trust rule.
-    return (isinstance(context, dict)
+    return notes_local_source(context, path) or (isinstance(context, dict)
             and context.get('repository') == 'StellerSecurity/Stellar.UI.Desktop.VPNapp'
             and context.get('repository_id') == 1111447739
             and path.casefold().startswith(('vendor/glib-0.18.5/', 'vendor/embed-resource-3.0.12/',
@@ -109,7 +118,7 @@ def cargo_config_path(path):
 
 
 def recognized(name):
-    return name.rsplit('/', 1)[-1].casefold() in ('cargo.toml', 'cargo.lock') or cargo_config_path(name) or repository_archive(name) or name.rsplit("/", 1)[-1] in LOCKS | MANIFESTS | UNSUPPORTED or bool(re.search(r"\.(?:csproj|fsproj|vbproj|nuspec)$", name, re.I)) or bool(re.fullmatch(r"requirements[^/]*\.(?:txt|in)", name))
+    return name.rsplit('/', 1)[-1].casefold() in ('cargo.toml', 'cargo.lock') or cargo_config_path(name) or repository_archive(name) or name.rsplit("/", 1)[-1] in LOCKS | MANIFESTS | UNSUPPORTED or bool(re.search(r"\.(?:csproj|fsproj|vbproj|nuspec|podspec)$", name, re.I)) or bool(re.fullmatch(r"requirements[^/]*\.(?:txt|in)", name))
 
 
 def repository_archive(name):
@@ -478,6 +487,7 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
     gradle_release_review = None
     cargo_graph_review = None
     npm_source_review = None
+    notes_plugin_review = None
     runtime_advisory = None
     vendor_vulnerabilities = []
     bundle_validated = False
@@ -544,13 +554,21 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
                 npm_source_review = acquisition.reviewed_npm_source(manifests_input, manifests)
             except acquisition.AcquisitionError as exc:
                 gap('dependencies', str(exc))
+        if bundle_validated and hasattr(acquisition, 'reviewed_notes_plugin'):
+            try:
+                notes_plugin_review = acquisition.reviewed_notes_plugin(manifests_input, manifests)
+            except acquisition.AcquisitionError as exc:
+                gap('dependencies', str(exc))
         for item in discovery_gaps:
             gap(item["path"], item["reason"])
         for path, raw in sorted(manifests.items()):
             check_budget()
             name = path.rsplit("/", 1)[-1]
             prefix = path[:-len(name)]
-            if reviewed_local_source(manifests_input, path):
+            notes_source = notes_local_source(manifests_input, path)
+            if notes_source:
+                scanner.content('repository/' + path, raw)
+            if reviewed_local_source(manifests_input, path) and not notes_source:
                 scanner.content('repository/' + path, raw)
             elif repository_archive(name):
                 origin = (acquisition.reviewed_repository_origin(path, raw)
@@ -606,6 +624,8 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
                     kwargs['cargo_local_packages'] = cargo_graph_review['local_packages']
                 if path == 'package-lock.json' and npm_source_review is not None:
                     kwargs['npm_source_review'] = npm_source_review
+                if path == 'package-lock.json' and notes_plugin_review is not None:
+                    kwargs['notes_plugin_review'] = notes_plugin_review
                 planned = acquisition.plan_packages(path, raw, **kwargs)
                 for item in planned["gaps"]:
                     if (gradle_release_review is not None and path == 'gradle/verification-metadata.xml'
@@ -637,7 +657,8 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
                     has_dependencies = any(manifest.get(field) for field in dependency_fields)
                     if manifest.get("workspaces"):
                         gap(path, "npm-workspaces-require-explicit-coverage-review")
-                    if has_dependencies and not any(prefix + lock in manifests for lock in ("package-lock.json", "npm-shrinkwrap.json", "yarn.lock")):
+                    parent_bound = notes_plugin_review is not None and path == notes_plugin_review["prefix"] + "package.json"
+                    if has_dependencies and not parent_bound and not any(prefix + lock in manifests for lock in ("package-lock.json", "npm-shrinkwrap.json", "yarn.lock")):
                         gap(path, "npm-lockfile-missing")
                 else:
                     for field in ("require", "require-dev"):
@@ -646,6 +667,8 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
                     has_packages = any("/" in name for field in ("require", "require-dev") for name in manifest.get(field, {}))
                     if has_packages and prefix + "composer.lock" not in manifests:
                         gap(path, "composer-lockfile-missing")
+            elif notes_source and not recognized(path):
+                pass  # Already inspected as content; no dependency manifest hidden.
             else:
                 if gradle_release_review is None or path not in gradle_release_review['build_files']:
                     gap(path, "unsupported-dependency-ecosystem")
@@ -785,6 +808,7 @@ def inspect(root, source_sha, acquisition, content, fetch=None, limits=None, man
                   malware_advisory_result=advisory,
                   reviewed_vendor_vulnerabilities=vendor_vulnerabilities,
                   reviewed_npm_source=npm_source_review, reviewed_runtime_advisories=runtime_advisory,
+                  reviewed_notes_plugin=notes_plugin_review,
                   input={"kind": "dependency-lock-manifest", "sha256": sha256(json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode()),
                          "digest_scope": "inspected-dependency-manifests"},
                   packages=records, repository_artifacts=repository_artifacts,
