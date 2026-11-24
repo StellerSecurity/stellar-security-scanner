@@ -83,9 +83,18 @@ class PublishedOriginReceipt(unittest.TestCase):
     def test_checked_in_receipt_identifies_only_published_wrapper_bytes(self):
         root = Path(__file__).resolve().parents[1]
         row = json.loads((root / 'reviews/gradle-wrapper-8.13-origin.json').read_text())
-        self.assertEqual((row,), acquisition.REPOSITORY_ORIGIN_REVIEWS)
+        self.assertIn(row, acquisition.REPOSITORY_ORIGIN_REVIEWS)
         self.assertFalse(row['content_clearance'])
         self.assertEqual('https://downloads.gradle.org/distributions/gradle-8.13-wrapper.jar.sha256', row['final_url'])
+
+    def test_android_wrapper_origin_does_not_clear_executable_members(self):
+        root = Path(__file__).resolve().parents[1]
+        row = json.loads((root / 'reviews/gradle-wrapper-8.9-origin.json').read_text())
+        self.assertIn(row, acquisition.REPOSITORY_ORIGIN_REVIEWS)
+        self.assertFalse(row['content_clearance'])
+        self.assertEqual('android/gradle/wrapper/gradle-wrapper.jar', row['path'])
+        self.assertEqual('8.9', row['version'])
+        self.assertEqual(2, len(acquisition.REPOSITORY_ORIGIN_REVIEWS))
 
 
 if __name__ == '__main__': unittest.main()
