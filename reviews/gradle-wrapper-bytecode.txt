@@ -1,0 +1,24 @@
+Reproducing the exact wrapper review
+
+No wrapper or Gradle distribution is executed. Use only your existing reviewed
+JDK; this tool never installs or downloads one. The helper verifies classes with
+initialization disabled and resolves declared types only. It never invokes a
+wrapper method or constructor. javap reads classfile instructions as data.
+
+Example:
+python3 -B tools/review_gradle_wrapper_bytecode.py \
+  --java-home '/Applications/Android Studio.app/Contents/jbr/Contents/Home' \
+  --jar /absolute/path/to/gradle-wrapper.jar \
+  --output /private/tmp/wrapper-static-review
+
+Only the two independently reviewed whole-JAR hashes are accepted. Compare the
+full disassembly, metadata and recorded security-sensitive flows with
+reviews/gradle-wrapper-bytecode.json. Passing structural verification is not an
+automated semantic safety verdict, execution approval, general JAR exemption,
+Gradle distribution review or advisory override. The runtime/distribution and
+Gradle dependency-graph gaps must be resolved separately.
+
+Any changed archive byte or containing member path loses recognition. Constants
+still receive normal malware inspection. Unknown/nested JARs, standalone
+classes, malformed classes, native members and changed metadata remain blocked
+or incomplete. Regression tests exercise those boundaries.

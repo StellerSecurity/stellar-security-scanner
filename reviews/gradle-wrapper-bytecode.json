@@ -1,0 +1,367 @@
+{
+  "schema": 1,
+  "date": "2026-11-24",
+  "scope": "Two exact complete wrapper JAR bytecode reviews only. No Gradle distribution, dependency graph, publisher, other JAR, runtime execution or advisory clearance.",
+  "profiles": [
+    {
+      "id": "gradle-wrapper-8.9-classfiles",
+      "version": "8.9",
+      "member": "repository/android/gradle/wrapper/gradle-wrapper.jar",
+      "bytes": 43504,
+      "sha256": "498495120a03b9a6ab5d155f5de3c8f0d986a449153702fb80fc80e134484f17",
+      "class_count": 31,
+      "classes": [
+        {
+          "member": "org/gradle/cli/CommandLineArgumentException.class",
+          "bytes": 368,
+          "sha256": "d7582acee55ddf9c94479ca6c9f0c4dac277194460c5db6aafdc63c1c05a7f88"
+        },
+        {
+          "member": "org/gradle/cli/CommandLineOption.class",
+          "bytes": 947,
+          "sha256": "4291b9902b20c38dd4cfae717f8db7095eb72493a51339db1c84bf35cabc3ace"
+        },
+        {
+          "member": "org/gradle/cli/CommandLineParser$AfterOptions.class",
+          "bytes": 1206,
+          "sha256": "2e1772864baa48cf1257c08a92393c919274c6c05e9a6e310437ac78db926d81"
+        },
+        {
+          "member": "org/gradle/cli/CommandLineParser$BeforeFirstSubCommand.class",
+          "bytes": 1885,
+          "sha256": "40682eeb613cbe442eef184255212986bdcc16fa1da72453bb3c42730994583f"
+        },
+        {
+          "member": "org/gradle/cli/CommandLineParser$KnownOptionParserState.class",
+          "bytes": 3682,
+          "sha256": "0a001760d0fdc9ef5b24411f8d49049afd097971fcf098df3488a01f3c5d1b95"
+        },
+        {
+          "member": "org/gradle/cli/CommandLineParser$MissingOptionArgState.class",
+          "bytes": 1175,
+          "sha256": "90a5a7762ecb32b4ccdda7439e9afdae7f01977550a62868bf7319f270a70f60"
+        },
+        {
+          "member": "org/gradle/cli/CommandLineParser$OptionAwareParserState.class",
+          "bytes": 1354,
+          "sha256": "022842d3706ea8e7edf0f73e4a3a2f4df74393b38d6dd9701461d7881575bfcb"
+        },
+        {
+          "member": "org/gradle/cli/CommandLineParser$OptionParserState.class",
+          "bytes": 637,
+          "sha256": "d5f008eff29a3c4eeedf951de76e160de68a3bbed310baa8e71349b56410256c"
+        },
+        {
+          "member": "org/gradle/cli/CommandLineParser$OptionString.class",
+          "bytes": 835,
+          "sha256": "ec686184f5ad7536a3e1232039e732f1183781ecf32c02a3aca1db2822bd5196"
+        },
+        {
+          "member": "org/gradle/cli/CommandLineParser$ParserState.class",
+          "bytes": 718,
+          "sha256": "68237b8ca4cdaeea8c3a166d36818e50cff36b775b1bac5c931cbcbd1e8506a0"
+        },
+        {
+          "member": "org/gradle/cli/CommandLineParser$UnknownOptionParserState.class",
+          "bytes": 1223,
+          "sha256": "545797aeae4c3866785f05c50f1b7ae5c172d0f0b615d871fac11ed7bed2ca39"
+        },
+        {
+          "member": "org/gradle/cli/CommandLineParser.class",
+          "bytes": 2147,
+          "sha256": "16bf184e616874f371c897158020d35141769ed4ee5f8f9d6ceb30f80eae6523"
+        },
+        {
+          "member": "org/gradle/cli/ParsedCommandLine.class",
+          "bytes": 2017,
+          "sha256": "4731e86a7b8297fcc2897d721f2e650536f361da3c2022f87ff89c1f70235443"
+        },
+        {
+          "member": "org/gradle/cli/ParsedCommandLineOption.class",
+          "bytes": 428,
+          "sha256": "e1970674f43514a266b6dc663403d660acd8c56132eca78ad3dd7cfab1466fbf"
+        },
+        {
+          "member": "org/gradle/internal/file/PathTraversalChecker.class",
+          "bytes": 1180,
+          "sha256": "4cee97a2057bd91b4bf9bb0e4cff5130ba22fa7c6c0a808dd5fa5eab6cf2144e"
+        },
+        {
+          "member": "org/gradle/internal/file/locking/ExclusiveFileAccessManager.class",
+          "bytes": 515,
+          "sha256": "4cfe9331b6e2fbc38201da04d72b357370b03fc5c4e08da4287881cca6c590f0"
+        },
+        {
+          "member": "org/gradle/util/internal/WrapperDistributionUrlConverter.class",
+          "bytes": 675,
+          "sha256": "29e86622b20c7ae587e23ce29bac0552d6cb8fe4cafbe3b980b0723fc9880c06"
+        },
+        {
+          "member": "org/gradle/wrapper/BootstrapMainStarter$1.class",
+          "bytes": 542,
+          "sha256": "e23cde4771a15ad07e79594f9971ccc95fb5514f3482c4a56a87a089f4b3c806"
+        },
+        {
+          "member": "org/gradle/wrapper/Download$DefaultDownloadProgressListener.class",
+          "bytes": 1252,
+          "sha256": "2dbc2ed49ffe12ce9934304758eb25947d2ad5882842091c2ea3d99e7fdd4a04"
+        },
+        {
+          "member": "org/gradle/wrapper/Download$ProxyAuthenticator.class",
+          "bytes": 1297,
+          "sha256": "70f5aaa4686234bcf0aa7019874091485d90186f500c659b2e017a85c500dabf"
+        },
+        {
+          "member": "org/gradle/wrapper/Download.class",
+          "bytes": 4650,
+          "sha256": "6019c70f89fdfe816d76a61d37aa756d6d2781c9dec4d352f5097636e264029d"
+        },
+        {
+          "member": "org/gradle/wrapper/GradleUserHomeLookup.class",
+          "bytes": 690,
+          "sha256": "b71e47374b10d8710ca3f4bb8c797d4a3582bbc3335498ed112bf650cc4b9d5e"
+        },
+        {
+          "member": "org/gradle/wrapper/GradleWrapperMain.class",
+          "bytes": 10704,
+          "sha256": "31bef010c63e97cb48e5fa728a60793c59adf50f11e2e8cd34e1391465208a07"
+        },
+        {
+          "member": "org/gradle/wrapper/Install$1.class",
+          "bytes": 5631,
+          "sha256": "2ac9dd60b5841b089299fff2ccbed93ffaa3a095ce848f969a9b82c74955c4bd"
+        },
+        {
+          "member": "org/gradle/wrapper/Install$InstallCheck.class",
+          "bytes": 487,
+          "sha256": "2607d94e91de150e95b6343f51cbb21a99cc8ed52043f0127c6697aa10c5bb9a"
+        },
+        {
+          "member": "org/gradle/wrapper/Install.class",
+          "bytes": 7130,
+          "sha256": "7c3d18debd9db110216c73e1ea1d445d0a3ae82d856fd04af841ba63ea7406a4"
+        },
+        {
+          "member": "org/gradle/wrapper/Logger.class",
+          "bytes": 1054,
+          "sha256": "fde6ed08815570537c5598785689d057f60630d6e31814c72fb9863e7069c80b"
+        },
+        {
+          "member": "org/gradle/wrapper/PathAssembler.class",
+          "bytes": 362,
+          "sha256": "3433ddb529d32672d17decb29a1e738d7479220334f2b780a3576c17ca5d6d6e"
+        },
+        {
+          "member": "org/gradle/wrapper/SystemPropertiesHandler.class",
+          "bytes": 1614,
+          "sha256": "39b0dc2abba340da3ec92354ee0cf47dbc611516ffb0b9e016090037a83a46f8"
+        },
+        {
+          "member": "org/gradle/wrapper/WrapperConfiguration.class",
+          "bytes": 1616,
+          "sha256": "c93564c61b3873588218f7c6feff566e753704c36bbd5167ddab68c31ba1070e"
+        },
+        {
+          "member": "org/gradle/wrapper/WrapperExecutor.class",
+          "bytes": 3269,
+          "sha256": "ee74f3023a0ebd12aa3c5e1443c79c0744ad8e9f56b0dccfaf74ae2e4c451f00"
+        }
+      ],
+      "upstream_checksums": "https://gradle.org/release-checksums/"
+    },
+    {
+      "id": "gradle-wrapper-8.10-classfiles",
+      "version": "8.10",
+      "member": "package/assets/android-template.tar.gz!gradle/wrapper/gradle-wrapper.jar",
+      "bytes": 43583,
+      "sha256": "2db75c40782f5e8ba1fc278a5574bab070adccb2d21ca5a6e5ed840888448046",
+      "class_count": 31,
+      "classes": [
+        {
+          "member": "org/gradle/cli/CommandLineArgumentException.class",
+          "bytes": 368,
+          "sha256": "d7582acee55ddf9c94479ca6c9f0c4dac277194460c5db6aafdc63c1c05a7f88"
+        },
+        {
+          "member": "org/gradle/cli/CommandLineOption.class",
+          "bytes": 947,
+          "sha256": "4291b9902b20c38dd4cfae717f8db7095eb72493a51339db1c84bf35cabc3ace"
+        },
+        {
+          "member": "org/gradle/cli/CommandLineParser$AfterOptions.class",
+          "bytes": 1206,
+          "sha256": "2e1772864baa48cf1257c08a92393c919274c6c05e9a6e310437ac78db926d81"
+        },
+        {
+          "member": "org/gradle/cli/CommandLineParser$BeforeFirstSubCommand.class",
+          "bytes": 1885,
+          "sha256": "40682eeb613cbe442eef184255212986bdcc16fa1da72453bb3c42730994583f"
+        },
+        {
+          "member": "org/gradle/cli/CommandLineParser$KnownOptionParserState.class",
+          "bytes": 3682,
+          "sha256": "0a001760d0fdc9ef5b24411f8d49049afd097971fcf098df3488a01f3c5d1b95"
+        },
+        {
+          "member": "org/gradle/cli/CommandLineParser$MissingOptionArgState.class",
+          "bytes": 1175,
+          "sha256": "90a5a7762ecb32b4ccdda7439e9afdae7f01977550a62868bf7319f270a70f60"
+        },
+        {
+          "member": "org/gradle/cli/CommandLineParser$OptionAwareParserState.class",
+          "bytes": 1354,
+          "sha256": "022842d3706ea8e7edf0f73e4a3a2f4df74393b38d6dd9701461d7881575bfcb"
+        },
+        {
+          "member": "org/gradle/cli/CommandLineParser$OptionParserState.class",
+          "bytes": 637,
+          "sha256": "d5f008eff29a3c4eeedf951de76e160de68a3bbed310baa8e71349b56410256c"
+        },
+        {
+          "member": "org/gradle/cli/CommandLineParser$OptionString.class",
+          "bytes": 835,
+          "sha256": "ec686184f5ad7536a3e1232039e732f1183781ecf32c02a3aca1db2822bd5196"
+        },
+        {
+          "member": "org/gradle/cli/CommandLineParser$ParserState.class",
+          "bytes": 718,
+          "sha256": "68237b8ca4cdaeea8c3a166d36818e50cff36b775b1bac5c931cbcbd1e8506a0"
+        },
+        {
+          "member": "org/gradle/cli/CommandLineParser$UnknownOptionParserState.class",
+          "bytes": 1223,
+          "sha256": "545797aeae4c3866785f05c50f1b7ae5c172d0f0b615d871fac11ed7bed2ca39"
+        },
+        {
+          "member": "org/gradle/cli/CommandLineParser.class",
+          "bytes": 2147,
+          "sha256": "16bf184e616874f371c897158020d35141769ed4ee5f8f9d6ceb30f80eae6523"
+        },
+        {
+          "member": "org/gradle/cli/ParsedCommandLine.class",
+          "bytes": 2017,
+          "sha256": "4731e86a7b8297fcc2897d721f2e650536f361da3c2022f87ff89c1f70235443"
+        },
+        {
+          "member": "org/gradle/cli/ParsedCommandLineOption.class",
+          "bytes": 428,
+          "sha256": "e1970674f43514a266b6dc663403d660acd8c56132eca78ad3dd7cfab1466fbf"
+        },
+        {
+          "member": "org/gradle/internal/file/PathTraversalChecker.class",
+          "bytes": 1180,
+          "sha256": "4cee97a2057bd91b4bf9bb0e4cff5130ba22fa7c6c0a808dd5fa5eab6cf2144e"
+        },
+        {
+          "member": "org/gradle/internal/file/locking/ExclusiveFileAccessManager.class",
+          "bytes": 515,
+          "sha256": "4cfe9331b6e2fbc38201da04d72b357370b03fc5c4e08da4287881cca6c590f0"
+        },
+        {
+          "member": "org/gradle/util/internal/WrapperDistributionUrlConverter.class",
+          "bytes": 675,
+          "sha256": "29e86622b20c7ae587e23ce29bac0552d6cb8fe4cafbe3b980b0723fc9880c06"
+        },
+        {
+          "member": "org/gradle/wrapper/BootstrapMainStarter$1.class",
+          "bytes": 542,
+          "sha256": "e23cde4771a15ad07e79594f9971ccc95fb5514f3482c4a56a87a089f4b3c806"
+        },
+        {
+          "member": "org/gradle/wrapper/Download$DefaultDownloadProgressListener.class",
+          "bytes": 1252,
+          "sha256": "2dbc2ed49ffe12ce9934304758eb25947d2ad5882842091c2ea3d99e7fdd4a04"
+        },
+        {
+          "member": "org/gradle/wrapper/Download$ProxyAuthenticator.class",
+          "bytes": 1297,
+          "sha256": "70f5aaa4686234bcf0aa7019874091485d90186f500c659b2e017a85c500dabf"
+        },
+        {
+          "member": "org/gradle/wrapper/Download.class",
+          "bytes": 4650,
+          "sha256": "6019c70f89fdfe816d76a61d37aa756d6d2781c9dec4d352f5097636e264029d"
+        },
+        {
+          "member": "org/gradle/wrapper/GradleUserHomeLookup.class",
+          "bytes": 690,
+          "sha256": "b71e47374b10d8710ca3f4bb8c797d4a3582bbc3335498ed112bf650cc4b9d5e"
+        },
+        {
+          "member": "org/gradle/wrapper/GradleWrapperMain.class",
+          "bytes": 10704,
+          "sha256": "31bef010c63e97cb48e5fa728a60793c59adf50f11e2e8cd34e1391465208a07"
+        },
+        {
+          "member": "org/gradle/wrapper/Install$1.class",
+          "bytes": 5631,
+          "sha256": "2ac9dd60b5841b089299fff2ccbed93ffaa3a095ce848f969a9b82c74955c4bd"
+        },
+        {
+          "member": "org/gradle/wrapper/Install$InstallCheck.class",
+          "bytes": 487,
+          "sha256": "2607d94e91de150e95b6343f51cbb21a99cc8ed52043f0127c6697aa10c5bb9a"
+        },
+        {
+          "member": "org/gradle/wrapper/Install.class",
+          "bytes": 7288,
+          "sha256": "a7009c6a88b1c151fe989f6c025837eca534a823e2e603764fc06472c843c15f"
+        },
+        {
+          "member": "org/gradle/wrapper/Logger.class",
+          "bytes": 1054,
+          "sha256": "fde6ed08815570537c5598785689d057f60630d6e31814c72fb9863e7069c80b"
+        },
+        {
+          "member": "org/gradle/wrapper/PathAssembler.class",
+          "bytes": 362,
+          "sha256": "3433ddb529d32672d17decb29a1e738d7479220334f2b780a3576c17ca5d6d6e"
+        },
+        {
+          "member": "org/gradle/wrapper/SystemPropertiesHandler.class",
+          "bytes": 1614,
+          "sha256": "39b0dc2abba340da3ec92354ee0cf47dbc611516ffb0b9e016090037a83a46f8"
+        },
+        {
+          "member": "org/gradle/wrapper/WrapperConfiguration.class",
+          "bytes": 1616,
+          "sha256": "c93564c61b3873588218f7c6feff566e753704c36bbd5167ddab68c31ba1070e"
+        },
+        {
+          "member": "org/gradle/wrapper/WrapperExecutor.class",
+          "bytes": 3269,
+          "sha256": "ee74f3023a0ebd12aa3c5e1443c79c0744ad8e9f56b0dccfaf74ae2e4c451f00"
+        }
+      ],
+      "upstream_checksums": "https://gradle.org/release-checksums/"
+    }
+  ],
+  "structural_review": {
+    "classes_per_jar": 31,
+    "declared_methods_and_constructors_per_jar": 105,
+    "verification": "Existing JDK21 java -Xverify:all, Class.forName(name,false,isolated-loader), declared methods/constructors/fields resolved. No wrapper initialization or method invocation. Full static javap disassembly retained locally.",
+    "native_methods": 0,
+    "invokedynamic_sites": 0,
+    "cross_version_comparison": "30 of 31 classfiles are byte-identical. Install.class changes only the checksum-error diagnostic string; its disassembled instructions and method/field targets are unchanged."
+  },
+  "security_review": [
+    "Reviewed entry/argument/configuration flow, all external method/field targets and the network, credential, process, reflection, checksum and extraction paths against the complete disassembly. CLI helpers use string/collection/regex state and errors; there is no native or dynamic-bootstrap method.",
+    "Download reads only its supplied Gradle distribution URI. Basic authentication uses explicitly configured Gradle wrapper credentials or URI userinfo; proxy authentication is restricted to PROXY requests and configured protocol proxy properties. This is an intentional credential capability, not permission to execute the wrapper or transmit secrets.",
+    "The only environment lookup is GRADLE_USER_HOME. Properties input files are the configured Gradle user/project properties; only systemProp-prefixed entries become JVM properties. No browser, keychain, SSH, cloud-token or wallet access was found.",
+    "The sole ProcessBuilder call is the fixed three-argument chmod 755 <canonical Gradle executable path>, with no shell. Classloader/reflection targets are the Gradle launcher main method and Java Base64 compatibility helpers; wrapper code does not fetch or evaluate arbitrary inline script.",
+    "ZIP extraction passes every entry name through PathTraversalChecker.safePathName. SHA256 verification compares the completed distribution file, deletes the mismatching cached distribution and throws. The wrapper allows a missing distribution checksum by design: this review does not clear missing checksums or distribution/Gradle graph verification.",
+    "All existing constant-string malware inspection and native/unknown coverage rules remain active. Exact whole-JAR bytes and containing member path must match before any of these classfiles can be recognized. Changed ZIP metadata, payload, member paths or classes require a new review."
+  ],
+  "evidence_sha256": {
+    "bytecode.txt": "20ffb2b3db50080f6f6bf536fd23f857a3690cc5c03097d429b9bbf6f67f444d",
+    "bytecode-810.txt": "169b1a30110ac0c3eaff5c6a43f9a1b242c4d735a355e1108a5c72245ccd0ac4",
+    "verification-89.txt": "4202d335ae51c02e1084e53834e29a540ed069bb6d70b836c5f49aeeef04cef8",
+    "verification-810.txt": "4202d335ae51c02e1084e53834e29a540ed069bb6d70b836c5f49aeeef04cef8",
+    "install-delta.txt": "e42c95483e43e0b15265ec3d8f57aa07bbb450243e724c710475ce10ea3fd1f2"
+  },
+  "limitations": [
+    "Static semantic and VM structural review, not proof of all runtime behavior or absence of unknown vulnerabilities.",
+    "Gradle distribution/daemon/TestKit/repository security advisories and the unreviewed Gradle dependency graph are outside this wrapper-only review and remain unresolved; neither wrapper was executed.",
+    "Unknown or changed JARs/classes, parent archives, lifecycle payloads, other native files and all unrelated findings remain subject to their existing checks."
+  ]
+}

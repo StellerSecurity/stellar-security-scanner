@@ -4242,6 +4242,28 @@ def java_modified_utf8(raw):
         raise Incomplete('invalid-jvm-modified-utf8')
 
 
+# Independently disassembled and VM-verified WITHOUT initialization/execution.
+# Binding is to a complete JAR, never a class-name or publisher exemption.
+# See reviews/gradle-wrapper-bytecode.json; distributions/graphs are not cleared.
+REVIEWED_GRADLE_WRAPPER_ARCHIVES = (
+    ('repository/android/gradle/wrapper/gradle-wrapper.jar', 43504,
+     '498495120a03b9a6ab5d155f5de3c8f0d986a449153702fb80fc80e134484f17',
+     'gradle-wrapper-8.9-classfiles', 31),
+    ('package/assets/android-template.tar.gz!gradle/wrapper/gradle-wrapper.jar', 43583,
+     '2db75c40782f5e8ba1fc278a5574bab070adccb2d21ca5a6e5ed840888448046',
+     'gradle-wrapper-8.10-classfiles', 31),
+)
+
+
+def reviewed_gradle_wrapper_archive(path, raw):
+    if not isinstance(path, str) or not isinstance(raw, bytes):
+        return None
+    for member, size, checksum, review_id, count in REVIEWED_GRADLE_WRAPPER_ARCHIVES:
+        if (path == member or path.endswith('!' + member)) and len(raw) == size and digest(raw) == checksum:
+            return review_id, count
+    return None
+
+
 def reviewed_jvm_declaration(data):
     """Six individually reviewed javax.inject:1 declarations, not a JAR exemption.
 
@@ -4265,8 +4287,9 @@ def jvm_constant_text(data, ceiling):
     """Extract bounded JVM constants as evidence, NOT a bytecode verification.
 
     JVMS 21 section 4.4: all constant tags, including double-slot constants and
-    modified UTF-8. Method bodies/attributes are not validated here; callers
-    MUST retain the independent binary-review gap even when this succeeds.
+    modified UTF-8. Method bodies/attributes are not validated here; callers retain the
+    independent binary-review gap unless a separate exact whole-archive code
+    review applies. Successful constant decoding never grants that review.
     """
     if not 10 <= len(data) <= ceiling or data[:4] != b'\xca\xfe\xba\xbe':
         raise Incomplete('invalid-jvm-constant-pool')
@@ -4404,6 +4427,7 @@ class Inspector:
         self.omitted_blocking_findings = 0
         self.archive_stream_bytes = 0
         self.archive_members_seen = 0
+        self._active_wrapper_member = None
 
     def check_budget(self):
         if time.monotonic() - self.started > self.limits['seconds']:
@@ -4466,15 +4490,23 @@ class Inspector:
             self.archive(path, data, depth + 1)
             return
         if executable(data) or EXECUTABLE_SUFFIX.search(path):
+            jvm_strings_valid = False
             if (data.startswith(b'\xca\xfe\xba\xbe') and
                     (path.lower().endswith('.class') or len(data) >= 8 and 45 <= int.from_bytes(data[6:8], 'big') <= 70)):
                 try:
                     # Constants can contain embedded scripts or downloader
                     # indicators. Inspect them without executing/loading Java.
                     self.inspect_text(path, jvm_constant_text(data, self.limits['text_bytes']), counted=False)
+                    jvm_strings_valid = True
                 except Incomplete as exc:
                     self.gap(path, str(exc))
-            if reviewed_jvm_declaration(data):
+            wrapper = self._active_wrapper_member
+            if (jvm_strings_valid and wrapper is not None
+                    and wrapper[:3] == (path, len(data), digest(data))):
+                self.files_scanned += 1
+                self.exclusions.append({'path': path, 'sha256': digest(data),
+                    'reason': 'exact-jvm-wrapper-code-review:' + wrapper[3]})
+            elif reviewed_jvm_declaration(data):
                 self.files_scanned += 1
                 self.exclusions.append({'path': path,
                     'reason': 'exact-jvm-declaration-review:javax-inject-1',
@@ -4941,6 +4973,7 @@ class Inspector:
         # filesystem tree. Inspect BOTH A.class and a.class. Generic archives
         # retain their cross-platform ambiguity checks.
         java_container = bool(re.search(r'\.(?:jar|aar)$', path, re.I))
+        wrapper_review = reviewed_gradle_wrapper_archive(path, raw) if java_container else None
         def member_name(name, directory=False, mode=0):
             self.archive_members_seen += 1
             self.check_budget()
@@ -4993,7 +5026,13 @@ class Inspector:
                 return
             content_digests[name] = value_digest
             content_lengths[name] = size
-            self.content(name, value, depth)
+            previous = self._active_wrapper_member
+            self._active_wrapper_member = ((name, size, value_digest, wrapper_review[0])
+                if wrapper_review is not None and name.endswith('.class') else None)
+            try:
+                self.content(name, value, depth)
+            finally:
+                self._active_wrapper_member = previous
         try:
             if (raw.startswith(b'\x1f\x8b')
                     and not path.lower().endswith(('.tar.gz', '.tgz'))):
@@ -5049,6 +5088,10 @@ class Inspector:
             if raw.startswith((b'PK\x03\x04', b'PK\x05\x06')):
                 self.preflight_zip(raw)
                 with zipfile.ZipFile(io.BytesIO(raw)) as arc:
+                    if (wrapper_review is not None and sum(
+                            not item.is_dir() and item.filename.endswith('.class')
+                            for item in arc.infolist()) != wrapper_review[1]):
+                        raise Incomplete('reviewed-wrapper-class-inventory-mismatch')
                     if len(arc.infolist()) > self.limits['members']:
                         raise Incomplete('member-limit')
                     for info in arc.infolist():
@@ -5256,7 +5299,7 @@ class Inspector:
                 'omitted_warning_findings': self.omitted_warning_findings,
                 'omitted_blocking_findings': self.omitted_blocking_findings,
                 'limits': self.limits,
-                'scope': 'Static text/lifecycle patterns, JVM constant strings, recorded exact-byte native reviews and finding-specific exact-byte source reviews; JVM code still requires independent review; opaque assets receive string checks only; sensitive files excluded. No code execution or full binary malware analysis.',
+                'scope': 'Static text/lifecycle patterns, JVM constant strings, recorded exact-byte native reviews and finding-specific exact-byte source reviews; JVM code without an exact whole-archive review still requires independent review; opaque assets receive string checks only; sensitive files excluded. No code execution or full binary malware analysis.',
                 'installed_or_executed_packages': False, 'network_requests': 0}
 
 
