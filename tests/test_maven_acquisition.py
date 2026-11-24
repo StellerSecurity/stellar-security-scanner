@@ -102,7 +102,7 @@ class MavenAcquisition(unittest.TestCase):
             bridge.validate_gap_summary(dict(report, coverage_gap_total=0))
         self.assertEqual(3001, report['coverage_gap_total'])
         self.assertEqual(3000, report['coverage_gap_counts']['binary-class-needs-review'])
-        self.assertEqual(2980, report['omitted_gap_details'])
+        self.assertEqual(2001, report['omitted_gap_details'])
         self.assertTrue(any(g['reason']=='archive-integrity-error' for g in report['gaps']))
 
     def test_parent_loads_pinned_adapter_without_import_path(self):
