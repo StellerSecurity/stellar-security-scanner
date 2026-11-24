@@ -1404,7 +1404,107 @@ def reviewed_npm_source(context, manifests):
                 required_runtime_advisory_coordinates=[['Go', 'stdlib', '1.26.11'], ['Go', 'golang.org/x/sys', '0.44.0']],
                 runtime_advisory_review_required=True, native_executable_clearance=False)
 
-def plan_packages(lockpath, raw, *, composer_manifest=None, cargo_local_packages=None, npm_source_review=None):
+
+REVIEWED_NOTES_PLUGIN = {'files': {'Package.swift': {'bytes': 692,
+                             'sha256': '72782dc1a6977fd195e871609f60e64ef2219f327e07807c35fc752f96e52914'},
+           'StellarBackgroundNotesSync.podspec': {'bytes': 651,
+                                                  'sha256': 'c837f1e1b0322c28810d440a7aa878e25528d5f162145ade030dd96a58091f95'},
+           'android/build.gradle': {'bytes': 958,
+                                    'sha256': '9731e505a7fe51b7d40a7058ab8ff089348bb086b1e63b82cfaa178b6079b197'},
+           'android/src/main/AndroidManifest.xml': {'bytes': 111,
+                                                    'sha256': 'c8fe08b06e479efc7e3d00476fffe693a3e943e2b874b3c6a1ba5156fc180751'},
+           'android/src/main/java/com/stellarsecurity/backgroundnotessync/BackgroundNotesSyncPlugin.java': {'bytes': 4247,
+                                                                                                            'sha256': 'c859d40d0553c390da3408311d47b5555f760e7dae966eff918f2ca3e0ee7133'},
+           'android/src/main/java/com/stellarsecurity/backgroundnotessync/BackgroundNotesSyncStore.java': {'bytes': 11248,
+                                                                                                           'sha256': '06e27a4045e53a51dd5cf3c4addaade1b612ec90cf1c4b5bc5f816be6fa1a527'},
+           'android/src/main/java/com/stellarsecurity/backgroundnotessync/BackgroundNotesSyncWorker.java': {'bytes': 10893,
+                                                                                                            'sha256': '42554b8f62a75f930cae011c49e14cb7407e05a8a9e2f95cac524dbe86e5fdd4'},
+           'android/src/main/java/com/stellarsecurity/backgroundnotessync/DownloadAccumulator.java': {'bytes': 1760,
+                                                                                                      'sha256': '1a264e847ccdcf18d2df1966576bf5d1e80b8b8a0e5339d7a547188053245663'},
+           'android/tests/DownloadAccumulatorTest.java': {'bytes': 3133,
+                                                          'sha256': 'e839ddadf6b1c8b4c576198b984dfe0f7bc68b4a04fbcd2e7598041b0dec4006'},
+           'android/tests/run.sh': {'bytes': 454,
+                                    'sha256': '74e520935d053cf7ce99401ade89037a9b28090b87cf8e86adcd84d04fbefbd2'},
+           'dist/definitions.d.ts': {'bytes': 593,
+                                     'sha256': 'f12a7202b7c7e2f1855d6aea4d8fa4be0045719a9594714149d7e6e5a8af2562'},
+           'dist/index.d.ts': {'bytes': 249,
+                               'sha256': '77e78c073404e1aef162e1f19a36c79fce03606bdabee060c7f73c8c060b0a5c'},
+           'dist/plugin.cjs': {'bytes': 181,
+                               'sha256': '47485ce8361412e9803674e371203e65d125010180f4fc6f4640b9062406d484'},
+           'dist/plugin.mjs': {'bytes': 151,
+                               'sha256': '58db68fe8be8351e1f69b6fe50a3940777f66efd97f9a58cf068a9eeb72b7086'},
+           'ios/Sources/BackgroundNotesSyncPlugin/BackgroundNotesSyncPlugin.swift': {'bytes': 3179,
+                                                                                     'sha256': 'a7785ec0247619009d9e9ccfc57ee21dc339820ab3881fb96286575cc83154d0'},
+           'ios/Sources/BackgroundNotesSyncPlugin/BackgroundNotesSyncProcessor.swift': {'bytes': 16873,
+                                                                                        'sha256': '87b7e05b69060fcf97306ad216eff519bc3409a101c2bf1ac9a9b27525321081'},
+           'package.json': {'bytes': 798,
+                            'sha256': '4569d145b8d68221b8a8635e959e910d1afcc21654f08ecf0a59844d94a705c6'}},
+ 'id': 'stellar-notes-contained-sync-20261124',
+ 'lock_sha256': 'd4ef564a3fdd4cc2f6a355b46c820fbb529abfdf02ed705ea532415ed22373c3',
+ 'manifest_sha256': 'c643764b19dfb70b7237271ff339f05dfceaf5bf6d779ea1f5b4339c90e4dca1',
+ 'name': '@stellar/background-notes-sync',
+ 'prefix': 'plugins/background-notes-sync/',
+ 'repository': 'StellerSecurity/Steller.Phone.NotesApp',
+ 'repository_id': 678982406,
+ 'version': '1.0.0'}
+
+
+def reviewed_notes_plugin(context, manifests):
+    """Exact first-party source/parent-lock binding, not source or native clearance.
+
+    Every contained byte still goes to content inspection. Swift/Gradle graphs
+    remain independently incomplete. No registry identity is invented for local
+    code; every peer is acquired through the ordinary public package plan.
+    """
+    review = REVIEWED_NOTES_PLUGIN
+    if (not isinstance(context, dict)
+            or any(context.get(k) != review[k] for k in ('repository', 'repository_id'))):
+        return None
+    prefix = review['prefix']
+    present = {p for p in manifests if p.casefold().startswith(prefix.casefold())}
+    if not present:
+        return None
+    if present != {prefix + name for name in review['files']}:
+        _fail('notes-local-source-inventory-drift')
+    for path, expected in [('package.json', review['manifest_sha256']),
+                           ('package-lock.json', review['lock_sha256'])]:
+        raw = manifests.get(path)
+        if not isinstance(raw, bytes) or hashlib.sha256(raw).hexdigest() != expected:
+            _fail('notes-local-parent-lock-binding-drift')
+    for name, expected in review['files'].items():
+        raw = manifests[prefix + name]
+        if (not isinstance(raw, bytes) or len(raw) != expected['bytes']
+                or hashlib.sha256(raw).hexdigest() != expected['sha256']):
+            _fail('notes-local-source-identity-drift')
+    root = _json(manifests['package.json'], LIMITS['lock_bytes'])
+    lock = _json(manifests['package-lock.json'], LIMITS['lock_bytes'])
+    manifest = _json(manifests[prefix + 'package.json'], LIMITS['lock_bytes'])
+    packages = lock.get('packages', {})
+    local_path = prefix.rstrip('/')
+    link_path = 'node_modules/' + review['name']
+    if (lock.get('lockfileVersion') != 3 or not isinstance(packages, dict)
+            or root.get('dependencies', {}).get(review['name']) != 'file:' + local_path
+            or packages.get('', {}).get('dependencies', {}).get(review['name']) != 'file:' + local_path
+            or packages.get(link_path) != {'resolved': local_path, 'link': True}
+            or (manifest.get('name'), manifest.get('version')) != (review['name'], review['version'])
+            or packages.get(local_path) != {k: manifest[k] for k in ('name', 'version', 'license', 'peerDependencies')}
+            or any(k in manifest for k in ('scripts', 'bin', 'dependencies', 'devDependencies', 'optionalDependencies', 'peerDependenciesMeta'))):
+        _fail('notes-local-link-or-execution-metadata-drift')
+    peers = manifest.get('peerDependencies')
+    if peers != {'@capacitor/core': '>=7.0.0', 'capacitor-secure-storage-plugin': '>=0.12.0'}:
+        _fail('notes-local-peer-declaration-drift')
+    for name, exact in [('@capacitor/core', '7.6.10'), ('capacitor-secure-storage-plugin', '0.12.0')]:
+        row = packages.get('node_modules/' + name)
+        if root.get('dependencies', {}).get(name) != exact or not isinstance(row, dict) or row.get('version') != exact:
+            _fail('notes-local-peer-resolution-drift')
+        _npm_row(name, row)  # Registry URL/integrity checks; still ordinarily acquired/scanned.
+    return dict(id=review['id'], prefix=prefix, lock_sha256=review['lock_sha256'],
+                covered_lock_paths=[link_path, local_path], files=len(review['files']),
+                source_content_inspection_required=True, native_code_cleared=False,
+                gradle_swift_graphs_cleared=False)
+
+
+def plan_packages(lockpath, raw, *, composer_manifest=None, cargo_local_packages=None, npm_source_review=None, notes_plugin_review=None):
     """Return normalized package plans and coverage gaps without any network.
 
     Private/noncanonical origins are rejected before any package lookup. The
@@ -1476,6 +1576,16 @@ def plan_packages(lockpath, raw, *, composer_manifest=None, cargo_local_packages
                 add(_npm_row, 'esbuild', REVIEWED_NPM_SOURCE['upstream'])
                 if npm_source_review.get('rollup') is not None:
                     add(_npm_row, '@rollup/wasm-node', REVIEWED_NPM_SOURCE['rollup']['upstream'])
+            notes_paths = set()
+            if notes_plugin_review is not None:
+                expected_paths = ['node_modules/' + REVIEWED_NOTES_PLUGIN['name'], REVIEWED_NOTES_PLUGIN['prefix'].rstrip('/')]
+                if (str(lockpath) != 'package-lock.json' or not isinstance(notes_plugin_review, dict)
+                        or notes_plugin_review.get('id') != REVIEWED_NOTES_PLUGIN['id']
+                        or notes_plugin_review.get('lock_sha256') != REVIEWED_NOTES_PLUGIN['lock_sha256']
+                        or notes_plugin_review.get('covered_lock_paths') != expected_paths
+                        or hashlib.sha256(raw).hexdigest() != REVIEWED_NOTES_PLUGIN['lock_sha256']):
+                    _fail('notes-local-plan-binding-drift')
+                notes_paths = set(expected_paths)
             version = lock.get('lockfileVersion')
             if type(version) is not int or version not in (1, 2, 3):
                 _fail('unsupported-npm-lock-version')
@@ -1485,6 +1595,8 @@ def plan_packages(lockpath, raw, *, composer_manifest=None, cargo_local_packages
                 bundled = {}
                 for path, row in lock['packages'].items():
                     if path == '':
+                        continue
+                    if path in notes_paths:
                         continue
                     reviewed_local_paths = ('node_modules/esbuild', 'vendor/esbuild-reviewed')
                     if contained and npm_source_review.get('rollup') is not None:

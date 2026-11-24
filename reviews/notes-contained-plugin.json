@@ -1,0 +1,87 @@
+{
+  "profile": {
+    "id": "stellar-notes-contained-sync-20261124",
+    "repository": "StellerSecurity/Steller.Phone.NotesApp",
+    "repository_id": 678982406,
+    "prefix": "plugins/background-notes-sync/",
+    "name": "@stellar/background-notes-sync",
+    "version": "1.0.0",
+    "manifest_sha256": "c643764b19dfb70b7237271ff339f05dfceaf5bf6d779ea1f5b4339c90e4dca1",
+    "lock_sha256": "d4ef564a3fdd4cc2f6a355b46c820fbb529abfdf02ed705ea532415ed22373c3",
+    "files": {
+      "Package.swift": {
+        "bytes": 692,
+        "sha256": "72782dc1a6977fd195e871609f60e64ef2219f327e07807c35fc752f96e52914"
+      },
+      "StellarBackgroundNotesSync.podspec": {
+        "bytes": 651,
+        "sha256": "c837f1e1b0322c28810d440a7aa878e25528d5f162145ade030dd96a58091f95"
+      },
+      "android/build.gradle": {
+        "bytes": 958,
+        "sha256": "9731e505a7fe51b7d40a7058ab8ff089348bb086b1e63b82cfaa178b6079b197"
+      },
+      "android/src/main/AndroidManifest.xml": {
+        "bytes": 111,
+        "sha256": "c8fe08b06e479efc7e3d00476fffe693a3e943e2b874b3c6a1ba5156fc180751"
+      },
+      "android/src/main/java/com/stellarsecurity/backgroundnotessync/BackgroundNotesSyncPlugin.java": {
+        "bytes": 4247,
+        "sha256": "c859d40d0553c390da3408311d47b5555f760e7dae966eff918f2ca3e0ee7133"
+      },
+      "android/src/main/java/com/stellarsecurity/backgroundnotessync/BackgroundNotesSyncStore.java": {
+        "bytes": 11248,
+        "sha256": "06e27a4045e53a51dd5cf3c4addaade1b612ec90cf1c4b5bc5f816be6fa1a527"
+      },
+      "android/src/main/java/com/stellarsecurity/backgroundnotessync/BackgroundNotesSyncWorker.java": {
+        "bytes": 10893,
+        "sha256": "42554b8f62a75f930cae011c49e14cb7407e05a8a9e2f95cac524dbe86e5fdd4"
+      },
+      "android/src/main/java/com/stellarsecurity/backgroundnotessync/DownloadAccumulator.java": {
+        "bytes": 1760,
+        "sha256": "1a264e847ccdcf18d2df1966576bf5d1e80b8b8a0e5339d7a547188053245663"
+      },
+      "android/tests/DownloadAccumulatorTest.java": {
+        "bytes": 3133,
+        "sha256": "e839ddadf6b1c8b4c576198b984dfe0f7bc68b4a04fbcd2e7598041b0dec4006"
+      },
+      "android/tests/run.sh": {
+        "bytes": 454,
+        "sha256": "74e520935d053cf7ce99401ade89037a9b28090b87cf8e86adcd84d04fbefbd2"
+      },
+      "dist/definitions.d.ts": {
+        "bytes": 593,
+        "sha256": "f12a7202b7c7e2f1855d6aea4d8fa4be0045719a9594714149d7e6e5a8af2562"
+      },
+      "dist/index.d.ts": {
+        "bytes": 249,
+        "sha256": "77e78c073404e1aef162e1f19a36c79fce03606bdabee060c7f73c8c060b0a5c"
+      },
+      "dist/plugin.cjs": {
+        "bytes": 181,
+        "sha256": "47485ce8361412e9803674e371203e65d125010180f4fc6f4640b9062406d484"
+      },
+      "dist/plugin.mjs": {
+        "bytes": 151,
+        "sha256": "58db68fe8be8351e1f69b6fe50a3940777f66efd97f9a58cf068a9eeb72b7086"
+      },
+      "ios/Sources/BackgroundNotesSyncPlugin/BackgroundNotesSyncPlugin.swift": {
+        "bytes": 3179,
+        "sha256": "a7785ec0247619009d9e9ccfc57ee21dc339820ab3881fb96286575cc83154d0"
+      },
+      "ios/Sources/BackgroundNotesSyncPlugin/BackgroundNotesSyncProcessor.swift": {
+        "bytes": 16873,
+        "sha256": "87b7e05b69060fcf97306ad216eff519bc3409a101c2bf1ac9a9b27525321081"
+      },
+      "package.json": {
+        "bytes": 798,
+        "sha256": "4569d145b8d68221b8a8635e959e910d1afcc21654f08ecf0a59844d94a705c6"
+      }
+    }
+  },
+  "source_content_inspection_required": true,
+  "peer_archives_still_acquired": true,
+  "native_code_cleared": false,
+  "gradle_swift_graphs_cleared": false,
+  "scope": "Exact first-party source and parent npm graph binding only. Changed, missing, extra or linked files lose recognition; ordinary content, native and unsupported ecosystem checks remain."
+}

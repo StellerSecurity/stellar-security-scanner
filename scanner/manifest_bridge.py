@@ -322,9 +322,18 @@ def verified_tree(tree, expected, limits):
     return entries
 
 
+def notes_local_source(context, path):
+    # Collection only: exact source/graph binding and normal content inspection
+    # are mandatory downstream. No path, content or advisory waiver.
+    return (isinstance(context, dict)
+            and context.get('repository') == 'StellerSecurity/Steller.Phone.NotesApp'
+            and context.get('repository_id') == 678982406
+            and path.casefold().startswith('plugins/background-notes-sync/'))
+
+
 def reviewed_local_source(context, path):
     # A bounded source-only corpus, not a general vendor exclusion or trust rule.
-    return (isinstance(context, dict)
+    return notes_local_source(context, path) or (isinstance(context, dict)
             and context.get('repository') == 'StellerSecurity/Stellar.UI.Desktop.VPNapp'
             and context.get('repository_id') == 1111447739
             and path.casefold().startswith(('vendor/glib-0.18.5/', 'vendor/embed-resource-3.0.12/',
@@ -337,7 +346,7 @@ def cargo_config_path(path):
 
 
 def recognized(name):
-    return name.rsplit('/', 1)[-1].casefold() in ('cargo.toml', 'cargo.lock') or cargo_config_path(name) or name.rsplit('/', 1)[-1] in MANIFEST_NAMES or bool(re.search(r'\.(?:csproj|fsproj|vbproj|nuspec|jar|aar)$', name, re.I)) or bool(re.fullmatch(r'requirements[^/]*\.(?:txt|in)', name))
+    return name.rsplit('/', 1)[-1].casefold() in ('cargo.toml', 'cargo.lock') or cargo_config_path(name) or name.rsplit('/', 1)[-1] in MANIFEST_NAMES or bool(re.search(r'\.(?:csproj|fsproj|vbproj|nuspec|jar|aar|podspec)$', name, re.I)) or bool(re.fullmatch(r'requirements[^/]*\.(?:txt|in)', name))
 
 
 def collect(ctx, reader, limits=None):
