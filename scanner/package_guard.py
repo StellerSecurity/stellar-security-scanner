@@ -432,10 +432,23 @@ def dependency_inspector(content, limits):
     def gap(path, reason):
         scanner.coverage_gap_total += 1
         scanner.coverage_gap_counts[reason] += 1
-        # Exact counts, rather than retained samples, decide package completeness.
-        if scanner.coverage_gap_samples[reason] < 20 and len(scanner.gaps) < scanner.limits['findings']:
-            scanner.gaps.append({'path':path, 'reason':reason})
+        # Retain every actionable file while within the existing global bound.
+        # A per-reason cap hid most native members even in small incomplete
+        # inventories. Counts still decide completeness, never retained detail.
+        row = {'path': path, 'reason': reason}
+        if len(scanner.gaps) < scanner.limits['findings']:
+            scanner.gaps.append(row)
             scanner.coverage_gap_samples[reason] += 1
+        elif not scanner.coverage_gap_samples[reason]:
+            # Once full, preserve evidence of a later distinct failure reason
+            # by replacing one repeated sample, without growing the report.
+            for index in range(len(scanner.gaps) - 1, -1, -1):
+                prior = scanner.gaps[index]['reason']
+                if scanner.coverage_gap_samples[prior] > 1:
+                    scanner.coverage_gap_samples[prior] -= 1
+                    scanner.gaps[index] = row
+                    scanner.coverage_gap_samples[reason] += 1
+                    break
     def report(*args, **kwargs):
         result = original_report(*args, **kwargs)
         result.update(coverage_gap_counts=dict(scanner.coverage_gap_counts),
