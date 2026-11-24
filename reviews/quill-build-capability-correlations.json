@@ -1,8 +1,8 @@
 {
   "schema": 1,
-  "date": "2026-11-19",
-  "scope": "Three finding-specific static correlation reviews. Exact member path, raw byte length, SHA256 and rule are required; original findings remain visible as warnings. No package exemption, execution permission, advisory override, binary clearance or coverage waiver.",
-  "evidence": "The existing npm cache archives match the desktop package-lock SHA512 integrity. Their SHA256 matches the published dependency scan evidence. Each member was read without extraction or execution and matches the installed local source byte-for-byte.",
+  "date": "2026-11-24",
+  "scope": "Six finding-specific static correlation reviews. Exact member path, raw byte length, SHA256 and rule are required; original findings remain visible as warnings. No package exemption, execution permission, advisory override, binary clearance or coverage waiver.",
+  "evidence": "The existing npm cache archives match the desktop package-lock SHA512 integrity. Their SHA256 matches the published dependency scan evidence. Each member was read without extraction or execution and matches the installed local source byte-for-byte. Mobile 4.43.2/2.0.3 cache archives were verified against mobile lock SHA512 and published scanner SHA256, and the three reviewed members match local source byte-for-byte.",
   "reviews": [
     {
       "id": "stencil-4.45.2-system-env-configuration",
@@ -39,6 +39,42 @@
       "rule": "environment-collection-and-network-review",
       "reason": "The environment-collection pattern matches stripSensitiveEnvVars(process.env) passed as the child-process environment (line 330). The dependency collector intentionally launches the selected local package-manager dependency-list command with argument arrays and the default shell:false setting; on Windows it uses the documented PowerShell argument-encoding wrapper, then parses its output. The network regex's fetch matches are prose describing dependency-tree collection rather than an HTTP API in this source. This is a reviewed false correlation, not permission to execute package managers or a guarantee about child processes. Credential filtering and every sibling member/rule remain independently inspected.",
       "upstream": "https://github.com/electron-userland/electron-builder"
+    },
+    {
+      "id": "stencil-4.43.2-system-env-configuration",
+      "package": "@stencil/core",
+      "version": "4.43.2",
+      "member": "package/sys/node/index.js",
+      "bytes": 190409,
+      "sha256": "d244091f9979d139e85f0e7ca18edff70c294542a3eee54f854d4e881922b089",
+      "archive_sha256": "07cac163827866bfa9e2a16b8318c2768261ecc0d156e1dbfffac23ddc5032b0",
+      "rule": "environment-collection-and-network-review",
+      "reason": "The complete raw member was inspected. The process.env collection matches pass the environment to Yarn PATH-key selection and enumerate only debug-prefixed formatting options. Neither match serializes or uploads the environment. Compiler child-process environment forwarding, explicit filesystem helpers and network fetch capabilities are real build-tool behavior and remain visible under their other rules. This review resolves only the collection/network co-occurrence for these exact bytes.",
+      "upstream": "https://github.com/ionic-team/stencil"
+    },
+    {
+      "id": "stencil-4.43.2-compiler-dom-property-names",
+      "package": "@stencil/core",
+      "version": "4.43.2",
+      "member": "package/compiler/stencil.js",
+      "bytes": 13184133,
+      "sha256": "4592a2aacb560939f2bf76bc43c824f01a57c09f863d6153112753017dd00f3c",
+      "archive_sha256": "07cac163827866bfa9e2a16b8318c2768261ecc0d156e1dbfffac23ddc5032b0",
+      "rule": "credential-access-and-network-review",
+      "reason": "The credential-path expression matches the literal cookies within the minifier DOM-property table alongside cookie, cookieEnabled and cookieStore. The member does not read a browser cookie database at that match. Independent compiler file readers and network helpers do not establish credential-to-network dataflow. Their findings remain visible; changed bytes, other rules, advisories and binary coverage keep their existing handling.",
+      "upstream": "https://github.com/ionic-team/stencil"
+    },
+    {
+      "id": "native-run-2.0.3-simulator-process-list",
+      "package": "native-run",
+      "version": "2.0.3",
+      "member": "package/dist/ios/utils/simulator.js",
+      "bytes": 4362,
+      "sha256": "a0053f6b3cacc46ffc089d1ce4620534dbdbfc5f32a4a55a89ed22b53acebee3",
+      "archive_sha256": "24cfd96206e84cc934a763c3665efbbeab63ba8c399c8889378ec4a9580de45e",
+      "rule": "persistence-and-process-review",
+      "reason": "The complete 4362-byte member launches xcrun simctl commands with argument arrays to list, boot, install, launch and terminate a simulator app, and open the Simulator application. The only launchctl command is xcrun simctl spawn <udid> launchctl list, which polls the simulator service list for the app bundle ID. It does not load, bootstrap, enable or create a launch agent or daemon. setInterval is an in-process wait loop cleared when the app exits, not persistence. This review does not approve execution, shell invocation, other members or modified commands.",
+      "upstream": "https://github.com/ionic-team/native-run"
     }
   ],
   "limitations": [
