@@ -2,7 +2,7 @@
   "schema": 1,
   "date": "2026-10-27",
   "scope": "Finding-specific static review of five exact source members. Original findings remain warnings. No package-wide exemption, installation/execution authorization, advisory override, or binary/coverage approval. Every other member and rule is inspected normally.",
-  "evidence": "Exact local source bytes of the lockfile-pinned packages, whose official registry archive integrity was verified in StellarVPN.Website.UI dependency check 122206770563. Official npm metadata, OSV and GitHub Advisory lookups on 2026-10-27 returned no advisories for these four coordinates; that is not proof of package safety. On 2026-11-17 the exact Vite 7.3.8 distribution was independently rechecked: 37 of 39 members are unchanged from 7.3.7, package.json changes only version, and config.js changes only four virtual-module escaping sites. New vendor advisory evidence blocks affected releases independently of empty API responses. On 2026-11-26, the three older website compiler members were independently compared byte-for-byte with existing official npm cache archives: each archive matches the SHA512 in the website lock and official registry metadata, and its SHA256 matches website #159 diagnostics. No new package acquisition or execution was used for these reviews. They address only the named capability correlation, not vulnerability advisories or native gaps.",
+  "evidence": "Exact local source bytes of the lockfile-pinned packages, whose official registry archive integrity was verified in StellarVPN.Website.UI dependency check 122206770563. Official npm metadata, OSV and GitHub Advisory lookups on 2026-10-27 returned no advisories for these four coordinates; that is not proof of package safety. On 2026-11-17 the exact Vite 7.3.8 distribution was independently rechecked: 37 of 39 members are unchanged from 7.3.7, package.json changes only version, and config.js changes only four virtual-module escaping sites. New vendor advisory evidence blocks affected releases independently of empty API responses. On 2026-11-26, the three older website compiler members were independently compared byte-for-byte with existing official npm cache archives: each archive matches the SHA512 in the website lock and official registry metadata, and its SHA256 matches website #159 diagnostics. No new package acquisition or execution was used for these reviews. They address only the named capability correlation, not vulnerability advisories or native gaps. The Vite 6.4.6 archive was separately approved for download/static inspection on 2026-11-26; its SHA512 matches official registry metadata and every member was inventoried without execution. Vendor advisory GHSA-p4f5-76q4-ffq7 lists 6.4.6 as patched; this record itself never clears advisories.",
   "reviews": [
     {
       "id": "angular-cli-21.2.28-package-metadata",
@@ -108,6 +108,19 @@
       "reason": "Object.entries(process.env) at line 99 immediately filters npm_config_ and optional yarn_ configuration keys. Network-pattern matches are npm-registry-fetch documentation comments; actual registry I/O is explicitly delegated to pacote metadata functions. The helper intentionally reads npm/yarn configuration, interpolates configured environment references and may pass registry authentication; those capabilities are not denied or authorized here. The reviewed correlation is not evidence of wholesale environment exfiltration.",
       "upstream": "https://github.com/angular/angular-cli",
       "publisher": "google-wombot"
+    },
+    {
+      "id": "vite-6.4.6-env-configuration",
+      "package": "vite",
+      "version": "6.4.6",
+      "member": "package/dist/node/chunks/dep-Cohbwjf9.js",
+      "bytes": 1510673,
+      "sha256": "fa53d1dc4b52f57e9a933248f51be9e22964aefd4ce9d0e4a0992ab8287245b2",
+      "archive_sha256": "f807fd45406304489388c00583e84a0458b2eb65c59f35bca8fa55995fd9e9d0",
+      "rule": "environment-collection-and-network-review",
+      "reason": "The Object.keys(process.env) matches at lines 6090 and 17520 immediately filter /^debug_/i option names. Environment loading at 16975 selects configured prefixes and rejects an empty prefix; JSON.stringify sites at 15111 and 41383 serialize NODE_ENV or the selected mode. Fetch helpers at 36347 and 41420 implement module-preload and WASM loading; their co-occurrence is not evidence that the selected environment values are sent to those helpers. Trusted configuration can expose variables intentionally. This finding-specific review does not approve plugins, subprocesses, arbitrary environment disclosure or other rules, and it never overrides an advisory or native gap.",
+      "upstream": "https://github.com/vitejs/vite",
+      "publisher": "GitHub Actions"
     }
   ],
   "limitations": [

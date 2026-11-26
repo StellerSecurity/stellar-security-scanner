@@ -112,8 +112,8 @@ class ReviewEvidenceTests(unittest.TestCase):
             entries.extend(json.loads((ROOT / 'reviews' / name).read_text())['reviews'])
         actual = {(e['member'], e['bytes'], e['sha256'], e['rule'], e['id']) for e in entries}
         self.assertEqual(actual, set(guard.SOURCE_CAPABILITY_REVIEWS))
-        self.assertEqual(len(actual), 16)
-        self.assertEqual(len({e['id'] for e in entries}), 16)
+        self.assertEqual(len(actual), 17)
+        self.assertEqual(len({e['id'] for e in entries}), 17)
         for entry in entries:
             self.assertRegex(entry['sha256'], r'^[0-9a-f]{64}$')
             self.assertRegex(entry['archive_sha256'], r'^[0-9a-f]{64}$')
