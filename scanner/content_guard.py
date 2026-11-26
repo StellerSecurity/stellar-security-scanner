@@ -40,6 +40,15 @@ NON_RUNTIME_REVIEW_SUFFIX = re.compile(
 # Keep the original finding visible. Changed bytes/paths and every other rule
 # retain normal severity. Evidence: reviews/*-capability-correlations.json.
 SOURCE_CAPABILITY_REVIEWS = (
+    ('package/dist/babel.js', 1736792,
+     'afe3a29e0cc0be70ee0e55e1bbcc4b1ad905f5e2cf84ba3a818a1372bcfdcd9e',
+     'environment-collection-and-network-review', 'jiti-1.21.7-babel-debug-options'),
+    ('package/dist/bundle.min.js', 1028181,
+     '38af5a0fb14c73bc49acc03cb5e1187ff45470b7dec04571aea44525aa063ce8',
+     'credential-access-and-network-review', 'terser-5.31.6-dom-properties'),
+    ('package/src/utilities/package-metadata.js', 10229,
+     'bd833580442cfbfb5fdf66f95100178569dd4e7c8a356d56ac7b8921954db84b',
+     'environment-collection-and-network-review', 'angular-cli-18.2.21-package-metadata'),
     ('package/dist/ios/utils/simulator.js', 4362,
      'a0053f6b3cacc46ffc089d1ce4620534dbdbfc5f32a4a55a89ed22b53acebee3',
      'persistence-and-process-review', 'native-run-2.0.3-simulator-process-list'),
