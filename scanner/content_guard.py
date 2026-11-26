@@ -40,6 +40,9 @@ NON_RUNTIME_REVIEW_SUFFIX = re.compile(
 # Keep the original finding visible. Changed bytes/paths and every other rule
 # retain normal severity. Evidence: reviews/*-capability-correlations.json.
 SOURCE_CAPABILITY_REVIEWS = (
+    ('package/dist/node/chunks/dep-Cohbwjf9.js', 1510673,
+     'fa53d1dc4b52f57e9a933248f51be9e22964aefd4ce9d0e4a0992ab8287245b2',
+     'environment-collection-and-network-review', 'vite-6.4.6-env-configuration'),
     ('package/dist/babel.js', 1736792,
      'afe3a29e0cc0be70ee0e55e1bbcc4b1ad905f5e2cf84ba3a818a1372bcfdcd9e',
      'environment-collection-and-network-review', 'jiti-1.21.7-babel-debug-options'),
