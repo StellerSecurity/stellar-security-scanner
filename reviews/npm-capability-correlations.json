@@ -2,7 +2,7 @@
   "schema": 1,
   "date": "2026-10-27",
   "scope": "Finding-specific static review of five exact source members. Original findings remain warnings. No package-wide exemption, installation/execution authorization, advisory override, or binary/coverage approval. Every other member and rule is inspected normally.",
-  "evidence": "Exact local source bytes of the lockfile-pinned packages, whose official registry archive integrity was verified in StellarVPN.Website.UI dependency check 122206770563. Official npm metadata, OSV and GitHub Advisory lookups on 2026-10-27 returned no advisories for these four coordinates; that is not proof of package safety. On 2026-11-17 the exact Vite 7.3.8 distribution was independently rechecked: 37 of 39 members are unchanged from 7.3.7, package.json changes only version, and config.js changes only four virtual-module escaping sites. New vendor advisory evidence blocks affected releases independently of empty API responses.",
+  "evidence": "Exact local source bytes of the lockfile-pinned packages, whose official registry archive integrity was verified in StellarVPN.Website.UI dependency check 122206770563. Official npm metadata, OSV and GitHub Advisory lookups on 2026-10-27 returned no advisories for these four coordinates; that is not proof of package safety. On 2026-11-17 the exact Vite 7.3.8 distribution was independently rechecked: 37 of 39 members are unchanged from 7.3.7, package.json changes only version, and config.js changes only four virtual-module escaping sites. New vendor advisory evidence blocks affected releases independently of empty API responses. On 2026-11-26, the three older website compiler members were independently compared byte-for-byte with existing official npm cache archives: each archive matches the SHA512 in the website lock and official registry metadata, and its SHA256 matches website #159 diagnostics. No new package acquisition or execution was used for these reviews. They address only the named capability correlation, not vulnerability advisories or native gaps.",
   "reviews": [
     {
       "id": "angular-cli-21.2.28-package-metadata",
@@ -69,6 +69,45 @@
       "upstream": "https://github.com/vitejs/vite",
       "publisher": "GitHub Actions",
       "review_date": "2026-11-17"
+    },
+    {
+      "id": "jiti-1.21.7-babel-debug-options",
+      "package": "jiti",
+      "version": "1.21.7",
+      "archive_sha256": "5822fe21a941bd0fb7fd80a28abbdcc26f12f01dcf9f9062615899afe6ddb221",
+      "member": "package/dist/babel.js",
+      "sha256": "afe3a29e0cc0be70ee0e55e1bbcc4b1ad905f5e2cf84ba3a818a1372bcfdcd9e",
+      "bytes": 1736792,
+      "rule": "environment-collection-and-network-review",
+      "reason": "The sole Object.keys(process.env) correlation in this bundled Babel file immediately filters keys with /^debug_/i and reduces those debug option names into inspectOpts. The browser debug storage code and network-related terms elsewhere in this bundled compiler do not demonstrate sending the environment to a network sink. This is a finding-specific false-correlation review only; it does not approve compiler evaluation, plugins, arbitrary environment exposure or other source behavior.",
+      "upstream": "https://github.com/unjs/jiti",
+      "publisher": "pi0"
+    },
+    {
+      "id": "terser-5.31.6-dom-properties",
+      "package": "terser",
+      "version": "5.31.6",
+      "archive_sha256": "228d32188177269314cafb2d83ee45d9a20c3cd02335f9fb0a3b95f2d05b2d21",
+      "member": "package/dist/bundle.min.js",
+      "sha256": "38af5a0fb14c73bc49acc03cb5e1187ff45470b7dec04571aea44525aa063ce8",
+      "bytes": 1028181,
+      "rule": "credential-access-and-network-review",
+      "reason": "The cookies match at line 26522 is an inert DOM property-name string, alongside cookie and cookieStore; it does not read a browser cookie store. The fetch matches are a parser comment and DOM property strings at lines 2619 and 27146-27148. This review concerns their false credential-to-network correlation only. Other file reads, generated-code handling, CLI execution, any changed bytes and every other scanner rule remain subject to ordinary inspection.",
+      "upstream": "https://github.com/terser/terser",
+      "publisher": "fabiosantoscode"
+    },
+    {
+      "id": "angular-cli-18.2.21-package-metadata",
+      "package": "@angular/cli",
+      "version": "18.2.21",
+      "archive_sha256": "f54a4bb3efbbf041f3daa7d7796faeabf8fb65cd61461762cac6061e0e77e566",
+      "member": "package/src/utilities/package-metadata.js",
+      "sha256": "bd833580442cfbfb5fdf66f95100178569dd4e7c8a356d56ac7b8921954db84b",
+      "bytes": 10229,
+      "rule": "environment-collection-and-network-review",
+      "reason": "Object.entries(process.env) at line 99 immediately filters npm_config_ and optional yarn_ configuration keys. Network-pattern matches are npm-registry-fetch documentation comments; actual registry I/O is explicitly delegated to pacote metadata functions. The helper intentionally reads npm/yarn configuration, interpolates configured environment references and may pass registry authentication; those capabilities are not denied or authorized here. The reviewed correlation is not evidence of wholesale environment exfiltration.",
+      "upstream": "https://github.com/angular/angular-cli",
+      "publisher": "google-wombot"
     }
   ],
   "limitations": [
